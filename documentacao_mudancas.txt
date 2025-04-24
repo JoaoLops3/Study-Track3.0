@@ -1,0 +1,110 @@
+melhoria que falta no bolt:
+
+
+PROMPT PARA ATUALIZAÇÃO DO PROJECT 2
+
+O Project 2 já possui uma estrutura base, mas precisa das seguintes atualizações para ficar igual ao projeto original:
+
+1. SISTEMA DE TAMANHO DE FONTE:
+- Implementar useFontSize.ts com:
+  * Persistência no localStorage
+  * Aplicação global no HTML e body
+  * Suporte a elementos keep-font-size
+  * Três tamanhos: pequeno (14px), médio (16px), grande (18px)
+
+- Criar FontSizeButtons.tsx com:
+  * Botões para cada tamanho
+  * Feedback visual ativo
+  * Aria-labels
+  * Estilização com Tailwind
+
+2. COMPONENTES UI:
+- Criar Button.tsx em src/components/ui/ com:
+  * Variantes: default, destructive, outline, secondary, ghost, link
+  * Tamanhos: default, sm, lg, icon
+  * Suporte a asChild
+  * Estilização com Tailwind
+
+- Criar Card.tsx em src/components/ui/ com:
+  * Componentes: Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter
+  * Estilização com Tailwind
+  * Suporte a dark mode
+
+3. ESTILOS (index.css):
+Adicionar:
+- Estilos globais para tamanhos de fonte
+- Estilos para o editor de texto (ProseMirror)
+- Estilos para modais
+- Estilos para cards e containers
+- Estilos para formulários
+- Estilos para botões
+- Estilos para navegação
+- Transições suaves
+- Suporte a dark mode
+
+4. CONTEXTOS:
+- Implementar ThemeContext.tsx com:
+  * Gerenciamento de tema claro/escuro
+  * Persistência no localStorage
+  * Aplicação global
+
+- Implementar SettingsContext.tsx com:
+  * Gerenciamento de configurações
+  * Persistência no localStorage
+  * Integração com o sistema de tamanho de fonte
+
+5. INTEGRAÇÕES:
+- Criar AuthIntegrations.tsx com:
+  * Integração com Figma
+  * Integração com Discord
+  * Armazenamento de tokens
+
+- Criar Integrations.tsx com:
+  * Listagem de integrações
+  * Funcionalidade de desconexão
+  * Feedback visual
+
+6. BANCO DE DADOS:
+- Criar migrações SQL para:
+  * Tabela de integrações
+  * Políticas de segurança
+  * Funções auxiliares
+
+7. UTILITÁRIOS:
+- Implementar error-handler.ts com:
+  * Tratamento de erros global
+  * Sistema de notificações
+  * Feedback visual
+
+8. CONFIGURAÇÕES:
+Atualizar:
+- tailwind.config.js com:
+  * Cores personalizadas
+  * Dark mode
+  * Plugins necessários
+
+- vite.config.ts com:
+  * Aliases
+  * Configurações de build
+
+9. DEPENDÊNCIAS NECESSÁRIAS:
+Adicionar:
+- @radix-ui/react-slot
+- class-variance-authority
+- clsx
+- tailwind-merge
+- sonner
+
+10. MELHORIAS DE ACESSIBILIDADE:
+- Adicionar aria-labels
+- Melhorar contraste
+- Implementar navegação por teclado
+
+11. MELHORIAS DE PERFORMANCE:
+- Implementar lazy loading
+- Otimizar imagens
+- Usar memoização
+
+Use o código do projeto original como referência para todas as implementações. Mantenha a consistência com o código existente e siga as melhores práticas de React e TypeScript.
+
+O projeto deve permanecer totalmente funcional após todas as atualizações.

@@ -1,0 +1,86 @@
+/* Estilos base do calendário */
+.rbc-calendar {
+  background-color: var(--background-color);
+  color: var(--text-color);
+}
+
+.rbc-toolbar {
+  background-color: var(--background-color);
+  color: var(--text-color);
+}
+
+.rbc-toolbar button {
+  color: var(--text-color);
+  background-color: var(--background-color);
+  border: 1px solid var(--border-color);
+}
+
+.rbc-toolbar button:hover {
+  background-color: var(--hover-color);
+}
+
+.rbc-toolbar button.rbc-active {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+.rbc-header {
+  background-color: var(--background-color);
+  color: var(--text-color);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.rbc-month-view,
+.rbc-time-view {
+  background-color: var(--background-color);
+  border: 1px solid var(--border-color);
+}
+
+.rbc-day-bg {
+  background-color: var(--background-color);
+}
+
+.rbc-off-range-bg {
+  background-color: var(--background-color-secondary);
+}
+
+.rbc-today {
+  background-color: var(--background-color-today);
+}
+
+.rbc-event {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+.rbc-event.rbc-selected {
+  background-color: var(--primary-color-dark);
+}
+
+.rbc-button-link {
+  color: var(--text-color);
+}
+
+/* Classes para tema claro */
+:root {
+  --background-color: #ffffff;
+  --background-color-secondary: #f5f5f5;
+  --background-color-today: #eaf6ff;
+  --text-color: #333333;
+  --border-color: #dddddd;
+  --hover-color: #f0f0f0;
+  --primary-color: #3b82f6;
+  --primary-color-dark: #2563eb;
+}
+
+/* Classes para tema escuro */
+.dark {
+  --background-color: #1f2937;
+  --background-color-secondary: #374151;
+  --background-color-today: #1e40af;
+  --text-color: #f3f4f6;
+  --border-color: #4b5563;
+  --hover-color: #374151;
+  --primary-color: #3b82f6;
+  --primary-color-dark: #2563eb;
+} 
