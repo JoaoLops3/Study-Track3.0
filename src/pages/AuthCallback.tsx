@@ -11,18 +11,23 @@ const AuthCallback = () => {
       try {
         // O Supabase já lida com o callback automaticamente
         // Aqui só precisamos verificar se houve algum erro
-        const { error } = await supabase.auth.getSession();
+        const { data: { session }, error } = await supabase.auth.getSession();
         
         if (error) {
           throw error;
         }
 
-        toast.success('Autenticação realizada com sucesso!');
-        navigate('/settings');
+        if (session) {
+          toast.success('Autenticação realizada com sucesso!');
+          // Redireciona para o dashboard após o login
+          navigate('/dashboard');
+        } else {
+          throw new Error('Sessão não encontrada');
+        }
       } catch (error) {
         console.error('Erro ao processar autenticação:', error);
         toast.error('Erro ao processar autenticação');
-        navigate('/settings?error=auth-failed');
+        navigate('/login?error=auth-failed');
       }
     };
 
