@@ -1,62 +1,95 @@
-# Study Track
+# Study Track 🚀
 
-Uma aplicação web para gerenciamento de estudos e projetos, com integração ao GitHub.
+![Study Track Logo](public/logo-Study-Track.png)
 
-## Funcionalidades
+Uma plataforma moderna para gerenciamento de estudos e projetos, com foco em produtividade e colaboração.
 
-- Gerenciamento de projetos e tarefas
-- Integração com GitHub para visualização de repositórios
-- Personalização de tema e tamanho de fonte
-- Sistema de notificações
-- Gerenciamento de equipe
+## ✨ Funcionalidades Principais
 
-## Tecnologias Utilizadas
+- **Gerenciamento de Projetos**
+  - Criação e organização de projetos
+  - Sistema de tarefas e subtarefas
+  - Favoritos e categorização
+  - Visualização em diferentes layouts
 
-- React
-- TypeScript
-- Tailwind CSS
-- Supabase
-- GitHub OAuth
+- **Integração com GitHub**
+  - Autenticação via OAuth
+  - Visualização de repositórios
+  - Acompanhamento de contribuições
+  - Estatísticas detalhadas (estrelas, forks, visualizações)
 
-## Pré-requisitos
+- **Personalização**
+  - Temas claro/escuro/sistema
+  - Ajuste de tamanho de fonte
+  - Configurações de notificações
+  - Preferências de privacidade
 
-- Node.js (versão 18 ou superior)
+- **Colaboração**
+  - Gerenciamento de equipe
+  - Compartilhamento de projetos
+  - Controle de acesso
+  - Sistema de comentários
+
+## 🛠️ Tecnologias Utilizadas
+
+- **Frontend**
+  - React 18
+  - TypeScript
+  - Tailwind CSS
+  - Vite
+
+- **Backend & Infraestrutura**
+  - Supabase
+  - GitHub API
+  - OAuth 2.0
+
+- **Ferramentas**
+  - ESLint
+  - Prettier
+  - React Hot Toast
+  - Lucide Icons
+
+## 📋 Pré-requisitos
+
+- Node.js 18+
 - npm ou yarn
 - Conta no Supabase
 - Conta no GitHub (para integração)
 
-## Instalação
+## 🚀 Começando
 
-1. Clone o repositório:
-```bash
-git clone https://github.com/seu-usuario/study-track.git
-cd study-track
-```
+1. **Clone o repositório**
+   ```bash
+   git clone https://github.com/seu-usuario/study-track.git
+   cd study-track
+   ```
 
-2. Instale as dependências:
-```bash
-npm install
-# ou
-yarn install
-```
+2. **Instale as dependências**
+   ```bash
+   npm install
+   # ou
+   yarn install
+   ```
 
-3. Crie um arquivo `.env` na raiz do projeto com as seguintes variáveis:
-```env
-VITE_SUPABASE_URL=sua_url_do_supabase
-VITE_SUPABASE_ANON_KEY=sua_chave_anonima_do_supabase
-VITE_GITHUB_CLIENT_ID=seu_client_id_do_github
-VITE_GITHUB_CLIENT_SECRET=seu_client_secret_do_github
-```
+3. **Configure as variáveis de ambiente**
+   Crie um arquivo `.env` na raiz do projeto:
+   ```env
+   VITE_SUPABASE_URL=sua_url_do_supabase
+   VITE_SUPABASE_ANON_KEY=sua_chave_anonima_do_supabase
+   VITE_GITHUB_CLIENT_ID=seu_client_id_do_github
+   VITE_GITHUB_CLIENT_SECRET=seu_client_secret_do_github
+   ```
 
-4. Inicie o servidor de desenvolvimento:
-```bash
-npm run dev
-# ou
-yarn dev
-```
+4. **Inicie o servidor de desenvolvimento**
+   ```bash
+   npm run dev
+   # ou
+   yarn dev
+   ```
 
-## Configuração do Supabase
+## 🔧 Configuração
 
+### Supabase
 1. Crie um novo projeto no Supabase
 2. Configure a autenticação com GitHub
 3. Crie as tabelas necessárias:
@@ -65,8 +98,7 @@ yarn dev
    - tasks
    - team_members
 
-## Configuração do GitHub OAuth
-
+### GitHub OAuth
 1. Crie um novo OAuth App no GitHub:
    - Vá para Settings > Developer settings > OAuth Apps
    - Clique em "New OAuth App"
@@ -75,16 +107,31 @@ yarn dev
      - Homepage URL: http://localhost:5173 (desenvolvimento)
      - Authorization callback URL: http://localhost:5173/auth/github/callback
 
-2. Copie o Client ID e Client Secret para o arquivo `.env`
+## 📱 Telas
 
-## Contribuição
+### Dashboard
+![Dashboard](public/screenshots/dashboard.png)
+
+### Gerenciamento de Projetos
+![Projetos](public/screenshots/projects.png)
+
+### Integração GitHub
+![GitHub](public/screenshots/github.png)
+
+## 🤝 Contribuição
 
 1. Faça um fork do projeto
 2. Crie uma branch para sua feature (`git checkout -b feature/nova-feature`)
-3. Commit suas mudanças (`git commit -m 'Adiciona nova feature'`)
+3. Commit suas mudanças (`git commit -m 'feat: adiciona nova feature'`)
 4. Push para a branch (`git push origin feature/nova-feature`)
 5. Abra um Pull Request
 
-## Licença
+## 📄 Licença
 
-Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](LICENSE) para mais detalhes. 
+Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](LICENSE) para mais detalhes.
+
+## 📞 Suporte
+
+Para suporte, envie um email para seu-email@exemplo.com ou abra uma issue no GitHub.
+
+---
