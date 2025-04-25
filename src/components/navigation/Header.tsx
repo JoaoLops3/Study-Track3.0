@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { Menu, X, Search, ChevronLeft, Bell, LogOut } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useSettings } from '../../contexts/SettingsContext';
-import AuthIntegrations from '../integrations/AuthIntegrations';
 
 interface HeaderProps {
   onMenuClick: () => void;
@@ -63,7 +62,6 @@ const Header = ({ onMenuClick, onToggleSidebar, isSidebarOpen }: HeaderProps) =>
       </div>
       
       <div className="flex items-center">
-        <AuthIntegrations />
         <button className="p-1 mx-2 text-gray-500 dark:text-gray-400 rounded-md hover:text-gray-900 dark:hover:text-gray-300 focus:outline-none focus:ring-2 focus:ring-primary-500">
           <Bell className="w-6 h-6" />
         </button>

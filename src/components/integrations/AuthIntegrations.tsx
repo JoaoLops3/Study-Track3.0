@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Github, Calendar, Mail, Trello, Slack, Figma, FileText, MessageSquare } from 'lucide-react';
+import { Github, Calendar, Mail, Figma, MessageSquare } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import toast from 'react-hot-toast';
 
@@ -34,31 +34,10 @@ const integrations: Integration[] = [
     isConnected: false
   },
   {
-    id: 'trello',
-    name: 'Trello',
-    icon: Trello,
-    description: 'Integre seus quadros e cards do Trello',
-    isConnected: false
-  },
-  {
-    id: 'slack',
-    name: 'Slack',
-    icon: Slack,
-    description: 'Receba notificações e integre com seus canais',
-    isConnected: false
-  },
-  {
     id: 'figma',
     name: 'Figma',
     icon: Figma,
     description: 'Acompanhe seus designs e protótipos',
-    isConnected: false
-  },
-  {
-    id: 'notion',
-    name: 'Notion',
-    icon: FileText,
-    description: 'Sincronize suas notas e documentos',
     isConnected: false
   },
   {
@@ -71,7 +50,6 @@ const integrations: Integration[] = [
 ];
 
 const AuthIntegrations = () => {
-  const [isOpen, setIsOpen] = useState(false);
   const [selectedIntegration, setSelectedIntegration] = useState<Integration | null>(null);
 
   const handleConnect = async (integration: Integration) => {
@@ -138,41 +116,33 @@ const AuthIntegrations = () => {
   };
 
   return (
-    <div className="relative">
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center space-x-2 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md"
-      >
-        <span>Integrações</span>
-      </button>
-
-      {isOpen && (
-        <div className="absolute right-0 mt-2 w-80 bg-white dark:bg-gray-800 rounded-lg shadow-lg ring-1 ring-black ring-opacity-5 z-50">
-          <div className="p-4">
-            <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">Conectar Contas</h3>
-            <div className="space-y-4">
-              {integrations.map((integration) => (
-                <button
-                  key={integration.id}
-                  onClick={() => handleConnect(integration)}
-                  disabled={selectedIntegration?.id === integration.id}
-                  className="flex items-center w-full p-3 text-left rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-                >
-                  <integration.icon className="w-5 h-5 mr-3 text-gray-500 dark:text-gray-400" />
-                  <div>
-                    <p className="text-sm font-medium text-gray-900 dark:text-white">
-                      {integration.name}
-                    </p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">
-                      {integration.description}
-                    </p>
-                  </div>
-                </button>
-              ))}
+    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+      <div>
+        <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">Integrações</h3>
+        <div className="space-y-4">
+          {integrations.map((integration) => (
+            <div key={integration.id} className="flex items-center justify-between">
+              <div>
+                <h4 className="text-sm font-medium text-gray-900 dark:text-white">{integration.name}</h4>
+                <p className="text-sm text-gray-500 dark:text-gray-400">{integration.description}</p>
+              </div>
+              <button
+                onClick={() => handleConnect(integration)}
+                disabled={selectedIntegration?.id === integration.id}
+                className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 ${
+                  integration.isConnected ? 'bg-primary-600' : 'bg-gray-200 dark:bg-gray-700'
+                }`}
+              >
+                <span
+                  className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                    integration.isConnected ? 'translate-x-5' : 'translate-x-0'
+                  }`}
+                />
+              </button>
             </div>
-          </div>
+          ))}
         </div>
-      )}
+      </div>
     </div>
   );
 };
