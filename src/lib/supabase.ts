@@ -12,7 +12,8 @@ export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
   auth: {
     autoRefreshToken: true,
     persistSession: true,
-    detectSessionInUrl: true
+    detectSessionInUrl: true,
+    redirectTo: 'https://study-track3-0.vercel.app/auth/callback'
   },
   realtime: {
     params: {
