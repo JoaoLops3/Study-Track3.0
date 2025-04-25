@@ -107,17 +107,6 @@ Uma plataforma moderna para gerenciamento de estudos e projetos, com foco em pro
      - Homepage URL: http://localhost:5173 (desenvolvimento)
      - Authorization callback URL: http://localhost:5173/auth/github/callback
 
-## 📱 Telas
-
-### Dashboard
-![Dashboard](public/screenshots/dashboard.png)
-
-### Gerenciamento de Projetos
-![Projetos](public/screenshots/projects.png)
-
-### Integração GitHub
-![GitHub](public/screenshots/github.png)
-
 ## 🤝 Contribuição
 
 1. Faça um fork do projeto
