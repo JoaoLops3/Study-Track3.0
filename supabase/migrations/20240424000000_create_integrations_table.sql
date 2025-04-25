@@ -2,7 +2,7 @@
 CREATE TABLE IF NOT EXISTS public.integrations (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
-  provider TEXT NOT NULL CHECK (provider IN ('figma', 'discord', 'google_calendar')),
+  provider TEXT NOT NULL CHECK (provider IN ('figma', 'discord', 'google_calendar', 'github')),
   access_token TEXT NOT NULL,
   refresh_token TEXT,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
@@ -29,31 +29,55 @@ RETURNS void
 LANGUAGE plpgsql
 SECURITY DEFINER
 AS $$
+DECLARE
+  policy_exists boolean;
 BEGIN
-  DROP POLICY IF EXISTS "Users can view their own integrations" ON public.integrations;
-  DROP POLICY IF EXISTS "Users can insert their own integrations" ON public.integrations;
-  DROP POLICY IF EXISTS "Users can update their own integrations" ON public.integrations;
-  DROP POLICY IF EXISTS "Users can delete their own integrations" ON public.integrations;
+  -- Verificar se as políticas já existem
+  SELECT EXISTS (
+    SELECT 1 FROM pg_policies 
+    WHERE tablename = 'integrations' 
+    AND policyname = 'Users can view their own integrations'
+  ) INTO policy_exists;
 
-  CREATE POLICY "Users can view their own integrations"
-    ON public.integrations
-    FOR SELECT
-    USING (auth.uid() = user_id);
+  -- Se as políticas não existirem, criar todas de uma vez
+  IF NOT policy_exists THEN
+    -- Criar todas as políticas em uma única transação
+    BEGIN
+      -- Remover políticas existentes primeiro
+      DROP POLICY IF EXISTS "Users can view their own integrations" ON public.integrations;
+      DROP POLICY IF EXISTS "Users can insert their own integrations" ON public.integrations;
+      DROP POLICY IF EXISTS "Users can update their own integrations" ON public.integrations;
+      DROP POLICY IF EXISTS "Users can delete their own integrations" ON public.integrations;
 
-  CREATE POLICY "Users can insert their own integrations"
-    ON public.integrations
-    FOR INSERT
-    WITH CHECK (auth.uid() = user_id);
+      -- Criar novas políticas
+      CREATE POLICY "Users can view their own integrations"
+        ON public.integrations
+        FOR SELECT
+        USING (auth.uid() = user_id);
 
-  CREATE POLICY "Users can update their own integrations"
-    ON public.integrations
-    FOR UPDATE
-    USING (auth.uid() = user_id);
+      CREATE POLICY "Users can insert their own integrations"
+        ON public.integrations
+        FOR INSERT
+        WITH CHECK (auth.uid() = user_id);
 
-  CREATE POLICY "Users can delete their own integrations"
-    ON public.integrations
-    FOR DELETE
-    USING (auth.uid() = user_id);
+      CREATE POLICY "Users can update their own integrations"
+        ON public.integrations
+        FOR UPDATE
+        USING (auth.uid() = user_id);
+
+      CREATE POLICY "Users can delete their own integrations"
+        ON public.integrations
+        FOR DELETE
+        USING (auth.uid() = user_id);
+    EXCEPTION WHEN OTHERS THEN
+      -- Em caso de erro, tentar remover todas as políticas
+      DROP POLICY IF EXISTS "Users can view their own integrations" ON public.integrations;
+      DROP POLICY IF EXISTS "Users can insert their own integrations" ON public.integrations;
+      DROP POLICY IF EXISTS "Users can update their own integrations" ON public.integrations;
+      DROP POLICY IF EXISTS "Users can delete their own integrations" ON public.integrations;
+      RAISE;
+    END;
+  END IF;
 END;
 $$;
 
@@ -61,7 +85,7 @@ $$;
 CREATE OR REPLACE FUNCTION update_updated_at_column()
 RETURNS TRIGGER AS $$
 BEGIN
-  NEW.updated_at = NOW();
+  NEW.updated_at = timezone('utc'::text, now());
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;

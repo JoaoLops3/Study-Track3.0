@@ -6,6 +6,10 @@ import { supabase } from '../lib/supabase';
 import toast from 'react-hot-toast';
 import heic2any from 'heic2any';
 import { Integrations } from '../components/Integrations';
+import { useFontSize } from '../hooks/useFontSize';
+import { useSettings } from '../contexts/SettingsContext';
+import GithubIntegration from '../components/integrations/GithubIntegration';
+import GithubRepos from '../components/integrations/GithubRepos';
 
 type Settings = {
   profile: {
@@ -95,12 +99,14 @@ const defaultSettings: Settings = {
 const Settings = () => {
   const { user } = useAuth();
   const { theme, setTheme } = useTheme();
+  const { setFontSize } = useFontSize();
   const [activeTab, setActiveTab] = useState('profile');
   const [settings, setSettings] = useState<Settings>(defaultSettings);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { settings: globalSettings } = useSettings();
 
   useEffect(() => {
     if (user) {
@@ -179,6 +185,8 @@ const Settings = () => {
     
     if (field === 'theme') {
       setTheme(value as 'light' | 'dark' | 'system');
+    } else if (field === 'fontSize') {
+      setFontSize(value as 'small' | 'medium' | 'large');
     }
   };
 
@@ -227,13 +235,42 @@ const Settings = () => {
     });
   };
 
-  const handleIntegrationChange = async (field: keyof Settings['integrations'], value: boolean) => {
-    await saveSettings({
-      integrations: {
-        ...settings.integrations,
-        [field]: value,
-      },
-    });
+  const handleIntegrationChange = async (integration: string, value: boolean) => {
+    try {
+      if (integration === 'github' && value) {
+        // Iniciar fluxo de autenticação OAuth
+        const { data, error } = await supabase.auth.signInWithOAuth({
+          provider: 'github',
+          options: {
+            redirectTo: `${window.location.origin}/auth/callback`,
+            scopes: 'repo'
+          }
+        });
+
+        if (error) throw error;
+        
+        // Atualizar o estado das configurações
+        await saveSettings({
+          integrations: {
+            ...settings.integrations,
+            github: true
+          }
+        });
+        
+        return;
+      }
+
+      // Para outras integrações ou desconexão, apenas atualiza o estado
+      await saveSettings({
+        integrations: {
+          ...settings.integrations,
+          [integration]: value
+        }
+      });
+    } catch (error) {
+      console.error('Erro ao atualizar integração:', error);
+      toast.error('Erro ao atualizar integração');
+    }
   };
 
   const handleAccessibilityChange = async (field: keyof Settings['accessibility'], value: boolean) => {

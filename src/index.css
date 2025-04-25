@@ -2,6 +2,24 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --font-size-small: 14px;
+  --font-size-medium: 16px;
+  --font-size-large: 18px;
+}
+
+[data-font-size="small"] {
+  font-size: var(--font-size-small) !important;
+}
+
+[data-font-size="medium"] {
+  font-size: var(--font-size-medium) !important;
+}
+
+[data-font-size="large"] {
+  font-size: var(--font-size-large) !important;
+}
+
 /* Base styles */
 @layer base {
   html, body {
@@ -82,6 +100,10 @@ html.text-lg *:not(.keep-font-size),
 body.text-lg *:not(.keep-font-size) {
   font-size: inherit;
   line-height: inherit;
+}
+
+.keep-font-size {
+  font-size: inherit !important;
 }
 
 /* Custom styles for the rich text editor */

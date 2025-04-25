@@ -2,10 +2,10 @@ import { useState, useEffect } from 'react';
 
 type FontSize = 'small' | 'medium' | 'large';
 
-const FONT_SIZE_CLASSES = {
-  small: 'text-sm',
-  medium: 'text-base',
-  large: 'text-lg',
+const FONT_SIZES = {
+  small: '14px',
+  medium: '16px',
+  large: '18px',
 };
 
 export function useFontSize() {
@@ -16,29 +16,12 @@ export function useFontSize() {
   });
 
   useEffect(() => {
-    // Aplica o tamanho da fonte em todo o documento
-    const html = document.documentElement;
-    const body = document.body;
-    
-    // Remove todas as classes de tamanho
-    Object.values(FONT_SIZE_CLASSES).forEach(className => {
-      html.classList.remove(className);
-      body.classList.remove(className);
-    });
-
-    // Adiciona a classe do tamanho atual
-    const currentClass = FONT_SIZE_CLASSES[fontSize];
-    html.classList.add(currentClass);
-    body.classList.add(currentClass);
-    
-    // Aplica a classe em todos os elementos que precisam manter o tamanho
-    document.querySelectorAll('.keep-font-size').forEach(element => {
-      element.classList.remove(...Object.values(FONT_SIZE_CLASSES));
-      element.classList.add(currentClass);
-    });
+    // Aplica o tamanho da fonte diretamente no estilo do documento
+    document.documentElement.style.fontSize = FONT_SIZES[fontSize];
     
     // Salva no localStorage
     localStorage.setItem('fontSize', fontSize);
+    document.documentElement.setAttribute('data-font-size', fontSize);
   }, [fontSize]);
 
   return {

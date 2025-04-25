@@ -2,19 +2,25 @@ import { createContext, useContext, useState, useEffect, ReactNode } from 'react
 import { supabase } from '../lib/supabase';
 import { useAuth } from './AuthContext';
 
-interface Settings {
-  profile: {
-    name: string;
-    email: string;
-    photoUrl?: string;
-  };
-  appearance: {
-    theme: 'light' | 'dark' | 'system';
-    fontSize: 'small' | 'medium' | 'large';
+export interface Settings {
+  theme: 'light' | 'dark' | 'system';
+  fontSize: 'small' | 'medium' | 'large';
+  integrations: {
+    github: boolean;
+    google: boolean;
   };
   notifications: {
     email: boolean;
     push: boolean;
+  };
+  profile: {
+    name: string;
+    email: string;
+    avatar?: string;
+  };
+  appearance: {
+    theme: 'light' | 'dark' | 'system';
+    fontSize: 'small' | 'medium' | 'large';
   };
   privacy: {
     profileVisibility: 'public' | 'private';
@@ -27,10 +33,6 @@ interface Settings {
   preferences: {
     language: string;
     timezone: string;
-  };
-  integrations: {
-    github: boolean;
-    google: boolean;
   };
   accessibility: {
     highContrast: boolean;

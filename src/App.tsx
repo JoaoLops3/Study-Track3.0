@@ -1,4 +1,4 @@
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { SettingsProvider } from './contexts/SettingsContext';
@@ -12,45 +12,10 @@ import { Toaster } from 'react-hot-toast';
 import { useAuth } from './contexts/AuthContext';
 import CalendarPage from './pages/Calendar';
 import TeamPage from './pages/Team';
-
-function AppRoutes() {
-  const { user, isLoading } = useAuth();
-
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-50 dark:bg-gray-900">
-        <div className="flex flex-col items-center">
-          <div className="w-12 h-12 border-t-2 border-primary-600 rounded-full animate-spin"></div>
-          <p className="mt-4 text-gray-600 dark:text-gray-300">Carregando...</p>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <Routes>
-      {user ? (
-        <>
-          <Route path="/" element={<MainLayout />}>
-            <Route index element={<Dashboard />} />
-            <Route path="dashboard" element={<Dashboard />} />
-            <Route path="board/:id" element={<Board />} />
-            <Route path="settings" element={<Settings />} />
-            <Route path="page/:id" element={<Page />} />
-            <Route path="calendar" element={<CalendarPage />} />
-            <Route path="team" element={<TeamPage />} />
-          </Route>
-          <Route path="*" element={<Navigate to="/dashboard" replace />} />
-        </>
-      ) : (
-        <>
-          <Route path="/login" element={<Login />} />
-          <Route path="*" element={<Navigate to="/login" replace />} />
-        </>
-      )}
-    </Routes>
-  );
-}
+import GithubCallback from './pages/GithubCallback';
+import AuthCallback from './pages/AuthCallback';
+import PrivateRoute from './components/PrivateRoute';
+import GithubRepos from './pages/GithubRepos';
 
 function App() {
   return (
@@ -67,7 +32,22 @@ function App() {
               },
             }}
           />
-          <AppRoutes />
+          <Routes>
+            <Route path="/login" element={<Login />} />
+            <Route path="/auth/github/callback" element={<GithubCallback />} />
+            <Route path="/auth/callback" element={<AuthCallback />} />
+            <Route path="/" element={<PrivateRoute><MainLayout /></PrivateRoute>}>
+              <Route index element={<Dashboard />} />
+              <Route path="dashboard" element={<Dashboard />} />
+              <Route path="board/:id" element={<Board />} />
+              <Route path="settings" element={<Settings />} />
+              <Route path="page/:id" element={<Page />} />
+              <Route path="calendar" element={<CalendarPage />} />
+              <Route path="team" element={<TeamPage />} />
+              <Route path="github-repos" element={<GithubRepos />} />
+            </Route>
+            <Route path="*" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
+          </Routes>
         </SettingsProvider>
       </ThemeProvider>
     </AuthProvider>

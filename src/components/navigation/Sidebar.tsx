@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Home, Book, Plus, Folder, File, Settings, PlusCircle } from 'lucide-react';
+import { Home, Book, Plus, Folder, File, Settings, PlusCircle, Github } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
 import type { Database } from '../../lib/database.types';
@@ -135,19 +135,32 @@ const Sidebar = ({ onClose }: SidebarProps) => {
 
   return (
     <div className="flex flex-col h-full overflow-hidden">
+      {/* Logo e Nome do Site */}
+      <div className="flex items-center justify-center p-4 border-b dark:border-gray-700">
+        <img 
+          src="/logo-Study-Track.png" 
+          alt="Study Track Logo" 
+          className="h-8 w-auto mr-2"
+        />
+        <h2 className="text-xl font-bold text-gray-900 dark:text-white">Study Track</h2>
+      </div>
+
       <nav className="flex-1 px-4 mt-4 overflow-y-auto">
-        <Link 
-          to="/" 
-          className={`flex items-center px-3 py-2 mb-2 rounded-md transition-colors ${
-            location.pathname === '/' 
-              ? 'bg-primary-50 text-primary-700 dark:bg-primary-900 dark:text-primary-100' 
-              : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
-          }`}
-          onClick={onClose}
+        <a
+          className="flex items-center px-3 py-2 mb-2 rounded-md transition-colors bg-primary-50 text-primary-700 dark:bg-primary-900 dark:text-primary-100"
+          href="/"
         >
           <Home className="w-5 h-5 mr-3" />
           <span>Dashboard</span>
-        </Link>
+        </a>
+        
+        <a
+          className="flex items-center px-3 py-2 mb-2 rounded-md transition-colors text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
+          href="/github-repos"
+        >
+          <Github className="w-5 h-5 mr-3" />
+          <span>Meus Repositórios</span>
+        </a>
         
         {/* Boards Section */}
         <div className="mt-6">

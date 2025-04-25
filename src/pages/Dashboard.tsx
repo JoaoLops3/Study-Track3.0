@@ -75,6 +75,8 @@ const Dashboard = () => {
   // Toggle favorito
   const toggleFavorite = async (type: 'board' | 'page', id: string, is_favorite: boolean | undefined) => {
     try {
+      if (!user) return;
+      
       const table = type === 'board' ? 'boards' : 'pages';
       const currentItems = type === 'board' ? recentBoards : recentPages;
       const setItems = type === 'board' ? setRecentBoards : setRecentPages;
@@ -82,19 +84,41 @@ const Dashboard = () => {
       const item = currentItems.find(item => item.id === id);
       if (!item) return;
 
-      const { error } = await supabase
+      // Primeiro, verificamos se o registro pertence ao usuário
+      const { data: existingItem, error: fetchError } = await supabase
+        .from(table)
+        .select('*')
+        .eq('id', id)
+        .eq('owner_id', user.id)
+        .single();
+
+      if (fetchError) {
+        console.error('Error fetching item:', fetchError);
+        throw fetchError;
+      }
+
+      if (!existingItem) {
+        throw new Error('Item not found or unauthorized');
+      }
+
+      // Garantir que is_favorite seja um booleano
+      const newFavoriteStatus = is_favorite === undefined ? true : !is_favorite;
+
+      // Agora fazemos o update
+      const { error: updateError } = await supabase
         .from(table)
         .update({ 
-          is_favorite: !is_favorite
+          is_favorite: newFavoriteStatus
         })
-        .eq('id', id)
-        .eq('owner_id', user?.id);
+        .eq('id', id);
 
-      if (error) throw error;
+      if (updateError) throw updateError;
 
       setItems(currentItems.map(item => 
-        item.id === id ? { ...item, is_favorite: !is_favorite } : item
+        item.id === id ? { ...item, is_favorite: newFavoriteStatus } : item
       ));
+      
+      toast.success('Favorito atualizado com sucesso!');
     } catch (error) {
       console.error('Error toggling favorite:', error);
       toast.error('Erro ao atualizar favorito');

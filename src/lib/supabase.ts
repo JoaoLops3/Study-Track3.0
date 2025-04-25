@@ -28,11 +28,30 @@ export const setupIntegrationPolicies = async () => {
 
   // Criar tabela de integrações se não existir
   const { error: createTableError } = await supabase.rpc('create_integrations_table');
-  if (createTableError) console.error('Error creating integrations table:', createTableError);
+  if (createTableError) {
+    console.error('Error creating integrations table:', createTableError);
+    return;
+  }
 
-  // Adicionar políticas para integrações
-  const { error: policyError } = await supabase.rpc('setup_integration_policies', {
-    user_id: user.id
-  });
-  if (policyError) console.error('Error setting up integration policies:', policyError);
+  // Configurar políticas com retry
+  let retryCount = 0;
+  const maxRetries = 3;
+  
+  while (retryCount < maxRetries) {
+    try {
+      const { error: policyError } = await supabase.rpc('setup_integration_policies');
+      if (!policyError) break;
+      
+      console.error(`Error setting up integration policies (attempt ${retryCount + 1}):`, policyError);
+      retryCount++;
+      
+      if (retryCount < maxRetries) {
+        // Esperar um pouco antes de tentar novamente
+        await new Promise(resolve => setTimeout(resolve, 1000 * retryCount));
+      }
+    } catch (error) {
+      console.error('Unexpected error:', error);
+      retryCount++;
+    }
+  }
 };
