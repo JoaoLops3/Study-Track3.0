@@ -39,50 +39,32 @@ const Header = ({ onMenuClick, onToggleSidebar, isSidebarOpen }: HeaderProps) =>
             <ChevronLeft className={`w-6 h-6 transition-transform duration-200 ${isSidebarOpen ? 'rotate-0' : 'rotate-180'}`} />
           </button>
         </div>
-        
-        <div className="flex items-center">
-          <button className="p-1 mx-2 text-gray-500 dark:text-gray-400 rounded-md hover:text-gray-900 dark:hover:text-gray-300 focus:outline-none focus:ring-2 focus:ring-primary-500">
-            <Bell className="w-6 h-6" />
+
+        <div className="flex items-center space-x-4">
+          {/* Botão de Logout */}
+          <button
+            onClick={handleSignOut}
+            className="flex items-center px-3 py-2 text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-md transition-colors duration-200"
+          >
+            <LogOut className="w-4 h-4 mr-2" />
+            Sair
           </button>
-          
-          <div className="relative ml-3">
-            <div>
-              <button
-                className="flex items-center max-w-xs text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-primary-500"
-                onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                aria-label="User menu"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-circle-user w-8 h-8 text-gray-500 dark:text-gray-400">
-                  {settings?.profile?.photoUrl ? (
-                    <>
-                      <defs>
-                        <clipPath id="circleClip">
-                          <circle cx="16" cy="16" r="14" />
-                        </clipPath>
-                      </defs>
-                      <image
-                        href={settings.profile.photoUrl}
-                        x="2"
-                        y="2"
-                        width="28"
-                        height="28"
-                        clipPath="url(#circleClip)"
-                        preserveAspectRatio="xMidYMid slice"
-                      />
-                    </>
-                  ) : (
-                    <>
-                      <circle cx="16" cy="16" r="14"></circle>
-                      <circle cx="16" cy="13" r="4"></circle>
-                      <path d="M9 26.662V25a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1.662"></path>
-                    </>
-                  )}
-                </svg>
-                <span className="ml-2 font-medium hidden md:block text-gray-900 dark:text-white">
-                  {settings?.profile?.name || user?.email?.split('@')[0]}
-                </span>
-              </button>
-            </div>
+
+          {/* Menu do Usuário */}
+          <div className="relative">
+            <button
+              onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+              className="flex items-center space-x-2 focus:outline-none"
+            >
+              <img
+                src={user?.user_metadata?.avatar_url || `https://ui-avatars.com/api/?name=${user?.email}&background=random`}
+                alt="Avatar"
+                className="w-8 h-8 rounded-full"
+              />
+              <span className="ml-2 font-medium hidden md:block text-gray-900 dark:text-white">
+                {settings?.profile?.name || user?.email?.split('@')[0]}
+              </span>
+            </button>
             
             {isUserMenuOpen && (
               <div className="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg py-1 bg-white dark:bg-gray-800 ring-1 ring-black ring-opacity-5 focus:outline-none">
@@ -91,12 +73,6 @@ const Header = ({ onMenuClick, onToggleSidebar, isSidebarOpen }: HeaderProps) =>
                   className="block w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
                 >
                   Configurações
-                </button>
-                <button
-                  onClick={handleSignOut}
-                  className="block w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-                >
-                  Sair
                 </button>
               </div>
             )}
