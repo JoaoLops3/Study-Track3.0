@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
-import { User, Mail, Lock, Bell, Eye, Globe, Shield, Clock, Keyboard, Users, Sun, Moon, Monitor } from 'lucide-react';
+import { User, Mail, Lock, Bell, Eye, Globe, Shield, Clock, Keyboard, Users, Sun, Moon, Monitor, Github, Calendar, Figma, MessageSquare } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import toast from 'react-hot-toast';
 import heic2any from 'heic2any';
@@ -36,6 +36,9 @@ type Settings = {
   integrations: {
     github: boolean;
     google: boolean;
+    googleCalendar: boolean;
+    figma: boolean;
+    discord: boolean;
   };
   accessibility: {
     highContrast: boolean;
@@ -75,6 +78,9 @@ const defaultSettings: Settings = {
   integrations: {
     github: false,
     google: false,
+    googleCalendar: false,
+    figma: false,
+    discord: false,
   },
   accessibility: {
     highContrast: false,
@@ -718,40 +724,113 @@ const Settings = () => {
                   <div>
                     <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">Integrações</h3>
                     <div className="space-y-4">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <h4 className="text-sm font-medium text-gray-900 dark:text-white">GitHub</h4>
-                          <p className="text-sm text-gray-500 dark:text-gray-400">Conecte sua conta do GitHub</p>
+                      <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                        <div className="flex items-center space-x-4">
+                          <div className="p-2 bg-gray-200 dark:bg-gray-700 rounded-lg">
+                            <Github className="h-6 w-6 text-gray-700 dark:text-gray-300" />
+                          </div>
+                          <div>
+                            <h4 className="text-sm font-medium text-gray-900 dark:text-white">GitHub</h4>
+                            <p className="text-sm text-gray-500 dark:text-gray-400">Conecte seus repositórios e acompanhe suas contribuições</p>
+                          </div>
                         </div>
                         <button
                           onClick={() => handleIntegrationChange('github', !settings.integrations.github)}
-                          className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 ${
-                            settings.integrations.github ? 'bg-primary-600' : 'bg-gray-200 dark:bg-gray-700'
+                          className={`px-4 py-2 rounded-md text-sm font-medium transition-colors duration-200 ${
+                            settings.integrations.github
+                              ? 'bg-green-100 text-green-700 hover:bg-green-200 dark:bg-green-900/30 dark:text-green-400 dark:hover:bg-green-900/50'
+                              : 'bg-primary-100 text-primary-700 hover:bg-primary-200 dark:bg-primary-900/30 dark:text-primary-400 dark:hover:bg-primary-900/50'
                           }`}
                         >
-                          <span
-                            className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
-                              settings.integrations.github ? 'translate-x-5' : 'translate-x-0'
-                            }`}
-                          />
+                          {settings.integrations.github ? 'Conectado' : 'Conectar'}
                         </button>
                       </div>
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <h4 className="text-sm font-medium text-gray-900 dark:text-white">Google</h4>
-                          <p className="text-sm text-gray-500 dark:text-gray-400">Conecte sua conta do Google</p>
+
+                      <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                        <div className="flex items-center space-x-4">
+                          <div className="p-2 bg-gray-200 dark:bg-gray-700 rounded-lg">
+                            <Mail className="h-6 w-6 text-gray-700 dark:text-gray-300" />
+                          </div>
+                          <div>
+                            <h4 className="text-sm font-medium text-gray-900 dark:text-white">Google</h4>
+                            <p className="text-sm text-gray-500 dark:text-gray-400">Acesse seu Gmail, Google Drive e outros serviços Google</p>
+                          </div>
                         </div>
                         <button
                           onClick={() => handleIntegrationChange('google', !settings.integrations.google)}
-                          className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 ${
-                            settings.integrations.google ? 'bg-primary-600' : 'bg-gray-200 dark:bg-gray-700'
+                          className={`px-4 py-2 rounded-md text-sm font-medium transition-colors duration-200 ${
+                            settings.integrations.google
+                              ? 'bg-green-100 text-green-700 hover:bg-green-200 dark:bg-green-900/30 dark:text-green-400 dark:hover:bg-green-900/50'
+                              : 'bg-primary-100 text-primary-700 hover:bg-primary-200 dark:bg-primary-900/30 dark:text-primary-400 dark:hover:bg-primary-900/50'
                           }`}
                         >
-                          <span
-                            className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
-                              settings.integrations.google ? 'translate-x-5' : 'translate-x-0'
-                            }`}
-                          />
+                          {settings.integrations.google ? 'Conectado' : 'Conectar'}
+                        </button>
+                      </div>
+
+                      <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                        <div className="flex items-center space-x-4">
+                          <div className="p-2 bg-gray-200 dark:bg-gray-700 rounded-lg">
+                            <Calendar className="h-6 w-6 text-gray-700 dark:text-gray-300" />
+                          </div>
+                          <div>
+                            <h4 className="text-sm font-medium text-gray-900 dark:text-white">Google Calendar</h4>
+                            <p className="text-sm text-gray-500 dark:text-gray-400">Sincronize seus eventos e compromissos</p>
+                          </div>
+                        </div>
+                        <button
+                          onClick={() => handleIntegrationChange('googleCalendar', !settings.integrations.googleCalendar)}
+                          className={`px-4 py-2 rounded-md text-sm font-medium transition-colors duration-200 ${
+                            settings.integrations.googleCalendar
+                              ? 'bg-green-100 text-green-700 hover:bg-green-200 dark:bg-green-900/30 dark:text-green-400 dark:hover:bg-green-900/50'
+                              : 'bg-primary-100 text-primary-700 hover:bg-primary-200 dark:bg-primary-900/30 dark:text-primary-400 dark:hover:bg-primary-900/50'
+                          }`}
+                        >
+                          {settings.integrations.googleCalendar ? 'Conectado' : 'Conectar'}
+                        </button>
+                      </div>
+
+                      <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                        <div className="flex items-center space-x-4">
+                          <div className="p-2 bg-gray-200 dark:bg-gray-700 rounded-lg">
+                            <Figma className="h-6 w-6 text-gray-700 dark:text-gray-300" />
+                          </div>
+                          <div>
+                            <h4 className="text-sm font-medium text-gray-900 dark:text-white">Figma</h4>
+                            <p className="text-sm text-gray-500 dark:text-gray-400">Acompanhe seus designs e protótipos</p>
+                          </div>
+                        </div>
+                        <button
+                          onClick={() => handleIntegrationChange('figma', !settings.integrations.figma)}
+                          className={`px-4 py-2 rounded-md text-sm font-medium transition-colors duration-200 ${
+                            settings.integrations.figma
+                              ? 'bg-green-100 text-green-700 hover:bg-green-200 dark:bg-green-900/30 dark:text-green-400 dark:hover:bg-green-900/50'
+                              : 'bg-primary-100 text-primary-700 hover:bg-primary-200 dark:bg-primary-900/30 dark:text-primary-400 dark:hover:bg-primary-900/50'
+                          }`}
+                        >
+                          {settings.integrations.figma ? 'Conectado' : 'Conectar'}
+                        </button>
+                      </div>
+
+                      <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                        <div className="flex items-center space-x-4">
+                          <div className="p-2 bg-gray-200 dark:bg-gray-700 rounded-lg">
+                            <MessageSquare className="h-6 w-6 text-gray-700 dark:text-gray-300" />
+                          </div>
+                          <div>
+                            <h4 className="text-sm font-medium text-gray-900 dark:text-white">Discord</h4>
+                            <p className="text-sm text-gray-500 dark:text-gray-400">Integre com seus servidores e canais</p>
+                          </div>
+                        </div>
+                        <button
+                          onClick={() => handleIntegrationChange('discord', !settings.integrations.discord)}
+                          className={`px-4 py-2 rounded-md text-sm font-medium transition-colors duration-200 ${
+                            settings.integrations.discord
+                              ? 'bg-green-100 text-green-700 hover:bg-green-200 dark:bg-green-900/30 dark:text-green-400 dark:hover:bg-green-900/50'
+                              : 'bg-primary-100 text-primary-700 hover:bg-primary-200 dark:bg-primary-900/30 dark:text-primary-400 dark:hover:bg-primary-900/50'
+                          }`}
+                        >
+                          {settings.integrations.discord ? 'Conectado' : 'Conectar'}
                         </button>
                       </div>
                     </div>
