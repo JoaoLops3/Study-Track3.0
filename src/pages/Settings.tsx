@@ -250,9 +250,9 @@ const Settings = () => {
         if (error) throw error;
         
         // Atualizar o estado das configurações
-        await saveSettings({
-          integrations: {
-            ...settings.integrations,
+    await saveSettings({
+      integrations: {
+        ...settings.integrations,
             github: true
           }
         });
@@ -266,7 +266,7 @@ const Settings = () => {
           ...settings.integrations,
           [integration]: value
         }
-      });
+    });
     } catch (error) {
       console.error('Erro ao atualizar integração:', error);
       toast.error('Erro ao atualizar integração');
@@ -766,8 +766,8 @@ const Settings = () => {
                           <div className="p-2 bg-gray-200 dark:bg-gray-700 rounded-lg">
                             <Github className="h-6 w-6 text-gray-700 dark:text-gray-300" />
                           </div>
-                          <div>
-                            <h4 className="text-sm font-medium text-gray-900 dark:text-white">GitHub</h4>
+                        <div>
+                          <h4 className="text-sm font-medium text-gray-900 dark:text-white">GitHub</h4>
                             <p className="text-sm text-gray-500 dark:text-gray-400">Conecte seus repositórios e acompanhe suas contribuições</p>
                           </div>
                         </div>
@@ -788,8 +788,8 @@ const Settings = () => {
                           <div className="p-2 bg-gray-200 dark:bg-gray-700 rounded-lg">
                             <Mail className="h-6 w-6 text-gray-700 dark:text-gray-300" />
                           </div>
-                          <div>
-                            <h4 className="text-sm font-medium text-gray-900 dark:text-white">Google</h4>
+                        <div>
+                          <h4 className="text-sm font-medium text-gray-900 dark:text-white">Google</h4>
                             <p className="text-sm text-gray-500 dark:text-gray-400">Acesse seu Gmail, Google Drive e outros serviços Google</p>
                           </div>
                         </div>
@@ -821,7 +821,7 @@ const Settings = () => {
                             settings.integrations.googleCalendar
                               ? 'bg-green-100 text-green-700 hover:bg-green-200 dark:bg-green-900/30 dark:text-green-400 dark:hover:bg-green-900/50'
                               : 'bg-primary-100 text-primary-700 hover:bg-primary-200 dark:bg-primary-900/30 dark:text-primary-400 dark:hover:bg-primary-900/50'
-                          }`}
+                            }`}
                         >
                           {settings.integrations.googleCalendar ? 'Conectado' : 'Conectar'}
                         </button>

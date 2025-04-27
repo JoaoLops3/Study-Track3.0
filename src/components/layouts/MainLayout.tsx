@@ -3,16 +3,26 @@ import { Outlet, useLocation } from 'react-router-dom';
 import { Menu, X, Search } from 'lucide-react';
 import Sidebar from '../navigation/Sidebar';
 import Header from '../navigation/Header';
+import { useSettings } from '../../contexts/SettingsContext';
 
-const MainLayout = () => {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+export default function MainLayout() {
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { settings } = useSettings();
   const location = useLocation();
 
-  // Close mobile menu when route changes
+  const handleToggleSidebar = () => {
+    setIsSidebarOpen(!isSidebarOpen);
+  };
+
+  const handleMenuClick = () => {
+    setIsMobileMenuOpen(!isMobileMenuOpen);
+  };
+
+  // Fecha o menu mobile quando a rota muda
   useEffect(() => {
     setIsMobileMenuOpen(false);
-  }, [location]);
+  }, [location.pathname]);
 
   // Handle responsive sidebar
   useEffect(() => {
@@ -40,7 +50,10 @@ const MainLayout = () => {
           isSidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0 md:w-0'
         }`}
       >
-        <Sidebar onClose={() => setIsSidebarOpen(false)} />
+        <Sidebar 
+          isOpen={isMobileMenuOpen} 
+          onClose={() => setIsMobileMenuOpen(false)} 
+        />
       </div>
 
       {/* Mobile Menu */}
@@ -60,15 +73,18 @@ const MainLayout = () => {
               <X className="w-6 h-6 text-gray-500 dark:text-gray-400" />
             </button>
           </div>
-          <Sidebar onClose={() => setIsMobileMenuOpen(false)} />
+          <Sidebar 
+            isOpen={isMobileMenuOpen} 
+            onClose={() => setIsMobileMenuOpen(false)} 
+          />
         </div>
       </div>
 
       {/* Main Content */}
       <div className="flex flex-col flex-1 w-0 overflow-hidden">
         <Header 
-          onMenuClick={() => setIsMobileMenuOpen(true)}
-          onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
+          onMenuClick={handleMenuClick}
+          onToggleSidebar={handleToggleSidebar}
           isSidebarOpen={isSidebarOpen}
         />
         
@@ -82,6 +98,4 @@ const MainLayout = () => {
       </div>
     </div>
   );
-};
-
-export default MainLayout
+}

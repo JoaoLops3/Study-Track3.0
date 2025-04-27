@@ -44,31 +44,31 @@ BEGIN
     -- Criar todas as políticas em uma única transação
     BEGIN
       -- Remover políticas existentes primeiro
-      DROP POLICY IF EXISTS "Users can view their own integrations" ON public.integrations;
-      DROP POLICY IF EXISTS "Users can insert their own integrations" ON public.integrations;
-      DROP POLICY IF EXISTS "Users can update their own integrations" ON public.integrations;
-      DROP POLICY IF EXISTS "Users can delete their own integrations" ON public.integrations;
+  DROP POLICY IF EXISTS "Users can view their own integrations" ON public.integrations;
+  DROP POLICY IF EXISTS "Users can insert their own integrations" ON public.integrations;
+  DROP POLICY IF EXISTS "Users can update their own integrations" ON public.integrations;
+  DROP POLICY IF EXISTS "Users can delete their own integrations" ON public.integrations;
 
       -- Criar novas políticas
-      CREATE POLICY "Users can view their own integrations"
-        ON public.integrations
-        FOR SELECT
-        USING (auth.uid() = user_id);
+  CREATE POLICY "Users can view their own integrations"
+    ON public.integrations
+    FOR SELECT
+    USING (auth.uid() = user_id);
 
-      CREATE POLICY "Users can insert their own integrations"
-        ON public.integrations
-        FOR INSERT
-        WITH CHECK (auth.uid() = user_id);
+  CREATE POLICY "Users can insert their own integrations"
+    ON public.integrations
+    FOR INSERT
+    WITH CHECK (auth.uid() = user_id);
 
-      CREATE POLICY "Users can update their own integrations"
-        ON public.integrations
-        FOR UPDATE
-        USING (auth.uid() = user_id);
+  CREATE POLICY "Users can update their own integrations"
+    ON public.integrations
+    FOR UPDATE
+    USING (auth.uid() = user_id);
 
-      CREATE POLICY "Users can delete their own integrations"
-        ON public.integrations
-        FOR DELETE
-        USING (auth.uid() = user_id);
+  CREATE POLICY "Users can delete their own integrations"
+    ON public.integrations
+    FOR DELETE
+    USING (auth.uid() = user_id);
     EXCEPTION WHEN OTHERS THEN
       -- Em caso de erro, tentar remover todas as políticas
       DROP POLICY IF EXISTS "Users can view their own integrations" ON public.integrations;

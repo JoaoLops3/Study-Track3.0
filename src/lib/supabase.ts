@@ -8,12 +8,17 @@ if (!supabaseUrl || !supabaseAnonKey) {
   throw new Error('Variáveis de ambiente do Supabase não configuradas');
 }
 
+const redirectURL = process.env.NODE_ENV === 'production' 
+  ? 'https://study-track3-0.vercel.app'
+  : 'http://localhost:5173';
+
 export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
   auth: {
     autoRefreshToken: true,
     persistSession: true,
     detectSessionInUrl: true,
-    redirectTo: 'https://study-track3-0.vercel.app/auth/callback'
+    flowType: 'pkce',
+    redirectTo: `${redirectURL}/auth/google/callback`
   },
   realtime: {
     params: {

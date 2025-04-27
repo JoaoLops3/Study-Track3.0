@@ -30,10 +30,18 @@ const Login = () => {
   const handleGoogleLogin = async () => {
     setLoading(true);
     try {
+      const redirectURL = process.env.NODE_ENV === 'production' 
+        ? 'https://study-track3-0.vercel.app'
+        : 'http://localhost:5173';
+
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/dashboard`,
+          redirectTo: `${redirectURL}/auth/callback`,
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent'
+          }
         },
       });
       if (error) throw error;

@@ -119,16 +119,16 @@ const AuthIntegrations = () => {
     <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
       <div>
         <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">Integrações</h3>
-        <div className="space-y-4">
-          {integrations.map((integration) => (
+            <div className="space-y-4">
+              {integrations.map((integration) => (
             <div key={integration.id} className="flex items-center justify-between">
               <div>
                 <h4 className="text-sm font-medium text-gray-900 dark:text-white">{integration.name}</h4>
                 <p className="text-sm text-gray-500 dark:text-gray-400">{integration.description}</p>
               </div>
-              <button
-                onClick={() => handleConnect(integration)}
-                disabled={selectedIntegration?.id === integration.id}
+                <button
+                  onClick={() => handleConnect(integration)}
+                  disabled={selectedIntegration?.id === integration.id}
                 className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 ${
                   integration.isConnected ? 'bg-primary-600' : 'bg-gray-200 dark:bg-gray-700'
                 }`}
@@ -138,7 +138,7 @@ const AuthIntegrations = () => {
                     integration.isConnected ? 'translate-x-5' : 'translate-x-0'
                   }`}
                 />
-              </button>
+                </button>
             </div>
           ))}
         </div>

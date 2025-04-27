@@ -6,9 +6,29 @@ export type Json =
   | { [key: string]: Json | undefined }
   | Json[];
 
-export interface Database {
+export type Database = {
   public: {
     Tables: {
+      users: {
+        Row: {
+          id: string;
+          email: string;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          email: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          email?: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+      };
       integrations: {
         Row: {
           id: string;
@@ -232,4 +252,4 @@ export interface Database {
       [_ in never]: never;
     };
   };
-}
+};
