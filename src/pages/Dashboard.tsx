@@ -22,7 +22,7 @@ type Page = Database['public']['Tables']['pages']['Row'] & {
 };
 
 const Dashboard = () => {
-  const { user } = useAuth();
+  const { user, isLoading: authLoading } = useAuth();
   const navigate = useNavigate();
   const [recentBoards, setRecentBoards] = useState<Board[]>([]);
   const [recentPages, setRecentPages] = useState<Page[]>([]);
@@ -126,47 +126,49 @@ const Dashboard = () => {
   };
 
   useEffect(() => {
-    if (user) {
+    if (!authLoading && user) {
       const fetchUserContent = async () => {
         setIsLoading(true);
-        
         try {
-          console.log('Fetching boards for user:', user.id);
-          
-          // Fetch recent boards
+          console.log('Antes do fetch das boards');
           const { data: boardsData, error: boardsError } = await supabase
             .from('boards')
             .select('*')
-            .eq('owner_id', user.id)
+            .or(`owner_id.eq.${user.id},is_public.eq.true`)
             .order('created_at', { ascending: false })
             .limit(6);
-            
+          console.log('Depois do fetch das boards');
+          console.log('boardsData:', boardsData, 'boardsError:', boardsError);
           if (boardsError) {
             console.error('Error fetching boards:', boardsError);
             toast.error('Erro ao carregar boards. Por favor, tente novamente.');
             throw boardsError;
           }
-          
+          if (!boardsData) {
+            console.error('Boards data is null or undefined!');
+          }
           console.log('Boards fetched:', boardsData?.length || 0);
           setRecentBoards(boardsData || []);
-          
-          // Fetch recent pages
+
+          console.log('Antes do fetch das pages');
           const { data: pagesData, error: pagesError } = await supabase
             .from('pages')
             .select('*')
             .eq('owner_id', user.id)
             .order('created_at', { ascending: false })
             .limit(6);
-            
+          console.log('Depois do fetch das pages');
+          console.log('pagesData:', pagesData, 'pagesError:', pagesError);
           if (pagesError) {
             console.error('Error fetching pages:', pagesError);
             toast.error('Erro ao carregar páginas. Por favor, tente novamente.');
             throw pagesError;
           }
-          
+          if (!pagesData) {
+            console.error('Pages data is null or undefined!');
+          }
           console.log('Pages fetched:', pagesData?.length || 0);
           setRecentPages(pagesData || []);
-          
         } catch (error: any) {
           console.error('Error fetching user content:', error);
           toast.error('Erro ao carregar conteúdo. Por favor, tente novamente.');
@@ -174,13 +176,11 @@ const Dashboard = () => {
           setIsLoading(false);
         }
       };
-      
       fetchUserContent();
-    } else {
-      console.log('No user found, skipping fetch');
+    } else if (!authLoading && !user) {
       setIsLoading(false);
     }
-  }, [user]);
+  }, [user, authLoading]);
 
   const createNewBoard = async (e: React.FormEvent) => {
     e.preventDefault();

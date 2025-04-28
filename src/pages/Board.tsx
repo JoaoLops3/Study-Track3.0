@@ -7,10 +7,14 @@ import { supabase } from '../lib/supabase';
 import CardItem from '../components/board/CardItem';
 import CardModal from '../components/board/CardModal';
 import type { Database } from '../lib/database.types';
+import { toast } from 'react-hot-toast';
+import { LoadingSpinner } from '../components/LoadingSpinner';
 
 type Board = Database['public']['Tables']['boards']['Row'];
 type Column = Database['public']['Tables']['columns']['Row'];
 type Card = Database['public']['Tables']['cards']['Row'];
+
+const ITEMS_PER_PAGE = 20;
 
 const Board = () => {
   const { id } = useParams<{ id: string }>();
@@ -30,6 +34,8 @@ const Board = () => {
   const [selectedCard, setSelectedCard] = useState<Card | null>(null);
   const [showBoardMenu, setShowBoardMenu] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
 
   const fetchBoardData = useCallback(async () => {
     if (!id || !user) return;
@@ -68,19 +74,21 @@ const Board = () => {
       const { data: cardsData, error: cardsError } = await supabase
         .from('cards')
         .select('*')
-        .in('column_id', columnsData?.map(col => col.id) || [])
-        .order('order', { ascending: true });
+        .eq('board_id', id)
+        .order('created_at', { ascending: false })
+        .range((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE - 1);
         
       if (cardsError) throw cardsError;
       setCards(cardsData || []);
       
+      setHasMore(cardsData.length === ITEMS_PER_PAGE);
     } catch (error: any) {
       console.error('Error fetching board data:', error);
       setError(error.message);
     } finally {
       setLoading(false);
     }
-  }, [id, user]);
+  }, [id, user, currentPage]);
 
   useEffect(() => {
     fetchBoardData();
@@ -419,10 +427,17 @@ const Board = () => {
     }
   };
 
-  if (loading) {
+  const handleLoadMore = () => {
+    if (!loading && hasMore) {
+      setCurrentPage(prev => prev + 1);
+      fetchBoardData();
+    }
+  };
+
+  if (loading && currentPage === 1) {
     return (
-      <div className="flex justify-center py-12">
-        <div className="w-12 h-12 border-t-4 border-primary-600 rounded-full animate-spin"></div>
+      <div className="flex justify-center items-center h-screen">
+        <LoadingSpinner size="lg" />
       </div>
     );
   }
@@ -757,6 +772,18 @@ const Board = () => {
               </button>
             </div>
           </div>
+        </div>
+      )}
+
+      {hasMore && (
+        <div className="flex justify-center mt-4">
+          <button
+            onClick={handleLoadMore}
+            disabled={loading}
+            className="px-4 py-2 bg-primary-600 text-white rounded hover:bg-primary-700 disabled:opacity-50"
+          >
+            {loading ? <LoadingSpinner size="sm" /> : 'Carregar mais'}
+          </button>
         </div>
       )}
     </div>

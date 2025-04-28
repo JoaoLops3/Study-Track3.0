@@ -8,9 +8,12 @@ if (!supabaseUrl || !supabaseAnonKey) {
   throw new Error('Variáveis de ambiente do Supabase não configuradas');
 }
 
-const redirectURL = process.env.NODE_ENV === 'production' 
-  ? 'https://study-track3-0.vercel.app'
-  : 'http://localhost:5173';
+const getRedirectURL = () => {
+  if (import.meta.env.MODE === 'production') {
+    return 'https://study-track3-0.vercel.app';
+  }
+  return 'http://localhost:5173';
+};
 
 export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
   auth: {
@@ -18,7 +21,6 @@ export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
     persistSession: true,
     detectSessionInUrl: true,
     flowType: 'pkce',
-    redirectTo: `${redirectURL}/auth/google/callback`
   },
   realtime: {
     params: {
@@ -52,7 +54,6 @@ export const setupIntegrationPolicies = async () => {
       retryCount++;
       
       if (retryCount < maxRetries) {
-        // Esperar um pouco antes de tentar novamente
         await new Promise(resolve => setTimeout(resolve, 1000 * retryCount));
       }
     } catch (error) {

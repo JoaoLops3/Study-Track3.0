@@ -7,11 +7,9 @@ import { Avatar } from '../../components/ui/Avatar';
 
 interface HeaderProps {
   onMenuClick: () => void;
-  onToggleSidebar: () => void;
-  isSidebarOpen: boolean;
 }
 
-const Header = ({ onMenuClick, onToggleSidebar, isSidebarOpen }: HeaderProps) => {
+const Header = ({ onMenuClick }: HeaderProps) => {
   const { user, signOut } = useAuth();
   const { settings } = useSettings();
   const navigate = useNavigate();
@@ -31,13 +29,6 @@ const Header = ({ onMenuClick, onToggleSidebar, isSidebarOpen }: HeaderProps) =>
             className="p-2 text-gray-500 dark:text-gray-400 rounded-md hover:text-gray-900 dark:hover:text-gray-300 focus:outline-none focus:ring-2 focus:ring-primary-500 md:hidden"
         >
           <Menu className="w-6 h-6" />
-        </button>
-        
-        <button
-          onClick={onToggleSidebar}
-            className="p-2 text-gray-500 dark:text-gray-400 rounded-md hover:text-gray-900 dark:hover:text-gray-300 focus:outline-none focus:ring-2 focus:ring-primary-500 hidden md:block"
-        >
-            <ChevronLeft className={`w-6 h-6 transition-transform duration-200 ${isSidebarOpen ? 'rotate-0' : 'rotate-180'}`} />
         </button>
       </div>
       

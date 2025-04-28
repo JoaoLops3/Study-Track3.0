@@ -21,6 +21,7 @@ interface AuthContextType {
     data: any;
   }>;
   signInWithGoogle: () => Promise<{ error: any }>;
+  signInWithGitHub: () => Promise<{ error: any }>;
   updateUserAvatar: (file: File) => Promise<{ error: any }>;
   removeUserAvatar: () => Promise<{ error: any }>;
 }
@@ -201,6 +202,40 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const signInWithGitHub = async () => {
+    try {
+      console.log('Iniciando autenticação com GitHub...');
+      
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: 'github',
+        options: {
+          redirectTo: `${window.location.origin}/auth/github/callback`,
+          scopes: 'repo,user',
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent'
+          }
+        },
+      });
+
+      if (error) {
+        console.error('Erro detalhado do Supabase:', error);
+        throw error;
+      }
+
+      if (!data?.url) {
+        throw new Error('URL de redirecionamento não encontrada');
+      }
+
+      window.location.href = data.url;
+      return { error: null };
+    } catch (error) {
+      console.error('Erro completo ao fazer login com GitHub:', error);
+      toast.error('Erro ao fazer login com GitHub. Por favor, tente novamente.');
+      return { error };
+    }
+  };
+
   const updateUserAvatar = async (file: File) => {
     try {
       const fileExt = file.name.split('.').pop();
@@ -262,6 +297,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         signOut,
         resetPassword,
         signInWithGoogle,
+        signInWithGitHub,
         updateUserAvatar,
         removeUserAvatar,
       }}

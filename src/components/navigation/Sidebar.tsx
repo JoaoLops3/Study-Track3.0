@@ -1,11 +1,12 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, memo } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Home, Book, Plus, Folder, File, Settings, PlusCircle, Github } from 'lucide-react';
+import { Home, Book, Plus, Folder, File, Settings, PlusCircle, Github, Calendar, Users, ChevronLeft } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
 import { useSettings } from '../../contexts/SettingsContext';
 import type { Database } from '../../lib/database.types';
 import toast from 'react-hot-toast';
+import { LoadingSpinner } from '../LoadingSpinner';
 
 type Board = Database['public']['Tables']['boards']['Row'];
 type Page = Database['public']['Tables']['pages']['Row'];
@@ -14,6 +15,32 @@ interface SidebarProps {
   isOpen: boolean;
   onClose: () => void;
 }
+
+const SidebarItem = memo(({ 
+  to, 
+  icon: Icon, 
+  label, 
+  isActive 
+}: { 
+  to: string; 
+  icon: any; 
+  label: string; 
+  isActive: boolean; 
+}) => (
+  <Link
+    to={to}
+    className={`flex items-center px-4 py-2 text-sm font-medium rounded-md ${
+      isActive
+        ? 'bg-primary-100 text-primary-700 dark:bg-primary-900 dark:text-primary-100'
+        : 'text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800'
+    }`}
+  >
+    <Icon className="w-5 h-5 mr-3" />
+    {label && <span>{label}</span>}
+  </Link>
+));
+
+SidebarItem.displayName = 'SidebarItem';
 
 const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
   const { user } = useAuth();
@@ -28,6 +55,20 @@ const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
   const [newPageTitle, setNewPageTitle] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [isCollapsed, setIsCollapsed] = useState(false);
+
+  const toggleCollapse = () => {
+    if (window.innerWidth >= 768) {
+      setIsCollapsed(!isCollapsed);
+    }
+  };
+
+  const navigationItems = useMemo(() => [
+    { to: '/', icon: Home, label: 'Dashboard' },
+    { to: '/calendar', icon: Calendar, label: 'Calendário' },
+    { to: '/team', icon: Users, label: 'Equipe' },
+    ...(settings?.integrations?.github ? [{ to: '/github', icon: Github, label: 'GitHub' }] : []),
+    { to: '/settings', icon: Settings, label: 'Configurações' },
+  ], [settings?.integrations?.github]);
 
   useEffect(() => {
     if (user) {
@@ -137,210 +178,231 @@ const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
     }
   };
 
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <LoadingSpinner size="lg" />
+      </div>
+    );
+  }
+
   return (
     <aside className={`fixed left-0 top-0 h-full bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 transition-all duration-300 ease-in-out ${isOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0 ${isCollapsed ? 'w-16' : 'w-64'}`}>
       <div className="flex flex-col h-full">
-        <div 
-          className="flex items-center justify-center p-4 border-b dark:border-gray-700 cursor-pointer"
-          onClick={() => navigate('/dashboard')}
-        >
-          <img src="/logo-Study-Track.png" alt="Study Track Logo" className="h-8 w-auto mr-2" />
-          <h2 className="text-xl font-bold text-gray-900 dark:text-white">Study Track</h2>
-        </div>
-
-        <nav className="flex-1 px-4 mt-4 overflow-y-auto">
-          <a
-            className="flex items-center px-3 py-2 mb-2 rounded-md transition-colors bg-primary-50 text-primary-700 dark:bg-primary-900 dark:text-primary-100"
-            href="/"
-          >
-            <Home className="w-5 h-5 mr-3" />
-            <span>Dashboard</span>
-          </a>
-          
-          <a
-            className="flex items-center px-3 py-2 mb-2 rounded-md transition-colors text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
-            href="/github-repos"
-          >
-            <Github className="w-5 h-5 mr-3" />
-            <span>Meus Repositórios</span>
-          </a>
-          
-          {/* Boards Section */}
-          <div className="mt-6">
-            <div className="flex items-center justify-between mb-2 group">
-              <h3 className="text-sm font-medium text-gray-500 uppercase">Boards</h3>
-              <button 
-                onClick={() => setIsCreateBoardOpen(!isCreateBoardOpen)}
-                className="invisible group-hover:visible p-1 text-gray-400 rounded hover:text-gray-600 focus:outline-none"
-                aria-label="Add board"
+        {isCollapsed ? (
+          <div className="flex flex-col items-center justify-center p-2 border-b dark:border-gray-700 h-20">
+            <div 
+              className="flex items-center justify-center w-full cursor-pointer mb-2"
+              onClick={() => navigate('/dashboard')}
+            >
+              <img src="/logo-Study-Track.png" alt="Study Track Logo" className="h-8 w-8" />
+            </div>
+            <button
+              onClick={toggleCollapse}
+              className="p-2 text-gray-500 dark:text-gray-400 rounded-md hover:text-gray-900 dark:hover:text-gray-300 focus:outline-none focus:ring-2 focus:ring-primary-500 mt-2"
+              style={{ alignSelf: 'center' }}
+            >
+              <ChevronLeft className="w-6 h-6 transition-transform duration-200 rotate-180" />
+            </button>
+          </div>
+        ) : (
+          <>
+            <div className="flex flex-col items-center justify-between p-2 border-b dark:border-gray-700 h-24">
+              <div 
+                className="flex items-center cursor-pointer"
+                onClick={() => navigate('/dashboard')}
               >
-                <Plus className="w-4 h-4" />
+                <img src="/logo-Study-Track.png" alt="Study Track Logo" className="h-8 w-auto mr-2" />
+                <h2 className="text-xl font-bold text-gray-900 dark:text-white">Study Track</h2>
+              </div>
+              <button
+                onClick={toggleCollapse}
+                className="p-2 text-gray-500 dark:text-gray-400 rounded-md hover:text-gray-900 dark:hover:text-gray-300 focus:outline-none focus:ring-2 focus:ring-primary-500 mt-2"
+                style={{ alignSelf: 'center' }}
+              >
+                <ChevronLeft className="w-6 h-6 transition-transform duration-200" />
               </button>
             </div>
-
-            {isCreateBoardOpen && (
-              <form onSubmit={createNewBoard} className="mb-3 px-3">
-                <input
-                  type="text"
-                  placeholder="Board title"
-                  value={newBoardTitle}
-                  onChange={(e) => setNewBoardTitle(e.target.value)}
-                  className="w-full p-2 mb-2 text-sm border rounded focus:outline-none focus:ring-2 focus:ring-primary-500"
-                  autoFocus
+            <nav className="flex-1 px-4 mt-4 overflow-y-auto">
+              {navigationItems.map((item) => (
+                <SidebarItem
+                  key={item.to}
+                  to={item.to}
+                  icon={item.icon}
+                  label={item.label}
+                  isActive={location.pathname === item.to}
                 />
-                <div className="flex justify-end space-x-2">
-                  <button
-                    type="button"
-                    onClick={() => setIsCreateBoardOpen(false)}
-                    className="px-3 py-1 text-xs text-gray-700 bg-gray-100 rounded hover:bg-gray-200"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    className="px-3 py-1 text-xs text-white bg-primary-600 rounded hover:bg-primary-700"
-                  >
-                    Create
-                  </button>
-                </div>
-              </form>
-            )}
-
-            {isLoading ? (
-              <div className="flex justify-center py-4">
-                <div className="w-6 h-6 border-t-2 border-primary-600 rounded-full animate-spin"></div>
-              </div>
-            ) : (
-              <ul className="space-y-1">
-                {boards.length === 0 ? (
-                  <li className="px-3 py-2 text-sm text-gray-500 italic">
-                    No boards yet
-                  </li>
-                ) : (
-                  boards.map((board) => (
-                    <li key={board.id}>
-                      <Link
-                        to={`/board/${board.id}`}
-                        className={`flex items-center px-3 py-2 text-sm rounded-md transition-colors ${
-                          location.pathname === `/board/${board.id}`
-                            ? 'bg-primary-50 text-primary-700 dark:bg-primary-900 dark:text-primary-100'
-                            : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
-                        }`}
-                        onClick={onClose}
-                      >
-                        <Folder className="w-4 h-4 mr-3 flex-shrink-0" />
-                        <span className="truncate">{board.title}</span>
-                      </Link>
-                    </li>
-                  ))
-                )}
-                
-                <li>
-                  <button
+              ))}
+              {/* Boards Section */}
+              <div className="mt-6">
+                <div className="flex items-center justify-between mb-2 group">
+                  <h3 className="text-sm font-medium text-gray-500 uppercase">Boards</h3>
+                  <button 
                     onClick={() => setIsCreateBoardOpen(!isCreateBoardOpen)}
-                    className="flex items-center w-full px-3 py-2 text-sm text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800"
+                    className="invisible group-hover:visible p-1 text-gray-400 rounded hover:text-gray-600 focus:outline-none"
+                    aria-label="Add board"
                   >
-                    <PlusCircle className="w-4 h-4 mr-3 text-gray-500" />
-                    <span>New Board</span>
-                  </button>
-                </li>
-              </ul>
-            )}
-          </div>
-          
-          {/* Pages Section */}
-          <div className="mt-6">
-            <div className="flex items-center justify-between mb-2 group">
-              <h3 className="text-sm font-medium text-gray-500 uppercase">Pages</h3>
-              <button 
-                onClick={() => setIsCreatePageOpen(!isCreatePageOpen)}
-                className="invisible group-hover:visible p-1 text-gray-400 rounded hover:text-gray-600 focus:outline-none"
-                aria-label="Add page"
-              >
-                <Plus className="w-4 h-4" />
-              </button>
-            </div>
-
-            {isCreatePageOpen && (
-              <form onSubmit={createNewPage} className="mb-3 px-3">
-                <input
-                  type="text"
-                  placeholder="Page title"
-                  value={newPageTitle}
-                  onChange={(e) => setNewPageTitle(e.target.value)}
-                  className="w-full p-2 mb-2 text-sm border rounded focus:outline-none focus:ring-2 focus:ring-primary-500"
-                  autoFocus
-                />
-                <div className="flex justify-end space-x-2">
-                  <button
-                    type="button"
-                    onClick={() => setIsCreatePageOpen(false)}
-                    className="px-3 py-1 text-xs text-gray-700 bg-gray-100 rounded hover:bg-gray-200"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    className="px-3 py-1 text-xs text-white bg-primary-600 rounded hover:bg-primary-700"
-                  >
-                    Create
+                    <Plus className="w-4 h-4" />
                   </button>
                 </div>
-              </form>
-            )}
-
-            {isLoading ? (
-              <div className="flex justify-center py-4">
-                <div className="w-6 h-6 border-t-2 border-primary-600 rounded-full animate-spin"></div>
-              </div>
-            ) : (
-              <ul className="space-y-1">
-                {pages.length === 0 ? (
-                  <li className="px-3 py-2 text-sm text-gray-500 italic">
-                    No pages yet
-                  </li>
-                ) : (
-                  pages.map((page) => (
-                    <li key={page.id}>
-                      <Link
-                        to={`/page/${page.id}`}
-                        className={`flex items-center px-3 py-2 text-sm rounded-md transition-colors ${
-                          location.pathname === `/page/${page.id}`
-                            ? 'bg-primary-50 text-primary-700 dark:bg-primary-900 dark:text-primary-100'
-                            : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
-                        }`}
-                        onClick={onClose}
+                {isCreateBoardOpen && (
+                  <form onSubmit={createNewBoard} className="mb-3 px-3">
+                    <input
+                      type="text"
+                      placeholder="Board title"
+                      value={newBoardTitle}
+                      onChange={(e) => setNewBoardTitle(e.target.value)}
+                      className="w-full p-2 mb-2 text-sm border rounded focus:outline-none focus:ring-2 focus:ring-primary-500"
+                      autoFocus
+                    />
+                    <div className="flex justify-end space-x-2">
+                      <button
+                        type="button"
+                        onClick={() => setIsCreateBoardOpen(false)}
+                        className="px-3 py-1 text-xs text-gray-700 bg-gray-100 rounded hover:bg-gray-200"
                       >
-                        <File className="w-4 h-4 mr-3 flex-shrink-0" />
-                        <span className="truncate">{page.title}</span>
-                      </Link>
-                    </li>
-                  ))
+                        Cancel
+                      </button>
+                      <button
+                        type="submit"
+                        className="px-3 py-1 text-xs text-white bg-primary-600 rounded hover:bg-primary-700"
+                      >
+                        Create
+                      </button>
+                    </div>
+                  </form>
                 )}
-                
-                <li>
-                  <button
+                {isLoading ? (
+                  <div className="flex justify-center py-4">
+                    <div className="w-6 h-6 border-t-2 border-primary-600 rounded-full animate-spin"></div>
+                  </div>
+                ) : (
+                  <ul className="space-y-1">
+                    {boards.length === 0 ? (
+                      <li className="px-3 py-2 text-sm text-gray-500 italic">
+                        No boards yet
+                      </li>
+                    ) : (
+                      boards.map((board) => (
+                        <li key={board.id}>
+                          <Link
+                            to={`/board/${board.id}`}
+                            className={`flex items-center px-3 py-2 text-sm rounded-md transition-colors ${
+                              location.pathname === `/board/${board.id}`
+                                ? 'bg-primary-50 text-primary-700 dark:bg-primary-900 dark:text-primary-100'
+                                : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
+                            }`}
+                            onClick={onClose}
+                          >
+                            <Folder className="w-4 h-4 mr-3 flex-shrink-0" />
+                            <span className="truncate">{board.title}</span>
+                          </Link>
+                        </li>
+                      ))
+                    )}
+                    <li>
+                      <button
+                        onClick={() => setIsCreateBoardOpen(!isCreateBoardOpen)}
+                        className="flex items-center w-full px-3 py-2 text-sm text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800"
+                      >
+                        <PlusCircle className="w-4 h-4 mr-3 text-gray-500" />
+                        <span>New Board</span>
+                      </button>
+                    </li>
+                  </ul>
+                )}
+              </div>
+              {/* Pages Section */}
+              <div className="mt-6">
+                <div className="flex items-center justify-between mb-2 group">
+                  <h3 className="text-sm font-medium text-gray-500 uppercase">Pages</h3>
+                  <button 
                     onClick={() => setIsCreatePageOpen(!isCreatePageOpen)}
-                    className="flex items-center w-full px-3 py-2 text-sm text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800"
+                    className="invisible group-hover:visible p-1 text-gray-400 rounded hover:text-gray-600 focus:outline-none"
+                    aria-label="Add page"
                   >
-                    <PlusCircle className="w-4 h-4 mr-3 text-gray-500" />
-                    <span>New Page</span>
+                    <Plus className="w-4 h-4" />
                   </button>
-                </li>
-              </ul>
-            )}
-          </div>
-        </nav>
-        
-        <div className="p-4 border-t">
-          <button
-            onClick={() => navigate('/settings')}
-            className="flex items-center px-3 py-2 w-full text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800"
-          >
-            <Settings className="w-5 h-5 mr-3" />
-            <span>Settings</span>
-          </button>
-        </div>
+                </div>
+                {isCreatePageOpen && (
+                  <form onSubmit={createNewPage} className="mb-3 px-3">
+                    <input
+                      type="text"
+                      placeholder="Page title"
+                      value={newPageTitle}
+                      onChange={(e) => setNewPageTitle(e.target.value)}
+                      className="w-full p-2 mb-2 text-sm border rounded focus:outline-none focus:ring-2 focus:ring-primary-500"
+                      autoFocus
+                    />
+                    <div className="flex justify-end space-x-2">
+                      <button
+                        type="button"
+                        onClick={() => setIsCreatePageOpen(false)}
+                        className="px-3 py-1 text-xs text-gray-700 bg-gray-100 rounded hover:bg-gray-200"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="submit"
+                        className="px-3 py-1 text-xs text-white bg-primary-600 rounded hover:bg-primary-700"
+                      >
+                        Create
+                      </button>
+                    </div>
+                  </form>
+                )}
+                {isLoading ? (
+                  <div className="flex justify-center py-4">
+                    <div className="w-6 h-6 border-t-2 border-primary-600 rounded-full animate-spin"></div>
+                  </div>
+                ) : (
+                  <ul className="space-y-1">
+                    {pages.length === 0 ? (
+                      <li className="px-3 py-2 text-sm text-gray-500 italic">
+                        No pages yet
+                      </li>
+                    ) : (
+                      pages.map((page) => (
+                        <li key={page.id}>
+                          <Link
+                            to={`/page/${page.id}`}
+                            className={`flex items-center px-3 py-2 text-sm rounded-md transition-colors ${
+                              location.pathname === `/page/${page.id}`
+                                ? 'bg-primary-50 text-primary-700 dark:bg-primary-900 dark:text-primary-100'
+                                : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
+                            }`}
+                            onClick={onClose}
+                          >
+                            <File className="w-4 h-4 mr-3 flex-shrink-0" />
+                            <span className="truncate">{page.title}</span>
+                          </Link>
+                        </li>
+                      ))
+                    )}
+                    <li>
+                      <button
+                        onClick={() => setIsCreatePageOpen(!isCreatePageOpen)}
+                        className="flex items-center w-full px-3 py-2 text-sm text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800"
+                      >
+                        <PlusCircle className="w-4 h-4 mr-3 text-gray-500" />
+                        <span>New Page</span>
+                      </button>
+                    </li>
+                  </ul>
+                )}
+              </div>
+            </nav>
+            <div className="p-4 border-t">
+              <button
+                onClick={() => navigate('/settings')}
+                className="flex items-center px-3 py-2 w-full text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800"
+              >
+                <Settings className="w-5 h-5 mr-3" />
+                <span>Settings</span>
+              </button>
+            </div>
+          </>
+        )}
       </div>
     </aside>
   );

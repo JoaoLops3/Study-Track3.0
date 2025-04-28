@@ -8,25 +8,31 @@ const AuthCallback = () => {
 
   useEffect(() => {
     const handleCallback = async () => {
-      try {
-        // O Supabase já lida com o callback automaticamente
-        // Aqui só precisamos verificar se houve algum erro
-        const { data: { session }, error } = await supabase.auth.getSession();
-        
-        if (error) {
-          throw error;
-        }
+      let retries = 0;
+      let session = null;
+      let error = null;
 
-        if (session) {
-          toast.success('Autenticação realizada com sucesso!');
-          // Redireciona para o dashboard após o login
-          navigate('/dashboard');
-        } else {
-          throw new Error('Sessão não encontrada');
-        }
-      } catch (error) {
+      while (retries < 5 && !session) {
+        const result = await supabase.auth.getSession();
+        session = result.data.session;
+        error = result.error;
+        if (session) break;
+        await new Promise(res => setTimeout(res, 500)); // espera 0.5s
+        retries++;
+      }
+
+      if (error) {
         console.error('Erro ao processar autenticação:', error);
         toast.error('Erro ao processar autenticação');
+        navigate('/login?error=auth-failed');
+        return;
+      }
+
+      if (session) {
+        toast.success('Autenticação realizada com sucesso!');
+        navigate('/dashboard');
+      } else {
+        toast.error('Sessão não encontrada');
         navigate('/login?error=auth-failed');
       }
     };

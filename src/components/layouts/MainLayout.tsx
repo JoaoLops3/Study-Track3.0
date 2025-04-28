@@ -12,7 +12,9 @@ export default function MainLayout() {
   const location = useLocation();
 
   const handleToggleSidebar = () => {
-    setIsSidebarOpen(!isSidebarOpen);
+    if (window.innerWidth >= 768) { // Só permite toggle em desktop
+      setIsSidebarOpen(!isSidebarOpen);
+    }
   };
 
   const handleMenuClick = () => {
@@ -47,7 +49,7 @@ export default function MainLayout() {
       {/* Desktop Sidebar */}
       <div 
         className={`fixed inset-y-0 left-0 z-30 w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 transform transition-transform duration-300 ease-in-out md:relative ${
-          isSidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0 md:w-0'
+          isSidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0 md:w-16'
         }`}
       >
         <Sidebar 
@@ -84,8 +86,6 @@ export default function MainLayout() {
       <div className="flex flex-col flex-1 w-0 overflow-hidden">
         <Header 
           onMenuClick={handleMenuClick}
-          onToggleSidebar={handleToggleSidebar}
-          isSidebarOpen={isSidebarOpen}
         />
         
         <main className="relative flex-1 overflow-y-auto focus:outline-none bg-gray-50 dark:bg-gray-900">
