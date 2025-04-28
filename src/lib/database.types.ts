@@ -33,7 +33,7 @@ export type Database = {
         Row: {
           id: string;
           user_id: string;
-          provider: 'figma' | 'discord' | 'google_calendar';
+          provider: 'figma' | 'discord';
           access_token: string;
           refresh_token: string | null;
           created_at: string;
@@ -42,7 +42,7 @@ export type Database = {
         Insert: {
           id?: string;
           user_id: string;
-          provider: 'figma' | 'discord' | 'google_calendar';
+          provider: 'figma' | 'discord';
           access_token: string;
           refresh_token?: string | null;
           created_at?: string;
@@ -51,7 +51,7 @@ export type Database = {
         Update: {
           id?: string;
           user_id?: string;
-          provider?: 'figma' | 'discord' | 'google_calendar';
+          provider?: 'figma' | 'discord';
           access_token?: string;
           refresh_token?: string | null;
           created_at?: string;

@@ -53,7 +53,7 @@
 ### Integrations
 - `id`: UUID (PK)
 - `user_id`: UUID (FK -> auth.users)
-- `provider`: TEXT (NOT NULL, CHECK IN ('figma', 'discord', 'github', 'google_calendar'))
+- `provider`: TEXT (NOT NULL, CHECK IN ('figma', 'discord', 'github'))
 - `access_token`: TEXT (NOT NULL)
 - `refresh_token`: TEXT
 - `expires_at`: TIMESTAMP WITH TIME ZONE

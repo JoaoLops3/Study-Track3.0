@@ -3,8 +3,6 @@
 import { useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
-import GoogleCalendarButton from '@/components/integrations/GoogleCalendarButton';
-import toast from 'react-hot-toast';
 
 export default function DashboardPage() {
   const searchParams = useSearchParams();
@@ -34,10 +32,8 @@ export default function DashboardPage() {
           }
           
           console.log('Tokens salvos com sucesso');
-          toast.success('Google Calendar conectado com sucesso!');
         } catch (error) {
           console.error('Erro ao salvar tokens:', error);
-          toast.error('Erro ao conectar com o Google Calendar');
         }
       } else {
         console.log('Nenhum token encontrado na sessão');
@@ -54,7 +50,6 @@ export default function DashboardPage() {
     <div className="p-6">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Dashboard</h1>
-        <GoogleCalendarButton />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

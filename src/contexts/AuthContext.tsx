@@ -63,31 +63,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setSession(session);
         setUser(session?.user ?? null);
         setIsLoading(false);
-
-        // Salvamento automático dos tokens do Google Calendar após login com Google
-        if (event === 'SIGNED_IN' && session?.user && session.provider_token) {
-          try {
-            // Verifica se já existe integração
-            const { data: integration } = await supabase
-              .from('google_calendar_integrations')
-              .select('id')
-              .eq('user_id', session.user.id)
-              .single();
-
-            if (!integration) {
-              await supabase.from('google_calendar_integrations').insert({
-                user_id: session.user.id,
-                access_token: session.provider_token,
-                refresh_token: session.refresh_token,
-                email: session.user.email,
-              });
-              toast.success('Google Calendar conectado automaticamente!');
-            }
-          } catch (err) {
-            console.error('Erro ao salvar integração do Google Calendar:', err);
-            toast.error('Erro ao conectar Google Calendar automaticamente');
-          }
-        }
       }
     );
 

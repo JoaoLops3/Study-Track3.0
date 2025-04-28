@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, memo } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Home, Book, Plus, Folder, File, Settings, PlusCircle, Github, Calendar, Users, ChevronLeft } from 'lucide-react';
+import { Home, Book, Plus, Folder, File, Settings, PlusCircle, Github, Calendar, Users, ChevronLeft, Timer } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
 import { useSettings } from '../../contexts/SettingsContext';
@@ -67,7 +67,7 @@ const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
     { to: '/calendar', icon: Calendar, label: 'Calendário' },
     { to: '/team', icon: Users, label: 'Equipe' },
     ...(settings?.integrations?.github ? [{ to: '/github', icon: Github, label: 'GitHub' }] : []),
-    { to: '/settings', icon: Settings, label: 'Configurações' },
+    { to: '/pomodoro', icon: Timer, label: 'Pomodoro' },
   ], [settings?.integrations?.github]);
 
   useEffect(() => {

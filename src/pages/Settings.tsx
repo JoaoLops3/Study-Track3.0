@@ -40,7 +40,6 @@ type Settings = {
   integrations: {
     github: boolean;
     google: boolean;
-    googleCalendar: boolean;
     figma: boolean;
     discord: boolean;
   };
@@ -82,7 +81,6 @@ const defaultSettings: Settings = {
   integrations: {
     github: false,
     google: false,
-    googleCalendar: false,
     figma: false,
     discord: false,
   },
@@ -802,28 +800,6 @@ const Settings = () => {
                           }`}
                         >
                           {settings.integrations.google ? 'Conectado' : 'Conectar'}
-                        </button>
-                      </div>
-
-                      <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                        <div className="flex items-center space-x-4">
-                          <div className="p-2 bg-gray-200 dark:bg-gray-700 rounded-lg">
-                            <Calendar className="h-6 w-6 text-gray-700 dark:text-gray-300" />
-                          </div>
-                          <div>
-                            <h4 className="text-sm font-medium text-gray-900 dark:text-white">Google Calendar</h4>
-                            <p className="text-sm text-gray-500 dark:text-gray-400">Sincronize seus eventos e compromissos</p>
-                          </div>
-                        </div>
-                        <button
-                          onClick={() => handleIntegrationChange('googleCalendar', !settings.integrations.googleCalendar)}
-                          className={`px-4 py-2 rounded-md text-sm font-medium transition-colors duration-200 ${
-                            settings.integrations.googleCalendar
-                              ? 'bg-green-100 text-green-700 hover:bg-green-200 dark:bg-green-900/30 dark:text-green-400 dark:hover:bg-green-900/50'
-                              : 'bg-primary-100 text-primary-700 hover:bg-primary-200 dark:bg-primary-900/30 dark:text-primary-400 dark:hover:bg-primary-900/50'
-                            }`}
-                        >
-                          {settings.integrations.googleCalendar ? 'Conectado' : 'Conectar'}
                         </button>
                       </div>
 

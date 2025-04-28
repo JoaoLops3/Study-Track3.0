@@ -2,7 +2,7 @@
 CREATE TABLE IF NOT EXISTS public.integrations (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
-  provider TEXT NOT NULL CHECK (provider IN ('figma', 'discord', 'google_calendar', 'github')),
+  provider TEXT NOT NULL CHECK (provider IN ('figma', 'discord', 'github')),
   access_token TEXT NOT NULL,
   refresh_token TEXT,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,

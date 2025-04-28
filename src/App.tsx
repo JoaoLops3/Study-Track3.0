@@ -7,6 +7,7 @@ import MainLayout from './components/layouts/MainLayout';
 import { LoadingSpinner } from './components/LoadingSpinner';
 import { Toaster } from 'react-hot-toast';
 import PrivateRoute from './components/PrivateRoute';
+import Pomodoro from './pages/Pomodoro';
 
 // Lazy load das páginas
 const Dashboard = lazy(() => import('./pages/Dashboard'));
@@ -45,6 +46,7 @@ function App() {
                 <Route path="/calendar" element={<CalendarPage />} />
                 <Route path="/team" element={<TeamPage />} />
                 <Route path="/github" element={<GithubRepos />} />
+                <Route path="/pomodoro" element={<Pomodoro />} />
               </Route>
             </Routes>
           </Suspense>
