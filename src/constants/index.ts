@@ -16,7 +16,7 @@ export const AUTH = {
 
 // Constantes de Rota
 export const ROUTES = {
-  DASHBOARD: '/dashboard',
+  DASHBOARD: '/',
   LOGIN: '/login',
   AUTH_CALLBACK: '/auth/callback'
 };

@@ -40,7 +40,7 @@ export default function GitHubCallback() {
         }
 
         toast.success('Login com GitHub realizado com sucesso!');
-        navigate('/dashboard');
+        navigate('/');
       } catch (error) {
         console.error('Erro ao processar callback do GitHub:', error);
         setError(error instanceof Error ? error.message : 'Erro ao processar autenticação do GitHub');

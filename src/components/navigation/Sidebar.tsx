@@ -56,9 +56,22 @@ const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
   const [isLoading, setIsLoading] = useState(true);
   const [isCollapsed, setIsCollapsed] = useState(false);
 
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth < 768) {
+        setIsCollapsed(false);
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   const toggleCollapse = () => {
     if (window.innerWidth >= 768) {
       setIsCollapsed(!isCollapsed);
+    } else {
+      onClose();
     }
   };
 
@@ -187,42 +200,34 @@ const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
   }
 
   return (
-    <aside className={`fixed left-0 top-0 h-full bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 transition-all duration-300 ease-in-out ${isOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0 ${isCollapsed ? 'w-16' : 'w-64'}`}>
+    <aside className={`fixed left-0 top-0 h-full bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 transition-all duration-300 ease-in-out z-50 ${
+      isOpen ? 'translate-x-0' : '-translate-x-full'
+    } md:translate-x-0 md:relative md:z-0 ${
+      isCollapsed ? 'w-16' : 'w-64'
+    }`}>
       <div className="flex flex-col h-full">
-        {isCollapsed ? (
-          <div className="flex flex-col items-center justify-center p-2 border-b dark:border-gray-700 h-20">
-            <div 
-              className="flex items-center justify-center w-full cursor-pointer mb-2"
-              onClick={() => navigate('/dashboard')}
-            >
-              <img src="/logo-Study-Track.png" alt="Study Track Logo" className="h-8 w-8" />
-            </div>
-            <button
-              onClick={toggleCollapse}
-              className="p-2 text-gray-500 dark:text-gray-400 rounded-md hover:text-gray-900 dark:hover:text-gray-300 focus:outline-none focus:ring-2 focus:ring-primary-500 mt-2"
-              style={{ alignSelf: 'center' }}
-            >
-              <ChevronLeft className="w-6 h-6 transition-transform duration-200 rotate-180" />
-            </button>
+        <div className={`flex items-center justify-between p-4 border-b dark:border-gray-700`}>
+          <div 
+            className="flex items-center cursor-pointer"
+            onClick={() => navigate('/')}
+          >
+            <img 
+              src="/logo-Study-Track.png" 
+              alt="Study Track Logo" 
+              className={`h-8 ${isCollapsed ? 'w-8' : 'w-auto mr-2'}`} 
+            />
+            {!isCollapsed && <h2 className="text-xl font-bold text-gray-900 dark:text-white">Study Track</h2>}
           </div>
-        ) : (
+          <button
+            onClick={toggleCollapse}
+            className="hidden md:block p-2 text-gray-500 dark:text-gray-400 rounded-md hover:text-gray-900 dark:hover:text-gray-300 focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all duration-300"
+          >
+            <ChevronLeft className={`w-6 h-6 transition-transform duration-300 ${isCollapsed ? 'rotate-180' : ''}`} />
+          </button>
+        </div>
+
+        {(!isCollapsed || !window.matchMedia('(min-width: 768px)').matches) && (
           <>
-            <div className="flex flex-col items-center justify-between p-2 border-b dark:border-gray-700 h-24">
-              <div 
-                className="flex items-center cursor-pointer"
-                onClick={() => navigate('/dashboard')}
-              >
-                <img src="/logo-Study-Track.png" alt="Study Track Logo" className="h-8 w-auto mr-2" />
-                <h2 className="text-xl font-bold text-gray-900 dark:text-white">Study Track</h2>
-              </div>
-              <button
-                onClick={toggleCollapse}
-                className="p-2 text-gray-500 dark:text-gray-400 rounded-md hover:text-gray-900 dark:hover:text-gray-300 focus:outline-none focus:ring-2 focus:ring-primary-500 mt-2"
-                style={{ alignSelf: 'center' }}
-              >
-                <ChevronLeft className="w-6 h-6 transition-transform duration-200" />
-              </button>
-            </div>
             <nav className="flex-1 px-4 mt-4 overflow-y-auto">
               {navigationItems.map((item) => (
                 <SidebarItem
@@ -233,7 +238,6 @@ const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
                   isActive={location.pathname === item.to}
                 />
               ))}
-              {/* Boards Section */}
               <div className="mt-6">
                 <div className="flex items-center justify-between mb-2 group">
                   <h3 className="text-sm font-medium text-gray-500 uppercase">Boards</h3>
@@ -312,7 +316,6 @@ const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
                   </ul>
                 )}
               </div>
-              {/* Pages Section */}
               <div className="mt-6">
                 <div className="flex items-center justify-between mb-2 group">
                   <h3 className="text-sm font-medium text-gray-500 uppercase">Pages</h3>
@@ -392,7 +395,7 @@ const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
                 )}
               </div>
             </nav>
-            <div className="p-4 border-t">
+            <div className="p-4 border-t mt-auto">
               <button
                 onClick={() => navigate('/settings')}
                 className="flex items-center px-3 py-2 w-full text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800"

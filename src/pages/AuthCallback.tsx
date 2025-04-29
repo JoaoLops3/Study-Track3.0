@@ -30,7 +30,7 @@ const AuthCallback = () => {
 
       if (session) {
         toast.success('Autenticação realizada com sucesso!');
-        navigate('/dashboard');
+        navigate('/');
       } else {
         toast.error('Sessão não encontrada');
         navigate('/login?error=auth-failed');
