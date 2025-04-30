@@ -149,7 +149,7 @@ const PomodoroTimer: React.FC = () => {
       {showSessionComplete && (
         <div className="fixed bottom-5 right-5 bg-green-500 text-white p-3 rounded-md shadow-lg animate-fade-in flex items-center">
           <CheckCircle size={20} className="mr-2" />
-          <span>Work session completed!</span>
+          <span>Sessão de trabalho concluída!</span>
         </div>
       )}
     </div>

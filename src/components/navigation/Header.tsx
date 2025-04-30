@@ -54,16 +54,16 @@ const Header = ({ onMenuClick }: HeaderProps) => {
               </span>
             </button>
           
-          {isUserMenuOpen && (
+            {isUserMenuOpen && (
               <div className="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg py-1 bg-white dark:bg-gray-800 ring-1 ring-black ring-opacity-5 focus:outline-none">
-              <button
+                <button
                   onClick={() => navigate('/settings')}
                   className="block w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-              >
+                >
                   Configurações
-              </button>
-            </div>
-          )}
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>

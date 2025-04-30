@@ -39,6 +39,8 @@ const CalendarPage = () => {
     end: new Date(),
     description: '',
   });
+  const [showConfirmDelete, setShowConfirmDelete] = useState(false);
+  const [eventToDelete, setEventToDelete] = useState<Event | null>(null);
 
   const handleGoogleCalendarSync = async () => {
     try {
@@ -80,17 +82,32 @@ const CalendarPage = () => {
     toast.success('Event added successfully');
   };
 
+  const handleDeleteEvent = (event: Event) => {
+    setEventToDelete(event);
+    setShowConfirmDelete(true);
+  };
+
+  const deleteEvent = () => {
+    if (eventToDelete) {
+      const updatedEvents = events.filter((e) => e.id !== eventToDelete.id);
+      setEvents(updatedEvents);
+      setEventToDelete(null);
+      setShowConfirmDelete(false);
+      toast.success('Event deleted successfully');
+    }
+  };
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Calendar</h1>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Calendário</h1>
         <div className="flex space-x-4">
           <button
             onClick={() => setShowAddEvent(true)}
             className="flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700"
           >
             <Plus className="h-5 w-5 mr-2" />
-            Add Event
+            Adicionar Evento
           </button>
         </div>
       </div>
@@ -109,10 +126,10 @@ const CalendarPage = () => {
       {showAddEvent && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full p-6">
-            <h2 className="text-xl font-bold mb-4 dark:text-white">Add New Event</h2>
+            <h2 className="text-xl font-bold mb-4 dark:text-white">Adicionar Novo Evento</h2>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Title</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Título</label>
                 <input
                   type="text"
                   value={newEvent.title}
@@ -121,7 +138,7 @@ const CalendarPage = () => {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Start Date</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Data de Início</label>
                 <input
                   type="datetime-local"
                   value={format(newEvent.start || new Date(), "yyyy-MM-dd'T'HH:mm")}
@@ -130,7 +147,7 @@ const CalendarPage = () => {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">End Date</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Data de Término</label>
                 <input
                   type="datetime-local"
                   value={format(newEvent.end || new Date(), "yyyy-MM-dd'T'HH:mm")}
@@ -139,7 +156,7 @@ const CalendarPage = () => {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Description</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Descrição</label>
                 <textarea
                   value={newEvent.description}
                   onChange={(e) => setNewEvent({ ...newEvent, description: e.target.value })}
@@ -153,13 +170,38 @@ const CalendarPage = () => {
                 onClick={() => setShowAddEvent(false)}
                 className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
               >
-                Cancel
+                Cancelar
               </button>
               <button
                 onClick={handleAddEvent}
                 className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700"
               >
-                Add Event
+                Adicionar Evento
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showConfirmDelete && eventToDelete && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full p-6">
+            <h2 className="text-xl font-bold text-gray-900 mb-4">Excluir Evento</h2>
+            <p className="text-gray-600 mb-6">
+              Tem certeza que deseja excluir este evento? Esta ação não pode ser desfeita.
+            </p>
+            <div className="flex justify-end space-x-4">
+              <button
+                className="px-4 py-2 text-gray-600 hover:text-gray-800"
+                onClick={() => setShowConfirmDelete(false)}
+              >
+                Cancelar
+              </button>
+              <button
+                className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+                onClick={deleteEvent}
+              >
+                Excluir
               </button>
             </div>
           </div>

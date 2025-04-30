@@ -64,7 +64,9 @@ const Dashboard = () => {
   const filteredPages = useMemo(() => {
     return recentPages.filter(page => {
       const matchesSearch = page.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                          page.content?.content?.[0]?.content?.[0]?.text?.toLowerCase().includes(searchQuery.toLowerCase());
+                          (typeof page.content === 'object' && page.content !== null && 
+                          'content' in page.content && Array.isArray((page.content as any).content) && 
+                          (page.content as any).content[0]?.content?.[0]?.text?.toLowerCase().includes(searchQuery.toLowerCase()));
       const matchesTags = selectedTags.length === 0 || 
                          selectedTags.some(tag => page.tags?.includes(tag));
       const matchesFavorites = !showFavorites || page.is_favorite;
@@ -93,12 +95,12 @@ const Dashboard = () => {
         .single();
 
       if (fetchError) {
-        console.error('Error fetching item:', fetchError);
+        console.error('Erro ao buscar item:', fetchError);
         throw fetchError;
       }
 
       if (!existingItem) {
-        throw new Error('Item not found or unauthorized');
+        throw new Error('Item não encontrado ou não autorizado');
       }
 
       // Garantir que is_favorite seja um booleano
@@ -114,9 +116,15 @@ const Dashboard = () => {
 
       if (updateError) throw updateError;
 
-      setItems(currentItems.map(item => 
-        item.id === id ? { ...item, is_favorite: newFavoriteStatus } : item
-      ));
+      if (type === 'board') {
+        setRecentBoards(currentItems.map(item => 
+          item.id === id ? { ...item, is_favorite: newFavoriteStatus } : item
+        ) as Board[]);
+      } else {
+        setRecentPages(currentItems.map(item => 
+          item.id === id ? { ...item, is_favorite: newFavoriteStatus } : item
+        ) as Page[]);
+      }
       
       toast.success('Favorito atualizado com sucesso!');
     } catch (error) {
@@ -195,7 +203,7 @@ const Dashboard = () => {
             owner_id: user.id,
             tags: newBoardTags.split(',').map(tag => tag.trim()),
             is_favorite: false,
-            created_at: new Date().toISOString(),
+            created_at: new Date().toISOString()
           },
         ])
         .select()
@@ -278,7 +286,7 @@ const Dashboard = () => {
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Dashboard</h1>
         
         <div className="flex space-x-2 mt-4 md:mt-0">
-          <Tooltip content="Create a new board">
+          <Tooltip content="Criar um novo quadro">
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
@@ -286,11 +294,11 @@ const Dashboard = () => {
               className="flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-colors duration-200"
             >
               <Plus className="h-5 w-5 mr-2" />
-              New Board
+              Novo Quadro
             </motion.button>
           </Tooltip>
           
-          <Tooltip content="Create a new page">
+          <Tooltip content="Criar uma nova página">
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
@@ -298,7 +306,7 @@ const Dashboard = () => {
               className="flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-colors duration-200"
             >
               <Plus className="h-5 w-5 mr-2" />
-              New Page
+              Nova Página
             </motion.button>
           </Tooltip>
         </div>
@@ -315,7 +323,7 @@ const Dashboard = () => {
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
           <input
             type="text"
-            placeholder="Buscar boards e pages..."
+            placeholder="Buscar quadros e páginas..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-800 dark:text-white"
@@ -387,28 +395,38 @@ const Dashboard = () => {
           transition={{ duration: 0.5 }}
           className="mb-6 flex flex-wrap gap-2"
         >
-          {availableTags.map(tag => (
-            <motion.button
-              key={tag}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={() => {
-                setSelectedTags(prev => 
-                  prev.includes(tag) 
-                    ? prev.filter(t => t !== tag)
-                    : [...prev, tag]
-                );
-              }}
-              className={`flex items-center gap-1 px-3 py-1 rounded-full text-sm ${
-                selectedTags.includes(tag)
-                  ? 'bg-primary-100 text-primary-700 dark:bg-primary-900 dark:text-primary-300'
-                  : 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300'
-              }`}
-            >
-              <Tag className="h-4 w-4" />
-              {tag}
-            </motion.button>
-          ))}
+          <div className="mb-4">
+            <div className="flex items-center space-x-2 flex-wrap gap-2">
+              {availableTags.map((tag) => (
+                <button
+                  key={tag}
+                  onClick={() => setSelectedTags(prev => 
+                    prev.includes(tag) 
+                      ? prev.filter(t => t !== tag)
+                      : [...prev, tag]
+                  )}
+                  className={cn(
+                    "inline-flex items-center px-2 py-1 rounded text-sm",
+                    selectedTags.includes(tag)
+                      ? "bg-primary-100 text-primary-700 dark:bg-primary-900/30 dark:text-primary-400"
+                      : "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300"
+                  )}
+                >
+                  <Tag className="w-3 h-3 mr-1" />
+                  {tag}
+                </button>
+              ))}
+              {selectedTags.length > 0 && (
+                <button
+                  onClick={() => setSelectedTags([])}
+                  className="inline-flex items-center px-2 py-1 rounded text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
+                >
+                  <X className="w-3 h-3 mr-1" />
+                  Limpar filtros
+                </button>
+              )}
+            </div>
+          </div>
         </motion.div>
       )}
 
@@ -496,7 +514,7 @@ const Dashboard = () => {
                   className="p-6 bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 hover:shadow-md transition-all duration-200 flex flex-col items-center"
                 >
                   <Folder className="h-8 w-8 text-primary-600 dark:text-primary-400 mb-3" />
-                  <span className="text-sm font-medium text-gray-900 dark:text-white">New Board</span>
+                  <span className="text-sm font-medium text-gray-900 dark:text-white">Novo Quadro</span>
                 </motion.button>
                 
                 <motion.button
@@ -510,7 +528,7 @@ const Dashboard = () => {
                   className="p-6 bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 hover:shadow-md transition-all duration-200 flex flex-col items-center"
                 >
                   <File className="h-8 w-8 text-secondary-600 dark:text-secondary-400 mb-3" />
-                  <span className="text-sm font-medium text-gray-900 dark:text-white">New Page</span>
+                  <span className="text-sm font-medium text-gray-900 dark:text-white">Nova Página</span>
                 </motion.button>
                 
                 <motion.button
@@ -524,7 +542,7 @@ const Dashboard = () => {
                   className="p-6 bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 hover:shadow-md transition-all duration-200 flex flex-col items-center"
                 >
                   <Calendar className="h-8 w-8 text-orange-500 dark:text-orange-400 mb-3" />
-                  <span className="text-sm font-medium text-gray-900 dark:text-white">Calendar</span>
+                  <span className="text-sm font-medium text-gray-900 dark:text-white">Calendário</span>
                 </motion.button>
                 
                 <motion.button
@@ -538,7 +556,7 @@ const Dashboard = () => {
                   className="p-6 bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 hover:shadow-md transition-all duration-200 flex flex-col items-center"
                 >
                   <Users className="h-8 w-8 text-purple-600 dark:text-purple-400 mb-3" />
-                  <span className="text-sm font-medium text-gray-900 dark:text-white">Team</span>
+                  <span className="text-sm font-medium text-gray-900 dark:text-white">Equipe</span>
                 </motion.button>
               </AnimatePresence>
             </div>
@@ -551,7 +569,7 @@ const Dashboard = () => {
             transition={{ duration: 0.5, delay: 0.2 }}
             className="mb-10"
           >
-            <h2 className="text-lg font-medium text-gray-900 dark:text-white mb-6">Recent Boards</h2>
+            <h2 className="text-lg font-medium text-gray-900 dark:text-white mb-6">Quadros Recentes</h2>
             <div className={cn(
               viewMode === 'grid' 
                 ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4'
@@ -641,7 +659,7 @@ const Dashboard = () => {
             animate={{ y: 0, opacity: 1 }}
             transition={{ duration: 0.5, delay: 0.4 }}
           >
-            <h2 className="text-lg font-medium text-gray-900 dark:text-white mb-6">Recent Pages</h2>
+            <h2 className="text-lg font-medium text-gray-900 dark:text-white mb-6">Páginas Recentes</h2>
             <div className={cn(
               viewMode === 'grid' 
                 ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4'
@@ -727,137 +745,101 @@ const Dashboard = () => {
         </motion.div>
       )}
 
-      {/* Create Board Modal */}
+      {/* Modal de Novo Quadro */}
       {isCreatingBoard && (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -20 }}
-          className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
-        >
-          <motion.div
-            initial={{ scale: 0.9 }}
-            animate={{ scale: 1 }}
-            className="bg-white rounded-lg p-6 w-full max-w-md"
-          >
-            <h2 className="text-xl font-semibold mb-4">Criar Novo Quadro</h2>
-            <form onSubmit={createNewBoard} className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Título
-                </label>
-                <input
-                  type="text"
-                  value={newBoardTitle}
-                  onChange={(e) => setNewBoardTitle(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="Digite o título do quadro"
-                  required
-                />
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full p-6">
+            <h2 className="text-xl font-bold mb-4 dark:text-white">Criar Novo Quadro</h2>
+            <form onSubmit={createNewBoard}>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Título</label>
+                  <input
+                    type="text"
+                    value={newBoardTitle}
+                    onChange={(e) => setNewBoardTitle(e.target.value)}
+                    className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:bg-gray-700 dark:text-white"
+                    placeholder="Digite o título do quadro"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Tags</label>
+                  <input
+                    type="text"
+                    value={newBoardTags}
+                    onChange={(e) => setNewBoardTags(e.target.value)}
+                    className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:bg-gray-700 dark:text-white"
+                    placeholder="Digite as tags separadas por vírgula"
+                  />
+                </div>
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Tags (separadas por vírgula)
-                </label>
-                <input
-                  type="text"
-                  value={newBoardTags}
-                  onChange={(e) => setNewBoardTags(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="Ex: trabalho, pessoal, projeto"
-                />
-              </div>
-              <div className="flex justify-end space-x-2">
+              <div className="mt-6 flex justify-end space-x-3">
                 <button
                   type="button"
                   onClick={() => setIsCreatingBoard(false)}
-                  className="px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-md"
+                  className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-gray-500"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700"
+                  className="px-4 py-2 bg-primary-600 text-white text-sm font-medium rounded-md hover:bg-primary-700"
                 >
                   Criar
                 </button>
               </div>
             </form>
-          </motion.div>
-        </motion.div>
+          </div>
+        </div>
       )}
 
-      {/* Create Page Modal */}
+      {/* Modal de Nova Página */}
       {isCreatingPage && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.95 }}
-            className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 w-full max-w-md mx-4"
-          >
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-medium text-gray-900 dark:text-white">
-                Criar nova página
-              </h3>
-              <button
-                onClick={() => setIsCreatingPage(false)}
-                className="text-gray-400 hover:text-gray-500 dark:hover:text-gray-300"
-              >
-                <X className="h-5 w-5" />
-              </button>
-            </div>
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full p-6">
+            <h2 className="text-xl font-bold mb-4 dark:text-white">Criar Nova Página</h2>
             <form onSubmit={createNewPage}>
-              <div className="mb-4">
-                <label
-                  htmlFor="pageTitle"
-                  className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-                >
-                  Título
-                </label>
-                <input
-                  type="text"
-                  id="pageTitle"
-                  value={newPageTitle}
-                  onChange={(e) => setNewPageTitle(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
-                  required
-                  autoFocus
-                />
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Título</label>
+                  <input
+                    type="text"
+                    value={newPageTitle}
+                    onChange={(e) => setNewPageTitle(e.target.value)}
+                    className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:bg-gray-700 dark:text-white"
+                    placeholder="Digite o título da página"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Tags</label>
+                  <input
+                    type="text"
+                    value={newPageTags}
+                    onChange={(e) => setNewPageTags(e.target.value)}
+                    className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:bg-gray-700 dark:text-white"
+                    placeholder="Digite as tags separadas por vírgula"
+                  />
+                </div>
               </div>
-              <div className="mb-4">
-                <label
-                  htmlFor="pageTags"
-                  className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-                >
-                  Tags (separadas por vírgula)
-                </label>
-                <input
-                  type="text"
-                  id="pageTags"
-                  value={newPageTags}
-                  onChange={(e) => setNewPageTags(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
-                  placeholder="ex: notas, ideias, tarefas"
-                />
-              </div>
-              <div className="flex justify-end gap-2">
+              <div className="mt-6 flex justify-end space-x-3">
                 <button
                   type="button"
                   onClick={() => setIsCreatingPage(false)}
-                  className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600"
+                  className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-gray-500"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700"
+                  className="px-4 py-2 bg-primary-600 text-white text-sm font-medium rounded-md hover:bg-primary-700"
                 >
                   Criar
                 </button>
               </div>
             </form>
-          </motion.div>
+          </div>
         </div>
       )}
     </motion.div>

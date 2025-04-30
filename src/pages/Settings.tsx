@@ -701,24 +701,6 @@ const Settings = () => {
                           />
                         </button>
                       </div>
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <h4 className="text-sm font-medium text-gray-900 dark:text-white">Alertas de Login</h4>
-                          <p className="text-sm text-gray-500 dark:text-gray-400">Receba notificações sobre logins suspeitos</p>
-                        </div>
-                        <button
-                          onClick={() => handleSecurityChange('loginAlerts', !settings.security.loginAlerts)}
-                          className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 ${
-                            settings.security.loginAlerts ? 'bg-primary-600' : 'bg-gray-200 dark:bg-gray-700'
-                          }`}
-                        >
-                          <span
-                            className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
-                              settings.security.loginAlerts ? 'translate-x-5' : 'translate-x-0'
-                            }`}
-                          />
-                        </button>
-                      </div>
                     </div>
                   </div>
                 )}
@@ -735,8 +717,8 @@ const Settings = () => {
                           className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:bg-gray-700 dark:text-white"
                         >
                           <option value="pt-BR">Português (Brasil)</option>
-                          <option value="en-US">English (US)</option>
-                          <option value="es-ES">Español</option>
+                          <option value="en-US">Inglês (EUA)</option>
+                          <option value="es-ES">Espanhol</option>
                         </select>
                       </div>
                       <div>
@@ -747,8 +729,8 @@ const Settings = () => {
                           className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:bg-gray-700 dark:text-white"
                         >
                           <option value="America/Sao_Paulo">Brasília (GMT-3)</option>
-                          <option value="America/New_York">New York (GMT-4)</option>
-                          <option value="Europe/London">London (GMT+1)</option>
+                          <option value="America/New_York">Nova York (GMT-4)</option>
+                          <option value="Europe/London">Londres (GMT+1)</option>
                         </select>
                       </div>
                     </div>

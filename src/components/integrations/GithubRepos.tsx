@@ -48,6 +48,15 @@ const GithubRepos = () => {
     return (
       <div className="flex items-center justify-center p-4">
         <div className="w-6 h-6 border-t-2 border-primary-600 rounded-full animate-spin"></div>
+        <span className="ml-2 text-gray-600 dark:text-gray-400">Carregando repositórios...</span>
+      </div>
+    );
+  }
+
+  if (!repos.length) {
+    return (
+      <div className="text-center py-4">
+        <p className="text-gray-600 dark:text-gray-400">Nenhum repositório encontrado.</p>
       </div>
     );
   }

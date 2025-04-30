@@ -168,13 +168,13 @@ const PageView = () => {
   if (error) {
     return (
       <div className="max-w-3xl mx-auto px-4 py-12 text-center">
-        <h2 className="text-2xl font-bold text-red-600 mb-4">Error</h2>
+        <h2 className="text-2xl font-bold text-red-600 mb-4">Erro</h2>
         <p className="text-gray-700 mb-6">{error}</p>
         <button
           onClick={() => navigate('/')}
           className="px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700"
         >
-          Back to Dashboard
+          Voltar ao Dashboard
         </button>
       </div>
     );
@@ -183,13 +183,13 @@ const PageView = () => {
   if (!page) {
     return (
       <div className="max-w-3xl mx-auto px-4 py-12 text-center">
-        <h2 className="text-2xl font-bold text-gray-900 mb-4">Page not found</h2>
-        <p className="text-gray-700 mb-6">The page you're looking for doesn't exist or you don't have access to it.</p>
+        <h2 className="text-2xl font-bold text-gray-900 mb-4">Página não encontrada</h2>
+        <p className="text-gray-700 mb-6">A página que você está procurando não existe ou você não tem acesso a ela.</p>
         <button
           onClick={() => navigate('/')}
           className="px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700"
         >
-          Back to Dashboard
+          Voltar ao Dashboard
         </button>
       </div>
     );
@@ -235,12 +235,12 @@ const PageView = () => {
             {page.is_public ? (
               <div className="flex items-center text-gray-600 text-sm bg-gray-100 px-2 py-1 rounded">
                 <Globe className="w-4 h-4 mr-1" />
-                Public
+                Público
               </div>
             ) : (
               <div className="flex items-center text-gray-600 text-sm bg-gray-100 px-2 py-1 rounded">
                 <Lock className="w-4 h-4 mr-1" />
-                Private
+                Privado
               </div>
             )}
           </div>
@@ -263,12 +263,12 @@ const PageView = () => {
                     {page.is_public ? (
                       <>
                         <Lock className="w-4 h-4 mr-2" />
-                        Make private
+                        Tornar privado
                       </>
                     ) : (
                       <>
                         <Globe className="w-4 h-4 mr-2" />
-                        Make public
+                        Tornar público
                       </>
                     )}
                   </button>
@@ -277,7 +277,7 @@ const PageView = () => {
                     className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
                   >
                     <Trash2 className="w-4 h-4 mr-2" />
-                    Delete page
+                    Excluir página
                   </button>
                 </div>
               </div>
@@ -287,9 +287,9 @@ const PageView = () => {
       </div>
       
       <div className="mb-2 text-xs text-gray-500 flex justify-between">
-        <span>Last edited on {new Date(page.created_at).toLocaleString()}</span>
-        {isSaving && <span>Saving...</span>}
-        {lastSaved && !isSaving && <span>Saved at {lastSaved.toLocaleTimeString()}</span>}
+        <span>Última edição em {new Date(page.created_at).toLocaleString()}</span>
+        {isSaving && <span>Salvando...</span>}
+        {lastSaved && !isSaving && <span>Salvo às {lastSaved.toLocaleTimeString()}</span>}
       </div>
       
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
@@ -297,7 +297,7 @@ const PageView = () => {
         <RichTextEditor
           initialContent={page.content}
           onChange={updatePageContent}
-          placeholder="Start writing..."
+          placeholder="Comece a escrever..."
         />
         </div>
       </div>
@@ -306,22 +306,22 @@ const PageView = () => {
       {confirmDelete && (
         <div className="fixed inset-0 bg-black bg-opacity-30 z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-lg shadow-lg max-w-md w-full p-6" onClick={(e) => e.stopPropagation()}>
-            <h2 className="text-xl font-bold text-gray-900 mb-4">Delete Page</h2>
-            <p className="text-gray-700 mb-6">
-              Are you sure you want to delete "{page.title}"? This action cannot be undone.
+            <h2 className="text-xl font-bold text-gray-900 mb-4">Excluir Página</h2>
+            <p className="text-gray-600 mb-6">
+              Tem certeza que deseja excluir "{page.title}"? Esta ação não pode ser desfeita.
             </p>
-            <div className="flex justify-end space-x-2">
+            <div className="flex justify-end space-x-4">
               <button
+                className="px-4 py-2 text-gray-600 hover:text-gray-800"
                 onClick={() => setConfirmDelete(false)}
-                className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
               >
-                Cancel
+                Cancelar
               </button>
               <button
+                className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
                 onClick={deletePage}
-                className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
               >
-                Delete
+                Excluir
               </button>
             </div>
           </div>

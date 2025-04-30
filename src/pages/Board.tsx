@@ -70,11 +70,11 @@ const Board = () => {
       if (columnsError) throw columnsError;
       setColumns(columnsData || []);
       
-      // Fetch cards
+      // Fetch cards for all columns in this board
       const { data: cardsData, error: cardsError } = await supabase
         .from('cards')
         .select('*')
-        .eq('board_id', id)
+        .in('column_id', (columnsData || []).map(col => col.id))
         .order('created_at', { ascending: false })
         .range((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE - 1);
         
@@ -445,13 +445,13 @@ const Board = () => {
   if (error) {
     return (
       <div className="max-w-3xl mx-auto px-4 py-12 text-center">
-        <h2 className="text-2xl font-bold text-red-600 mb-4">Error</h2>
+        <h2 className="text-2xl font-bold text-red-600 mb-4">Erro</h2>
         <p className="text-gray-700 mb-6">{error}</p>
         <button
           onClick={() => navigate('/')}
           className="px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700"
         >
-          Back to Dashboard
+          Voltar ao Dashboard
         </button>
       </div>
     );
@@ -460,13 +460,13 @@ const Board = () => {
   if (!board) {
     return (
       <div className="max-w-3xl mx-auto px-4 py-12 text-center">
-        <h2 className="text-2xl font-bold text-gray-900 mb-4">Board not found</h2>
-        <p className="text-gray-700 mb-6">The board you're looking for doesn't exist or you don't have access to it.</p>
+        <h2 className="text-2xl font-bold text-gray-900 mb-4">Quadro não encontrado</h2>
+        <p className="text-gray-700 mb-6">O quadro que você está procurando não existe ou você não tem acesso a ele.</p>
         <button
           onClick={() => navigate('/')}
           className="px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700"
         >
-          Back to Dashboard
+          Voltar ao Dashboard
         </button>
       </div>
     );
@@ -510,56 +510,56 @@ const Board = () => {
         <div className="flex items-center space-x-2 mt-4 md:mt-0">
           <div className="flex items-center mr-3">
             {board.is_public ? (
-              <div className="flex items-center text-gray-600 text-sm bg-gray-100 px-2 py-1 rounded">
+              <div className="flex items-center text-gray-600 dark:text-gray-300 text-sm bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">
                 <Globe className="w-4 h-4 mr-1" />
-                Public
+                Público
               </div>
             ) : (
-              <div className="flex items-center text-gray-600 text-sm bg-gray-100 px-2 py-1 rounded">
+              <div className="flex items-center text-gray-600 dark:text-gray-300 text-sm bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">
                 <Lock className="w-4 h-4 mr-1" />
-                Private
+                Privado
               </div>
             )}
           </div>
           
-          <button className="flex items-center px-3 py-1.5 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
+          <button className="flex items-center px-3 py-1.5 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700">
             <Share2 className="h-4 w-4 mr-2" />
-            Share
+            Compartilhar
           </button>
           
           <div className="relative">
             <button
               onClick={() => setShowBoardMenu(!showBoardMenu)}
-              className="flex items-center px-3 py-1.5 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+              className="flex items-center px-3 py-1.5 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700"
             >
               <MoreHorizontal className="h-4 w-4" />
             </button>
             
             {showBoardMenu && (
-              <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-10">
+              <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-md shadow-lg z-10">
                 <div className="py-1">
                   <button
                     onClick={toggleBoardVisibility}
-                    className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    className="flex items-center w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
                   >
                     {board.is_public ? (
                       <>
                         <Lock className="w-4 h-4 mr-2" />
-                        Make private
+                        Tornar privado
                       </>
                     ) : (
                       <>
                         <Globe className="w-4 h-4 mr-2" />
-                        Make public
+                        Tornar público
                       </>
                     )}
                   </button>
                   <button
                     onClick={() => setConfirmDelete(true)}
-                    className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
+                    className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-gray-100 dark:hover:bg-gray-700"
                   >
                     <Trash2 className="w-4 h-4 mr-2" />
-                    Delete board
+                    Excluir quadro
                   </button>
                 </div>
               </div>
@@ -583,13 +583,13 @@ const Board = () => {
               onClick={() => setEditingBoardDescription(false)}
               className="px-3 py-1 text-sm text-gray-700 bg-gray-100 rounded hover:bg-gray-200"
             >
-              Cancel
+              Cancelar
             </button>
             <button
               onClick={updateBoardDescription}
               className="px-3 py-1 text-sm text-white bg-primary-600 rounded hover:bg-primary-700"
             >
-              Save
+              Salvar
             </button>
           </div>
         </div>
@@ -602,7 +602,7 @@ const Board = () => {
             <p className="text-gray-700">{board.description}</p>
           ) : (
             <p className="text-gray-500 italic flex items-center">
-              Add board description...
+              Adicionar descrição do quadro...
               <Edit2 className="w-4 h-4 ml-2 opacity-0 group-hover:opacity-100 transition-opacity" />
             </p>
           )}
@@ -628,16 +628,16 @@ const Board = () => {
                         {...provided.draggableProps}
                         className="w-80 flex-shrink-0"
                       >
-                        <div className="bg-gray-100 rounded-lg shadow">
+                        <div className="bg-gray-100 dark:bg-gray-800 rounded-lg shadow">
                           <div 
                             {...provided.dragHandleProps}
-                            className="p-3 font-medium bg-gray-200 rounded-t-lg flex justify-between items-center"
+                            className="p-3 font-medium bg-gray-200 dark:bg-gray-700 rounded-t-lg flex justify-between items-center"
                           >
-                            <h3 className="text-gray-900">{column.title}</h3>
+                            <h3 className="text-gray-900 dark:text-gray-100">{column.title}</h3>
                             <div className="flex space-x-1">
                               <button
                                 onClick={() => deleteColumn(column.id)}
-                                className="p-1 text-gray-500 rounded hover:bg-gray-300"
+                                className="p-1 text-gray-500 dark:text-gray-400 rounded hover:bg-gray-300 dark:hover:bg-gray-600"
                               >
                                 <Trash2 className="w-4 h-4" />
                               </button>
@@ -650,7 +650,7 @@ const Board = () => {
                                 ref={provided.innerRef}
                                 {...provided.droppableProps}
                                 className={`p-2 min-h-[200px] ${
-                                  snapshot.isDraggingOver ? 'bg-blue-50' : ''
+                                  snapshot.isDraggingOver ? 'bg-blue-50 dark:bg-blue-900/20' : 'dark:bg-gray-800'
                                 }`}
                               >
                                 {cards
@@ -672,10 +672,10 @@ const Board = () => {
                           <div className="p-2">
                             <button
                               onClick={() => addNewCard(column.id)}
-                              className="w-full p-2 text-left text-gray-700 rounded hover:bg-gray-200 flex items-center"
+                              className="w-full p-2 text-left text-gray-700 dark:text-gray-300 rounded hover:bg-gray-200 dark:hover:bg-gray-700 flex items-center"
                             >
                               <Plus className="w-4 h-4 mr-2" />
-                              Add a card
+                              Adicionar cartão
                             </button>
                           </div>
                         </div>
@@ -688,21 +688,21 @@ const Board = () => {
               
               {addingColumn ? (
                 <div className="w-80 flex-shrink-0">
-                  <div className="bg-white rounded-lg border border-gray-200 p-2">
+                  <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-2">
                     <form onSubmit={addNewColumn}>
                       <input
                         type="text"
                         value={newColumnTitle}
                         onChange={(e) => setNewColumnTitle(e.target.value)}
-                        className="w-full p-2 mb-2 border rounded focus:outline-none focus:ring-2 focus:ring-primary-500"
-                        placeholder="Enter column title..."
+                        className="w-full p-2 mb-2 border rounded focus:outline-none focus:ring-2 focus:ring-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-300"
+                        placeholder="Digite o título da coluna..."
                         autoFocus
                       />
                       <div className="flex justify-between">
                         <button
                           type="button"
                           onClick={() => setAddingColumn(false)}
-                          className="p-2 text-gray-500 hover:text-gray-700"
+                          className="p-2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
                         >
                           <X className="w-5 h-5" />
                         </button>
@@ -710,7 +710,7 @@ const Board = () => {
                           type="submit"
                           className="px-3 py-1 bg-primary-600 text-white rounded hover:bg-primary-700"
                         >
-                          Add Column
+                          Adicionar Coluna
                         </button>
                       </div>
                     </form>
@@ -720,10 +720,10 @@ const Board = () => {
                 <div className="w-80 flex-shrink-0">
                   <button
                     onClick={() => setAddingColumn(true)}
-                    className="h-full min-h-[100px] w-full p-3 bg-gray-100 rounded-lg border-2 border-dashed border-gray-300 hover:border-gray-400 hover:bg-gray-200 transition-colors flex items-center justify-center"
+                    className="h-full min-h-[100px] w-full p-3 bg-gray-100 dark:bg-gray-800 rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-700 hover:border-gray-400 dark:hover:border-gray-600 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors flex items-center justify-center text-gray-700 dark:text-gray-300"
                   >
                     <Plus className="w-5 h-5 mr-2" />
-                    Add another column
+                    Adicionar nova coluna
                   </button>
                 </div>
               )}
@@ -753,22 +753,22 @@ const Board = () => {
       {confirmDelete && (
         <div className="fixed inset-0 bg-black bg-opacity-30 z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-lg shadow-lg max-w-md w-full p-6" onClick={(e) => e.stopPropagation()}>
-            <h2 className="text-xl font-bold text-gray-900 mb-4">Delete Board</h2>
-            <p className="text-gray-700 mb-6">
-              Are you sure you want to delete "{board.title}"? This action cannot be undone.
+            <h2 className="text-xl font-bold text-gray-900 mb-4">Excluir Quadro</h2>
+            <p className="text-gray-600 mb-6">
+              Tem certeza que deseja excluir "{board.title}"? Esta ação não pode ser desfeita.
             </p>
-            <div className="flex justify-end space-x-2">
+            <div className="flex justify-end space-x-4">
               <button
+                className="px-4 py-2 text-gray-600 hover:text-gray-800"
                 onClick={() => setConfirmDelete(false)}
-                className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
               >
-                Cancel
+                Cancelar
               </button>
               <button
+                className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
                 onClick={deleteBoard}
-                className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
               >
-                Delete
+                Excluir
               </button>
             </div>
           </div>

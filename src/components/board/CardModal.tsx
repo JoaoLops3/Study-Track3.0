@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { format } from 'date-fns';
-import { X, Calendar, Tag, Trash2, Edit2 } from 'lucide-react';
+import { ptBR } from 'date-fns/locale';
+import { X, Calendar, Tag, Trash2, Edit2, Pen, Bold, Italic, Heading1, Heading2, List, ListOrdered, CheckSquare, Link, Image, Code } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import RichTextEditor from '../editor/RichTextEditor';
 import type { Database } from '../../lib/database.types';
@@ -26,6 +27,8 @@ const CardModal = ({ card, column, onClose, onCardUpdate, onCardDelete }: CardMo
   const [newTag, setNewTag] = useState('');
   const [addingTag, setAddingTag] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [manualDate, setManualDate] = useState('');
+  const [isManualInput, setIsManualInput] = useState(false);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -156,7 +159,7 @@ const CardModal = ({ card, column, onClose, onCardUpdate, onCardDelete }: CardMo
   };
 
   const deleteCard = async () => {
-    if (!confirm('Are you sure you want to delete this card?')) return;
+    if (!confirm('Tem certeza que deseja excluir este cartão?')) return;
     
     try {
       const { error } = await supabase
@@ -168,101 +171,158 @@ const CardModal = ({ card, column, onClose, onCardUpdate, onCardDelete }: CardMo
       
       onCardDelete(card.id);
     } catch (error) {
-      console.error('Error deleting card:', error);
+      console.error('Erro ao excluir cartão:', error);
+    }
+  };
+
+  const handleManualDateChange = (value: string) => {
+    // Remove todas as barras primeiro
+    let numbers = value.replace(/\//g, '');
+    
+    // Remove qualquer caractere que não seja número
+    numbers = numbers.replace(/\D/g, '');
+    
+    // Formata a data com as barras
+    let formatted = '';
+    if (numbers.length > 0) {
+      formatted = numbers.slice(0, 2);
+      if (numbers.length > 2) {
+        formatted += '/' + numbers.slice(2, 4);
+      }
+      if (numbers.length > 4) {
+        formatted += '/' + numbers.slice(4, 8);
+      }
+    }
+    
+    // Atualiza apenas se o valor for válido ou vazio
+    setManualDate(formatted);
+  };
+
+  const handleManualDateSubmit = () => {
+    const [day, month, year] = manualDate.split('/');
+    if (day && month && year && year.length === 4) {
+      const date = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+      updateDueDate(`${date}T12:00:00Z`);
+      setIsManualInput(false);
+      setManualDate('');
     }
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-30 z-50 flex justify-center p-4 overflow-y-auto">
-      <div className="bg-white rounded-lg shadow-xl max-w-3xl w-full my-8" onClick={(e) => e.stopPropagation()}>
-        <div className="flex justify-between items-start p-4 border-b">
+    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-3xl w-full my-8">
+        <div className="flex justify-between items-start p-4 border-b dark:border-gray-700">
           <div className="flex-1 mr-4">
-            {editingTitle ? (
-              <div className="flex items-center">
+            <h2 
+              className="text-xl font-bold text-gray-900 dark:text-gray-100 cursor-pointer hover:text-primary-600 dark:hover:text-primary-400 group flex items-center"
+              onClick={() => setEditingTitle(true)}
+            >
+              {editingTitle ? (
                 <input
                   type="text"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  className="w-full text-xl font-bold border-b-2 border-primary-500 focus:outline-none py-1"
                   onBlur={updateCardTitle}
                   onKeyDown={(e) => e.key === 'Enter' && updateCardTitle()}
+                  className="w-full bg-white dark:bg-gray-700 border-b-2 border-primary-500 focus:outline-none"
                   autoFocus
                 />
-                <button
-                  onClick={updateCardTitle}
-                  disabled={isSaving}
-                  className="ml-2 p-1 text-primary-600 hover:text-primary-800 disabled:opacity-50"
-                >
-                  {isSaving ? (
-                    <div className="w-5 h-5 border-t-2 border-primary-600 rounded-full animate-spin"></div>
-                  ) : (
-                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                    </svg>
-                  )}
-                </button>
-              </div>
-            ) : (
-              <h2 
-                className="text-xl font-bold text-gray-900 cursor-pointer hover:text-primary-600 group flex items-center" 
-                onClick={() => setEditingTitle(true)}
-              >
-                {title}
-                <Edit2 className="w-4 h-4 ml-2 opacity-0 group-hover:opacity-100 transition-opacity" />
-              </h2>
-            )}
-            {column && (
-              <p className="text-sm text-gray-500 mt-1">
-                In column: {column.title}
-              </p>
-            )}
+              ) : (
+                <>
+                  {title}
+                  <Pen className="w-4 h-4 ml-2 opacity-0 group-hover:opacity-100 transition-opacity" />
+                </>
+              )}
+            </h2>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+              Na coluna: {column?.title}
+            </p>
           </div>
-          <button 
+          <button
             onClick={onClose}
-            className="p-1 rounded-full hover:bg-gray-200"
+            className="p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700"
           >
-            <X className="w-6 h-6 text-gray-500" />
+            <X className="w-6 h-6 text-gray-500 dark:text-gray-400" />
           </button>
         </div>
         
         <div className="p-4 grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="md:col-span-2">
             <div className="mb-6">
-              <h3 className="text-base font-medium text-gray-900 mb-2">Description</h3>
-              <RichTextEditor 
-                initialContent={content} 
-                onChange={updateCardContent} 
-                placeholder="Add a description..." 
-              />
+              <h3 className="text-base font-medium text-gray-900 dark:text-gray-100 mb-2">Descrição</h3>
+              <div className="border dark:border-gray-700 rounded-md overflow-hidden">
+                <div className="prose max-w-none dark:prose-invert">
+                  <RichTextEditor
+                    content={content}
+                    onChange={updateCardContent}
+                  />
+                </div>
+              </div>
             </div>
           </div>
           
           <div className="space-y-6">
             <div>
-              <h3 className="text-base font-medium text-gray-900 mb-2">Add to card</h3>
+              <h3 className="text-base font-medium text-gray-900 dark:text-gray-100 mb-2">Adicionar ao cartão</h3>
               <div className="space-y-2">
                 <button
                   onClick={() => setShowDatePicker(!showDatePicker)}
-                  className="flex items-center w-full p-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded"
+                  className="flex items-center w-full p-2 text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded"
                 >
-                  <Calendar className="w-5 h-5 mr-2 text-gray-600" />
-                  {dueDate ? 'Change due date' : 'Add due date'}
+                  <Calendar className="w-5 h-5 mr-2 text-gray-600 dark:text-gray-400" />
+                  {dueDate ? 'Alterar data de entrega' : 'Adicionar data de entrega'}
                 </button>
                 
                 {showDatePicker && (
-                  <div className="bg-white rounded border shadow-sm p-3">
-                    <input
-                      type="date"
-                      value={dueDate ? dueDate.split('T')[0] : ''}
-                      onChange={(e) => updateDueDate(e.target.value ? `${e.target.value}T00:00:00Z` : null)}
-                      className="w-full p-2 border rounded"
-                    />
+                  <div className="bg-white dark:bg-gray-800 rounded border dark:border-gray-700 shadow-sm p-3">
+                    {isManualInput ? (
+                      <div className="space-y-2">
+                        <input
+                          type="text"
+                          value={manualDate}
+                          onChange={(e) => handleManualDateChange(e.target.value)}
+                          placeholder="DD/MM/AAAA"
+                          className="w-full p-2 border dark:border-gray-700 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400"
+                          onKeyDown={(e) => e.key === 'Enter' && handleManualDateSubmit()}
+                        />
+                        <div className="flex justify-end gap-2">
+                          <button
+                            onClick={() => setIsManualInput(false)}
+                            className="px-3 py-1 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
+                          >
+                            Cancelar
+                          </button>
+                          <button
+                            onClick={handleManualDateSubmit}
+                            disabled={manualDate.length !== 10}
+                            className="px-3 py-1 bg-primary-600 text-white rounded disabled:opacity-50 hover:bg-primary-700 dark:hover:bg-primary-500"
+                          >
+                            Confirmar
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="space-y-2">
+                        <input
+                          type="date"
+                          value={dueDate ? dueDate.split('T')[0] : ''}
+                          onChange={(e) => updateDueDate(e.target.value ? `${e.target.value}T12:00:00Z` : null)}
+                          className="w-full p-2 border dark:border-gray-700 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+                        />
+                        <button
+                          onClick={() => setIsManualInput(true)}
+                          className="w-full p-1 text-sm text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
+                        >
+                          Digitar manualmente
+                        </button>
+                      </div>
+                    )}
                     {dueDate && (
                       <button
                         onClick={() => updateDueDate(null)}
-                        className="mt-2 w-full p-1 text-sm text-red-600 hover:bg-red-50 rounded"
+                        className="mt-2 w-full p-1 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded"
                       >
-                        Remove due date
+                        Remover data de entrega
                       </button>
                     )}
                   </div>
@@ -270,29 +330,29 @@ const CardModal = ({ card, column, onClose, onCardUpdate, onCardDelete }: CardMo
                 
                 <button
                   onClick={() => setAddingTag(!addingTag)}
-                  className="flex items-center w-full p-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded"
+                  className="flex items-center w-full p-2 text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded"
                 >
-                  <Tag className="w-5 h-5 mr-2 text-gray-600" />
-                  Add tag
+                  <Tag className="w-5 h-5 mr-2 text-gray-600 dark:text-gray-400" />
+                  Adicionar etiqueta
                 </button>
                 
                 {addingTag && (
-                  <div className="bg-white rounded border shadow-sm p-3">
+                  <div className="bg-white dark:bg-gray-800 rounded border dark:border-gray-700 shadow-sm p-3">
                     <input
                       type="text"
                       value={newTag}
                       onChange={(e) => setNewTag(e.target.value)}
-                      placeholder="Add a tag..."
-                      className="w-full p-2 border rounded mb-2"
+                      placeholder="Adicionar uma etiqueta..."
+                      className="w-full p-2 border dark:border-gray-700 rounded mb-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400"
                       onKeyDown={(e) => e.key === 'Enter' && addTag()}
                     />
                     <div className="flex justify-end">
                       <button
                         onClick={addTag}
                         disabled={!newTag.trim()}
-                        className="px-3 py-1 bg-primary-600 text-white rounded disabled:opacity-50"
+                        className="px-3 py-1 bg-primary-600 text-white rounded disabled:opacity-50 hover:bg-primary-700 dark:hover:bg-primary-500"
                       >
-                        Add
+                        Adicionar
                       </button>
                     </div>
                   </div>
@@ -300,10 +360,10 @@ const CardModal = ({ card, column, onClose, onCardUpdate, onCardDelete }: CardMo
                 
                 <button
                   onClick={deleteCard}
-                  className="flex items-center w-full p-2 text-red-600 bg-gray-100 hover:bg-red-50 rounded"
+                  className="flex items-center w-full p-2 text-red-600 bg-gray-100 dark:bg-gray-700 hover:bg-red-50 dark:hover:bg-red-900/20 rounded"
                 >
                   <Trash2 className="w-5 h-5 mr-2" />
-                  Delete card
+                  Excluir cartão
                 </button>
               </div>
             </div>
@@ -311,10 +371,10 @@ const CardModal = ({ card, column, onClose, onCardUpdate, onCardDelete }: CardMo
             {/* Due Date Display */}
             {dueDate && (
               <div>
-                <h3 className="text-base font-medium text-gray-900 mb-2">Due Date</h3>
+                <h3 className="text-base font-medium text-gray-900 dark:text-gray-100 mb-2">Data de Entrega</h3>
                 <div className="flex items-center p-2 bg-blue-50 text-blue-700 rounded">
                   <Calendar className="w-5 h-5 mr-2" />
-                  {format(new Date(dueDate), 'MMM d, yyyy')}
+                  {format(new Date(dueDate), "d 'de' MMMM 'de' yyyy", { locale: ptBR })}
                 </div>
               </div>
             )}
@@ -322,7 +382,7 @@ const CardModal = ({ card, column, onClose, onCardUpdate, onCardDelete }: CardMo
             {/* Tags Display */}
             {tags.length > 0 && (
               <div>
-                <h3 className="text-base font-medium text-gray-900 mb-2">Tags</h3>
+                <h3 className="text-base font-medium text-gray-900 dark:text-gray-100 mb-2">Etiquetas</h3>
                 <div className="flex flex-wrap gap-2">
                   {tags.map((tag, index) => (
                     <div 
