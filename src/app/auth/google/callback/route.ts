@@ -18,8 +18,8 @@ export async function GET(request: Request) {
       },
       body: new URLSearchParams({
         code,
-        client_id: process.env.GOOGLE_CLIENT_ID!,
-        client_secret: process.env.GOOGLE_CLIENT_SECRET!,
+        client_id: process.env.VITE_GOOGLE_CLIENT_ID!,
+        client_secret: process.env.VITE_GOOGLE_CLIENT_SECRET!,
         redirect_uri: 'http://localhost:5173/auth/google/callback',
         grant_type: 'authorization_code',
       }),

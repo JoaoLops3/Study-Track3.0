@@ -1,58 +1,84 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
+import { checkGoogleConnection } from '../lib/googleCalendar';
 import toast from 'react-hot-toast';
 
 interface AuthContextType {
   user: User | null;
   session: Session | null;
   isLoading: boolean;
-  signUp: (email: string, password: string) => Promise<{
-    error: Error | null;
-    data: any;
-  }>;
-  signIn: (email: string, password: string) => Promise<{
-    error: Error | null;
-    data: any;
-  }>;
+  googleConnected: boolean;
+  signUp: (email: string, password: string) => Promise<{ error: Error | null; data: any }>;
+  signIn: (email: string, password: string) => Promise<{ error: Error | null; data: any }>;
   signOut: () => Promise<void>;
-  resetPassword: (email: string) => Promise<{
-    error: Error | null;
-    data: any;
-  }>;
-  signInWithGoogle: () => Promise<{ error: any }>;
-  signInWithGitHub: () => Promise<{ error: any }>;
-  updateUserAvatar: (file: File) => Promise<{ error: any }>;
-  removeUserAvatar: () => Promise<{ error: any }>;
+  resetPassword: (email: string) => Promise<{ error: Error | null; data: any }>;
+  signInWithGoogle: () => Promise<void>;
+  signInWithGitHub: () => Promise<void>;
+  updateUserAvatar: (file: File) => Promise<void>;
+  removeUserAvatar: () => Promise<void>;
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+export const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [googleConnected, setGoogleConnected] = useState(false);
 
   useEffect(() => {
+    let mounted = true;
+    console.log('AuthProvider: Iniciando verificação de sessão');
+
     async function getSession() {
-      setIsLoading(true);
+      if (!mounted) {
+        console.log('AuthProvider: Componente desmontado, abortando');
+        return;
+      }
       
       try {
+        console.log('AuthProvider: Buscando sessão do Supabase');
         const { data: { session }, error } = await supabase.auth.getSession();
         
         if (error) {
+          console.error('AuthProvider: Erro ao buscar sessão:', error);
           throw error;
         }
         
-        if (session) {
+        console.log('AuthProvider: Sessão encontrada:', {
+          hasSession: !!session,
+          provider: session?.provider_token ? 'Presente' : 'Ausente',
+          userId: session?.user?.id || 'Nenhum'
+        });
+
+        if (mounted) {
           setSession(session);
-          setUser(session.user);
+          setUser(session?.user ?? null);
+          
+          if (session?.user) {
+            try {
+              const { isConnected } = await checkGoogleConnection();
+              if (mounted) {
+                setGoogleConnected(isConnected);
+              }
+            } catch (error) {
+              console.error('AuthProvider: Erro ao verificar conexão com Google:', error);
+            }
+          }
         }
       } catch (error) {
-        console.error('Erro ao buscar sessão:', error);
-        toast.error('Erro ao verificar autenticação');
+        console.error('AuthProvider: Erro ao inicializar:', error);
+        if (mounted) {
+          setSession(null);
+          setUser(null);
+          setGoogleConnected(false);
+        }
       } finally {
-        setIsLoading(false);
+        if (mounted) {
+          console.log('AuthProvider: Finalizando carregamento');
+          setIsLoading(false);
+        }
       }
     }
 
@@ -60,13 +86,41 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+        console.log('AuthProvider: Mudança no estado de autenticação:', {
+          event,
+          hasSession: !!session,
+          provider: session?.provider_token ? 'Presente' : 'Ausente',
+          userId: session?.user?.id || 'Nenhum'
+        });
+        
+        if (!mounted) {
+          console.log('AuthProvider: Componente desmontado, ignorando mudança de estado');
+          return;
+        }
+
         setSession(session);
         setUser(session?.user ?? null);
-        setIsLoading(false);
+        
+        if (session?.user) {
+          try {
+            const { isConnected } = await checkGoogleConnection();
+            if (mounted) {
+              setGoogleConnected(isConnected);
+            }
+          } catch (error) {
+            console.error('AuthProvider: Erro ao verificar conexão com Google:', error);
+            if (mounted) {
+              setGoogleConnected(false);
+            }
+          }
+        } else {
+          setGoogleConnected(false);
+        }
       }
     );
 
     return () => {
+      mounted = false;
       subscription.unsubscribe();
     };
   }, []);
@@ -149,84 +203,88 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signInWithGoogle = async () => {
     try {
-      console.log('Iniciando autenticação com Google...');
-      
-      const { data, error } = await supabase.auth.signInWithOAuth({
+      // Primeiro, fazer logout para limpar qualquer estado anterior
+      await supabase.auth.signOut();
+
+      const scopes = [
+        'https://www.googleapis.com/auth/userinfo.email',
+        'https://www.googleapis.com/auth/userinfo.profile',
+        'https://www.googleapis.com/auth/calendar',
+        'https://www.googleapis.com/auth/calendar.events',
+        'https://www.googleapis.com/auth/calendar.readonly'
+      ].join(' ');
+
+      const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: 'http://localhost:5173/auth/google/callback',
-          scopes: 'https://www.googleapis.com/auth/calendar',
+          redirectTo: `${window.location.origin}/auth/google/callback`,
+          scopes,
           queryParams: {
             access_type: 'offline',
-            prompt: 'consent'
+            prompt: 'consent',
+            include_granted_scopes: 'true'
           }
-        },
+        }
       });
 
       if (error) {
-        console.error('Erro detalhado do Supabase:', error);
         throw error;
       }
 
-      console.log('Resposta do Supabase:', data);
-      return { error: null };
+      toast.success('Login com Google iniciado!');
     } catch (error) {
-      console.error('Erro completo ao fazer login com Google:', error);
-      toast.error('Erro ao fazer login com Google. Por favor, tente novamente.');
-      return { error };
+      console.error('Erro ao fazer login com Google:', error);
+      toast.error('Erro ao fazer login com Google');
     }
   };
 
   const signInWithGitHub = async () => {
     try {
-      console.log('Iniciando autenticação com GitHub...');
-      
-      const { data, error } = await supabase.auth.signInWithOAuth({
+      const scopes = [
+        'repo',
+        'user',
+        'read:user',
+        'user:email',
+        'read:org'
+      ].join(' ');
+
+      const { error } = await supabase.auth.signInWithOAuth({
         provider: 'github',
         options: {
           redirectTo: `${window.location.origin}/auth/github/callback`,
-          scopes: 'repo,user',
+          scopes,
           queryParams: {
             access_type: 'offline',
             prompt: 'consent'
           }
-        },
+        }
       });
 
       if (error) {
-        console.error('Erro detalhado do Supabase:', error);
         throw error;
       }
-
-      if (!data?.url) {
-        throw new Error('URL de redirecionamento não encontrada');
-      }
-
-      window.location.href = data.url;
-      return { error: null };
     } catch (error) {
-      console.error('Erro completo ao fazer login com GitHub:', error);
-      toast.error('Erro ao fazer login com GitHub. Por favor, tente novamente.');
-      return { error };
+      console.error('Erro ao fazer login com GitHub:', error);
+      toast.error('Erro ao fazer login com GitHub');
     }
   };
 
   const updateUserAvatar = async (file: File) => {
     try {
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${Math.random()}.${fileExt}`;
-      const filePath = `${user?.id}/${fileName}`;
-
-      const { error: uploadError } = await supabase.storage
+      const { error } = await supabase.storage
         .from('avatars')
-        .upload(filePath, file);
+        .upload(`${user?.id}/${file.name}`, file);
 
-      if (uploadError) {
-        throw uploadError;
+      if (error) {
+        throw error;
       }
 
+      const { data: { publicUrl } } = supabase.storage
+        .from('avatars')
+        .getPublicUrl(`${user?.id}/${file.name}`);
+
       const { error: updateError } = await supabase.auth.updateUser({
-        data: { avatar_url: filePath },
+        data: { avatar_url: publicUrl }
       });
 
       if (updateError) {
@@ -234,49 +292,46 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
 
       toast.success('Avatar atualizado com sucesso!');
-      return { error: null };
     } catch (error) {
       console.error('Erro ao atualizar avatar:', error);
       toast.error('Erro ao atualizar avatar');
-      return { error };
     }
   };
 
   const removeUserAvatar = async () => {
     try {
-      const { error: updateError } = await supabase.auth.updateUser({
-        data: { avatar_url: null },
+      const { error } = await supabase.auth.updateUser({
+        data: { avatar_url: null }
       });
 
-      if (updateError) {
-        throw updateError;
+      if (error) {
+        throw error;
       }
 
       toast.success('Avatar removido com sucesso!');
-      return { error: null };
     } catch (error) {
       console.error('Erro ao remover avatar:', error);
       toast.error('Erro ao remover avatar');
-      return { error };
     }
   };
 
+  const value: AuthContextType = {
+    user,
+    session,
+    isLoading,
+    googleConnected,
+    signUp,
+    signIn,
+    signOut,
+    resetPassword,
+    signInWithGoogle,
+    signInWithGitHub,
+    updateUserAvatar,
+    removeUserAvatar,
+  };
+
   return (
-    <AuthContext.Provider
-      value={{
-        user,
-        session,
-        isLoading,
-        signUp,
-        signIn,
-        signOut,
-        resetPassword,
-        signInWithGoogle,
-        signInWithGitHub,
-        updateUserAvatar,
-        removeUserAvatar,
-      }}
-    >
+    <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
   );

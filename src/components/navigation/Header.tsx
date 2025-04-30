@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Menu, X, Search, ChevronLeft, Bell, LogOut } from 'lucide-react';
-import { useAuth } from '../../contexts/AuthContext';
+import { useAuth } from '../../hooks/useAuth';
 import { useSettings } from '../../contexts/SettingsContext';
 import { Avatar } from '../../components/ui/Avatar';
 

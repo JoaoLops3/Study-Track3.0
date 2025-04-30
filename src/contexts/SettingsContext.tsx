@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { supabase } from '../lib/supabase';
-import { useAuth } from './AuthContext';
+import toast from 'react-hot-toast';
 
 export interface Settings {
   theme: 'light' | 'dark' | 'system';
@@ -85,81 +85,124 @@ const defaultSettings: Settings = {
 
 interface SettingsContextType {
   settings: Settings;
-  saveSettings: (newSettings: Partial<Settings>) => Promise<void>;
+  isLoading: boolean;
+  updateSettings: (newSettings: Partial<Settings>) => Promise<void>;
 }
 
 const SettingsContext = createContext<SettingsContextType | undefined>(undefined);
 
-export const SettingsProvider = ({ children }: { children: ReactNode }) => {
-  const { user } = useAuth();
+export function useSettings() {
+  const context = useContext(SettingsContext);
+  if (context === undefined) {
+    throw new Error('useSettings deve ser usado dentro de um SettingsProvider');
+  }
+  return context;
+}
+
+export function SettingsProvider({ children }: { children: ReactNode }) {
   const [settings, setSettings] = useState<Settings>(defaultSettings);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    if (user) {
-      loadSettings();
-    }
-  }, [user]);
-
-  const loadSettings = async () => {
-    if (!user) return;
-    
-    try {
-      const { data, error } = await supabase
-        .from('user_settings')
-        .select('settings')
-        .eq('id', user.id)
-        .single();
-
-      if (error) {
-        if (error.code === 'PGRST116') {
-          const { error: insertError } = await supabase
-            .from('user_settings')
-            .insert([{ id: user.id, settings: defaultSettings }]);
-
-          if (insertError) throw insertError;
+    async function loadSettings() {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        
+        if (!user) {
           setSettings(defaultSettings);
-        } else {
-          throw error;
+          setIsLoading(false);
+          return;
         }
-      } else if (data) {
-        setSettings({ ...defaultSettings, ...data.settings });
-      }
-    } catch (error) {
-      console.error('Error loading settings:', error);
-    }
-  };
 
-  const saveSettings = async (newSettings: Partial<Settings>) => {
-    if (!user) return;
-    
+        // Primeiro, tenta buscar as configurações existentes
+        const { data, error } = await supabase
+          .from('user_settings')
+          .select('settings')
+          .eq('id', user.id)
+          .single();
+
+        if (error) {
+          if (error.code === 'PGRST116') {
+            // Se não existir configuração, cria uma nova
+            const { error: insertError } = await supabase
+              .from('user_settings')
+              .insert([{ 
+                user_id: user.id, 
+                settings: defaultSettings 
+              }]);
+
+            if (insertError) {
+              console.error('Erro ao criar configurações iniciais:', insertError);
+              throw insertError;
+            }
+            
+            setSettings(defaultSettings);
+          } else {
+            console.error('Erro ao buscar configurações:', error);
+            throw error;
+          }
+        } else if (data) {
+          setSettings({
+            ...defaultSettings,
+            ...data.settings
+          });
+        }
+      } catch (error) {
+        console.error('Erro ao carregar configurações:', error);
+        toast.error('Erro ao carregar configurações');
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    loadSettings();
+  }, []);
+
+  const updateSettings = async (newSettings: Partial<Settings>) => {
     try {
-      const updatedSettings = { ...settings, ...newSettings };
+      const { data: { user } } = await supabase.auth.getUser();
       
+      if (!user) {
+        throw new Error('Usuário não autenticado');
+      }
+
+      const updatedSettings = {
+        ...settings,
+        ...newSettings
+      };
+
       const { error } = await supabase
         .from('user_settings')
-        .update({ settings: updatedSettings })
-        .eq('id', user.id);
+        .upsert({
+          user_id: user.id,
+          settings: updatedSettings
+        }, {
+          onConflict: 'user_id'
+        });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Erro ao atualizar configurações:', error);
+        throw error;
+      }
 
       setSettings(updatedSettings);
+      toast.success('Configurações atualizadas com sucesso!');
     } catch (error) {
-      console.error('Error saving settings:', error);
+      console.error('Erro ao atualizar configurações:', error);
+      toast.error('Erro ao atualizar configurações');
       throw error;
     }
   };
 
   return (
-    <SettingsContext.Provider value={{ settings, saveSettings }}>
+    <SettingsContext.Provider
+      value={{
+        settings,
+        isLoading,
+        updateSettings
+      }}
+    >
       {children}
     </SettingsContext.Provider>
   );
-};
-
-export const useSettings = () => {
-  const context = useContext(SettingsContext);
-  if (context === undefined) {
-    throw new Error('useSettings must be used within a SettingsProvider');
-  }
-  return context;
-}; 
+} 

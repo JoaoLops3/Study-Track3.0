@@ -13,6 +13,7 @@ CREATE TABLE IF NOT EXISTS user_integrations (
 
 -- Create index for faster lookups
 CREATE INDEX IF NOT EXISTS idx_user_integrations_user_id ON user_integrations(user_id);
+CREATE INDEX IF NOT EXISTS idx_user_integrations_provider ON user_integrations(provider);
 
 -- Enable RLS
 ALTER TABLE user_integrations ENABLE ROW LEVEL SECURITY;
@@ -32,4 +33,10 @@ CREATE POLICY "Users can update their own integrations"
 
 CREATE POLICY "Users can delete their own integrations"
   ON user_integrations FOR DELETE
-  USING (auth.uid() = user_id); 
+  USING (auth.uid() = user_id);
+
+-- Create trigger for updated_at
+CREATE TRIGGER update_user_integrations_updated_at
+    BEFORE UPDATE ON user_integrations
+    FOR EACH ROW
+    EXECUTE FUNCTION update_updated_at_column(); 

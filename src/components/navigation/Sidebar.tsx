@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo, memo } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Home, Book, Plus, Folder, File, Settings, PlusCircle, Github, Calendar, Users, ChevronLeft, Timer } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
-import { useAuth } from '../../contexts/AuthContext';
+import { useAuth } from '../../hooks/useAuth';
 import { useSettings } from '../../contexts/SettingsContext';
 import type { Database } from '../../lib/database.types';
 import toast from 'react-hot-toast';
@@ -234,7 +234,7 @@ const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
                   key={item.to}
                   to={item.to}
                   icon={item.icon}
-                  label={item.label}
+                  label={!isCollapsed ? item.label : ''}
                   isActive={location.pathname === item.to}
                 />
               ))}
@@ -401,7 +401,7 @@ const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
                 className="flex items-center px-3 py-2 w-full text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800"
               >
                 <Settings className="w-5 h-5 mr-3" />
-                <span>Settings</span>
+                <span>Configurações</span>
               </button>
             </div>
           </>

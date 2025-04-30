@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../hooks/useAuth';
 import { useNavigation } from '../hooks/useNavigation';
 import { motion } from 'framer-motion';
 import { LogIn, Mail, UserPlus, Eye, EyeOff } from 'lucide-react';

@@ -8,6 +8,7 @@ import { LoadingSpinner } from './components/LoadingSpinner';
 import { Toaster } from 'react-hot-toast';
 import PrivateRoute from './components/PrivateRoute';
 import Pomodoro from './pages/Pomodoro';
+import { AuthCallback } from './components/auth/AuthCallback';
 
 // Lazy load das páginas
 const Dashboard = lazy(() => import('./pages/Dashboard'));
@@ -17,8 +18,6 @@ const Settings = lazy(() => import('./pages/Settings'));
 const Page = lazy(() => import('./pages/Page'));
 const CalendarPage = lazy(() => import('./pages/Calendar'));
 const TeamPage = lazy(() => import('./pages/Team'));
-const GithubCallback = lazy(() => import('./pages/GithubCallback'));
-const AuthCallback = lazy(() => import('./pages/AuthCallback'));
 const GithubRepos = lazy(() => import('./pages/GithubRepos'));
 
 const LoadingFallback = () => (
@@ -36,17 +35,19 @@ function App() {
           <Suspense fallback={<LoadingFallback />}>
             <Routes>
               <Route path="/login" element={<Login />} />
-              <Route path="/auth/github/callback" element={<GithubCallback />} />
-              <Route path="/auth/callback" element={<AuthCallback />} />
-              <Route element={<PrivateRoute><MainLayout /></PrivateRoute>}>
-                <Route path="/" element={<Dashboard />} />
-                <Route path="/board/:id" element={<Board />} />
-                <Route path="/page/:id" element={<Page />} />
-                <Route path="/settings" element={<Settings />} />
-                <Route path="/calendar" element={<CalendarPage />} />
-                <Route path="/team" element={<TeamPage />} />
-                <Route path="/github" element={<GithubRepos />} />
-                <Route path="/pomodoro" element={<Pomodoro />} />
+              <Route path="/auth/github/callback" element={<AuthCallback />} />
+              <Route path="/auth/google/callback" element={<AuthCallback />} />
+              <Route element={<PrivateRoute />}>
+                <Route element={<MainLayout />}>
+                  <Route path="/" element={<Dashboard />} />
+                  <Route path="/board/:id" element={<Board />} />
+                  <Route path="/page/:id" element={<Page />} />
+                  <Route path="/settings" element={<Settings />} />
+                  <Route path="/calendar" element={<CalendarPage />} />
+                  <Route path="/team" element={<TeamPage />} />
+                  <Route path="/github" element={<GithubRepos />} />
+                  <Route path="/pomodoro" element={<Pomodoro />} />
+                </Route>
               </Route>
             </Routes>
           </Suspense>

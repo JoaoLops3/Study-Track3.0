@@ -17,12 +17,23 @@ const GithubIntegration = ({ onConnect, onDisconnect }: GithubIntegrationProps) 
     try {
       setIsLoading(true);
       
-      // Usar a autenticação OAuth do Supabase
+      const scopes = [
+        'repo',
+        'user',
+        'read:user',
+        'user:email',
+        'read:org'
+      ].join(' ');
+
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'github',
         options: {
           redirectTo: `${window.location.origin}/auth/github/callback`,
-          scopes: 'repo'
+          scopes,
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent'
+          }
         }
       });
 

@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase, setupIntegrationPolicies } from '../lib/supabase';
 import { Card, CardContent } from './ui/card';
 import { toast } from 'sonner';
-import { useAuth } from '../hooks/useAuth';
+import { useAuth } from '../contexts/AuthContext';
 import type { Database } from '../lib/database.types';
 
 type Integration = Database['public']['Tables']['integrations']['Row'];
@@ -13,41 +13,59 @@ export function Integrations() {
   const { user, loading: authLoading } = useAuth();
 
   useEffect(() => {
-    if (!authLoading && user) {
-      initializeIntegrations();
-    } else if (!authLoading && !user) {
-      setLoading(false);
+    console.log('Integrations: useEffect triggered', { authLoading, user });
+    if (!authLoading) {
+      if (user) {
+        console.log('Integrations: Iniciando integrações para usuário:', user.id);
+        initializeIntegrations();
+      } else {
+        console.log('Integrations: Usuário não autenticado, finalizando carregamento');
+        setLoading(false);
+      }
     }
   }, [user, authLoading]);
 
   const initializeIntegrations = async () => {
+    console.log('Integrations: Iniciando initializeIntegrations');
     try {
+      console.log('Integrations: Chamando setupIntegrationPolicies');
       await setupIntegrationPolicies();
+      console.log('Integrations: setupIntegrationPolicies concluído');
       await fetchIntegrations();
+      console.log('Integrations: fetchIntegrations concluído');
     } catch (error) {
-      console.error('Erro ao inicializar integrações:', error);
+      console.error('Integrations: Erro ao inicializar integrações:', error);
       toast.error('Erro ao inicializar integrações');
     } finally {
+      console.log('Integrations: Finalizando initializeIntegrations');
       setLoading(false);
     }
   };
 
   const fetchIntegrations = async () => {
+    console.log('Integrations: Iniciando fetchIntegrations');
     try {
       if (!user?.id) {
         throw new Error('Usuário não autenticado');
       }
 
+      console.log('Integrations: Buscando integrações para usuário:', user.id);
       const { data, error } = await supabase
         .from('integrations')
         .select('*')
         .eq('user_id', user.id);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Integrations: Erro ao buscar integrações:', error);
+        throw error;
+      }
+
+      console.log('Integrations: Integrações encontradas:', data);
       setIntegrations(data || []);
     } catch (error) {
-      console.error('Erro ao buscar integrações:', error);
+      console.error('Integrations: Erro ao buscar integrações:', error);
       toast.error('Erro ao carregar integrações');
+      setLoading(false);
     }
   };
 
@@ -65,12 +83,18 @@ export function Integrations() {
 
       if (error) throw error;
       toast.success('Integração removida com sucesso');
-      fetchIntegrations();
+      await fetchIntegrations();
     } catch (error) {
       console.error('Erro ao remover integração:', error);
       toast.error('Erro ao remover integração');
     }
   };
+
+  console.log('Integrations: Renderizando componente:', { loading, authLoading, user, integrations });
+
+  if (loading || authLoading) {
+    return <div>Carregando...</div>;
+  }
 
   if (!user) {
     return (
@@ -82,14 +106,31 @@ export function Integrations() {
     );
   }
 
-  if (loading) {
-    return <div>Carregando...</div>;
-  }
-
   return (
     <Card>
       <CardContent className="p-0">
-        {/* Conteúdo do card aqui */}
+        {integrations.length === 0 ? (
+          <p>Nenhuma integração encontrada.</p>
+        ) : (
+          <div className="space-y-4">
+            {integrations.map((integration) => (
+              <div key={integration.id} className="flex items-center justify-between p-4 border-b">
+                <div>
+                  <h3 className="font-medium">{integration.provider}</h3>
+                  <p className="text-sm text-gray-500">
+                    {integration.enabled ? 'Ativado' : 'Desativado'}
+                  </p>
+                </div>
+                <button
+                  onClick={() => disconnectIntegration(integration.id)}
+                  className="px-4 py-2 text-sm text-red-600 hover:bg-red-50 rounded-md"
+                >
+                  Desconectar
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
       </CardContent>
     </Card>
   );
