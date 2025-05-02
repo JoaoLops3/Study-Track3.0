@@ -42,7 +42,7 @@ const SidebarItem = memo(({
 
 SidebarItem.displayName = 'SidebarItem';
 
-const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
+export const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
   const { user } = useAuth();
   const { settings } = useSettings();
   const location = useLocation();
@@ -410,5 +410,3 @@ const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
     </aside>
   );
 };
-
-export default Sidebar;

@@ -217,7 +217,7 @@ const CardModal = ({ card, column, onClose, onCardUpdate, onCardDelete }: CardMo
               className="text-xl font-bold text-gray-900 dark:text-gray-100 cursor-pointer hover:text-primary-600 dark:hover:text-primary-400 group flex items-center"
               onClick={() => setEditingTitle(true)}
             >
-              {editingTitle ? (
+            {editingTitle ? (
                 <input
                   type="text"
                   value={title}
@@ -227,18 +227,18 @@ const CardModal = ({ card, column, onClose, onCardUpdate, onCardDelete }: CardMo
                   className="w-full bg-white dark:bg-gray-700 border-b-2 border-primary-500 focus:outline-none"
                   autoFocus
                 />
-              ) : (
+                  ) : (
                 <>
                   {title}
                   <Pen className="w-4 h-4 ml-2 opacity-0 group-hover:opacity-100 transition-opacity" />
                 </>
               )}
-            </h2>
+              </h2>
             <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
               Na coluna: {column?.title}
-            </p>
+              </p>
           </div>
-          <button
+          <button 
             onClick={onClose}
             className="p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700"
           >
@@ -252,10 +252,10 @@ const CardModal = ({ card, column, onClose, onCardUpdate, onCardDelete }: CardMo
               <h3 className="text-base font-medium text-gray-900 dark:text-gray-100 mb-2">Descrição</h3>
               <div className="border dark:border-gray-700 rounded-md overflow-hidden">
                 <div className="prose max-w-none dark:prose-invert">
-                  <RichTextEditor
+              <RichTextEditor 
                     content={content}
-                    onChange={updateCardContent}
-                  />
+                onChange={updateCardContent} 
+              />
                 </div>
               </div>
             </div>
@@ -303,12 +303,12 @@ const CardModal = ({ card, column, onClose, onCardUpdate, onCardDelete }: CardMo
                       </div>
                     ) : (
                       <div className="space-y-2">
-                        <input
-                          type="date"
-                          value={dueDate ? dueDate.split('T')[0] : ''}
+                    <input
+                      type="date"
+                      value={dueDate ? dueDate.split('T')[0] : ''}
                           onChange={(e) => updateDueDate(e.target.value ? `${e.target.value}T12:00:00Z` : null)}
                           className="w-full p-2 border dark:border-gray-700 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
-                        />
+                    />
                         <button
                           onClick={() => setIsManualInput(true)}
                           className="w-full p-1 text-sm text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"

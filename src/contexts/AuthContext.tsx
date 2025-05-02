@@ -15,8 +15,8 @@ interface AuthContextType {
   resetPassword: (email: string) => Promise<{ error: Error | null; data: any }>;
   signInWithGoogle: () => Promise<void>;
   signInWithGitHub: () => Promise<void>;
-  updateUserAvatar: (file: File) => Promise<void>;
-  removeUserAvatar: () => Promise<void>;
+  updateUserAvatar: (file: File) => Promise<{ error: Error | null }>;
+  removeUserAvatar: () => Promise<{ error: Error | null }>;
 }
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -26,45 +26,73 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [googleConnected, setGoogleConnected] = useState(false);
+  const [hasTimeout, setHasTimeout] = useState(false);
+
+  const checkGoogleConnectionStatus = async (session: Session | null) => {
+    if (!session?.user) {
+      setGoogleConnected(false);
+      return;
+    }
+
+    try {
+      const { isConnected } = await checkGoogleConnection();
+      setGoogleConnected(isConnected);
+    } catch (error) {
+      console.error('AuthProvider: Erro ao verificar conexão com Google:', error);
+      setGoogleConnected(false);
+    }
+  };
 
   useEffect(() => {
     let mounted = true;
-    console.log('AuthProvider: Iniciando verificação de sessão');
+    let timeoutId: NodeJS.Timeout;
 
     async function getSession() {
-      if (!mounted) {
-        console.log('AuthProvider: Componente desmontado, abortando');
-        return;
-      }
+      if (!mounted) return;
       
       try {
-        console.log('AuthProvider: Buscando sessão do Supabase');
+        // Primeiro, tentamos obter a sessão do localStorage
+        const storedSession = localStorage.getItem('supabase.auth.token');
+        if (storedSession) {
+          try {
+            const parsedSession = JSON.parse(storedSession);
+            if (parsedSession?.currentSession) {
+              setSession(parsedSession.currentSession);
+              setUser(parsedSession.currentSession.user);
+              setIsLoading(false);
+              return;
+            }
+          } catch (e) {
+            console.warn('Erro ao parsear sessão armazenada:', e);
+          }
+        }
+
+        // Se não houver sessão no localStorage ou se houver erro, tentamos obter do Supabase
+        timeoutId = setTimeout(() => {
+          if (mounted) {
+            console.warn('Timeout ao carregar sessão');
+            setHasTimeout(true);
+            setIsLoading(false);
+          }
+        }, 8000); // Aumentado para 8 segundos
+
         const { data: { session }, error } = await supabase.auth.getSession();
         
         if (error) {
-          console.error('AuthProvider: Erro ao buscar sessão:', error);
+          console.error('Erro ao obter sessão:', error);
           throw error;
         }
         
-        console.log('AuthProvider: Sessão encontrada:', {
-          hasSession: !!session,
-          provider: session?.provider_token ? 'Presente' : 'Ausente',
-          userId: session?.user?.id || 'Nenhum'
-        });
-
         if (mounted) {
+          clearTimeout(timeoutId);
           setSession(session);
           setUser(session?.user ?? null);
           
           if (session?.user) {
-            try {
-              const { isConnected } = await checkGoogleConnection();
-              if (mounted) {
-                setGoogleConnected(isConnected);
-              }
-            } catch (error) {
-              console.error('AuthProvider: Erro ao verificar conexão com Google:', error);
-            }
+            // Verificamos o Google em paralelo para não bloquear o carregamento
+            checkGoogleConnectionStatus(session).catch(console.error);
+          } else {
+            setGoogleConnected(false);
           }
         }
       } catch (error) {
@@ -76,43 +104,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
       } finally {
         if (mounted) {
-          console.log('AuthProvider: Finalizando carregamento');
+          clearTimeout(timeoutId);
           setIsLoading(false);
         }
       }
+    }
+
+    // Tentar reconectar se houver timeout
+    if (hasTimeout) {
+      getSession();
+      return;
     }
 
     getSession();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        console.log('AuthProvider: Mudança no estado de autenticação:', {
-          event,
-          hasSession: !!session,
-          provider: session?.provider_token ? 'Presente' : 'Ausente',
-          userId: session?.user?.id || 'Nenhum'
-        });
-        
-        if (!mounted) {
-          console.log('AuthProvider: Componente desmontado, ignorando mudança de estado');
-          return;
-        }
+        if (!mounted) return;
 
         setSession(session);
         setUser(session?.user ?? null);
+        setHasTimeout(false);
         
         if (session?.user) {
-          try {
-            const { isConnected } = await checkGoogleConnection();
-            if (mounted) {
-              setGoogleConnected(isConnected);
-            }
-          } catch (error) {
-            console.error('AuthProvider: Erro ao verificar conexão com Google:', error);
-            if (mounted) {
-              setGoogleConnected(false);
-            }
-          }
+          // Verificamos o Google em paralelo para não bloquear o carregamento
+          checkGoogleConnectionStatus(session).catch(console.error);
         } else {
           setGoogleConnected(false);
         }
@@ -121,9 +137,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     return () => {
       mounted = false;
+      clearTimeout(timeoutId);
       subscription.unsubscribe();
     };
-  }, []);
+  }, [hasTimeout]); // Adicionado hasTimeout como dependência
 
   const signUp = async (email: string, password: string) => {
     try {
@@ -271,47 +288,112 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const updateUserAvatar = async (file: File) => {
     try {
-      const { error } = await supabase.storage
-        .from('avatars')
-        .upload(`${user?.id}/${file.name}`, file);
+      if (!user) throw new Error('Usuário não autenticado');
 
-      if (error) {
-        throw error;
+      console.log('Iniciando atualização do avatar...');
+
+      // Se o usuário já tiver um avatar personalizado, remova-o primeiro
+      if (user.user_metadata?.custom_avatar_url) {
+        console.log('Removendo avatar personalizado anterior...');
+        const oldFilePath = user.user_metadata.custom_avatar_url.split('/').pop();
+        if (oldFilePath) {
+          await supabase.storage
+            .from('avatars')
+            .remove([`${user.id}/${oldFilePath}`]);
+        }
       }
 
+      // Gera um nome único para o arquivo
+      const fileName = `${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.]/g, '')}`;
+      const filePath = `${user.id}/${fileName}`;
+
+      console.log('Fazendo upload do novo avatar:', filePath);
+
+      // Upload do novo avatar
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(filePath, file, {
+          cacheControl: '0',
+          upsert: true
+        });
+
+      if (uploadError) throw uploadError;
+
+      // Obtém a URL pública
       const { data: { publicUrl } } = supabase.storage
         .from('avatars')
-        .getPublicUrl(`${user?.id}/${file.name}`);
+        .getPublicUrl(filePath);
 
-      const { error: updateError } = await supabase.auth.updateUser({
-        data: { avatar_url: publicUrl }
+      console.log('URL pública do avatar:', publicUrl);
+
+      // Atualiza os metadados do usuário
+      const { data: userData, error: updateError } = await supabase.auth.updateUser({
+        data: {
+          ...user.user_metadata,
+          custom_avatar_url: publicUrl,
+          updated_at: new Date().toISOString()
+        }
       });
 
-      if (updateError) {
-        throw updateError;
+      if (updateError) throw updateError;
+
+      console.log('Metadados atualizados:', userData);
+
+      // Atualiza o estado local
+      if (userData.user) {
+        setUser(userData.user);
       }
 
       toast.success('Avatar atualizado com sucesso!');
+      return { error: null };
     } catch (error) {
       console.error('Erro ao atualizar avatar:', error);
       toast.error('Erro ao atualizar avatar');
+      return { error: error as Error };
     }
   };
 
   const removeUserAvatar = async () => {
     try {
-      const { error } = await supabase.auth.updateUser({
-        data: { avatar_url: null }
+      if (!user) throw new Error('Usuário não autenticado');
+
+      console.log('Iniciando remoção do avatar...');
+
+      // Remove o arquivo do storage se existir
+      if (user.user_metadata?.custom_avatar_url) {
+        const filePath = user.user_metadata.custom_avatar_url.split('/').pop();
+        if (filePath) {
+          console.log('Removendo arquivo do storage:', filePath);
+          await supabase.storage
+            .from('avatars')
+            .remove([`${user.id}/${filePath}`]);
+        }
+      }
+
+      // Atualiza os metadados do usuário
+      const { data: userData, error: updateError } = await supabase.auth.updateUser({
+        data: {
+          ...user.user_metadata,
+          custom_avatar_url: null,
+          updated_at: new Date().toISOString()
+        }
       });
 
-      if (error) {
-        throw error;
+      if (updateError) throw updateError;
+
+      console.log('Metadados atualizados após remoção:', userData);
+
+      // Atualiza o estado local
+      if (userData.user) {
+        setUser(userData.user);
       }
 
       toast.success('Avatar removido com sucesso!');
+      return { error: null };
     } catch (error) {
       console.error('Erro ao remover avatar:', error);
       toast.error('Erro ao remover avatar');
+      return { error: error as Error };
     }
   };
 
