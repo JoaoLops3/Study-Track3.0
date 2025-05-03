@@ -19,9 +19,17 @@ interface AuthContextType {
   removeUserAvatar: () => Promise<{ error: Error | null }>;
 }
 
-export const AuthContext = createContext<AuthContextType | undefined>(undefined);
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export function AuthProvider({ children }: { children: ReactNode }) {
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (context === undefined) {
+    throw new Error('useAuth deve ser usado dentro de um AuthProvider');
+  }
+  return context;
+};
+
+export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -220,26 +228,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signInWithGoogle = async () => {
     try {
-      // Primeiro, fazer logout para limpar qualquer estado anterior
-      await supabase.auth.signOut();
-
-      const scopes = [
-        'https://www.googleapis.com/auth/userinfo.email',
-        'https://www.googleapis.com/auth/userinfo.profile',
-        'https://www.googleapis.com/auth/calendar',
-        'https://www.googleapis.com/auth/calendar.events',
-        'https://www.googleapis.com/auth/calendar.readonly'
-      ].join(' ');
-
-      const { error } = await supabase.auth.signInWithOAuth({
+      const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/auth/google/callback`,
-          scopes,
+          redirectTo: `${window.location.origin}/auth/callback`,
           queryParams: {
             access_type: 'offline',
             prompt: 'consent',
-            include_granted_scopes: 'true'
+            scope: [
+              'https://www.googleapis.com/auth/calendar.readonly',
+              'https://www.googleapis.com/auth/userinfo.profile',
+              'https://www.googleapis.com/auth/userinfo.email',
+              'https://www.googleapis.com/auth/calendar.events.readonly'
+            ].join(' ')
           }
         }
       });
@@ -248,10 +249,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         throw error;
       }
 
-      toast.success('Login com Google iniciado!');
+      // Não mostrar toast aqui pois o usuário será redirecionado
+      return { error: null, data };
     } catch (error) {
       console.error('Erro ao fazer login com Google:', error);
       toast.error('Erro ao fazer login com Google');
+      return { error: error as Error, data: null };
     }
   };
 
@@ -417,12 +420,4 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       {children}
     </AuthContext.Provider>
   );
-}
-
-export function useAuth() {
-  const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error('useAuth deve ser usado dentro de um AuthProvider');
-  }
-  return context;
-}
+};

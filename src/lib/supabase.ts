@@ -1,8 +1,16 @@
 import { createClient } from '@supabase/supabase-js';
+import { config } from '../config/test';
 import { Database } from './database.types';
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+const isTest = process.env.NODE_ENV === 'test';
+
+const supabaseUrl = isTest
+  ? 'https://mock-supabase-url.com'
+  : import.meta.env.VITE_SUPABASE_URL;
+
+const supabaseAnonKey = isTest
+  ? 'mock-anon-key'
+  : import.meta.env.VITE_SUPABASE_ANON_KEY;
 
 console.log('Supabase URL:', supabaseUrl);
 console.log('Supabase Anon Key:', supabaseAnonKey ? 'Presente' : 'Ausente');

@@ -1,40 +1,41 @@
-import { renderHook } from '@testing-library/react';
+import { renderHook, act } from '@testing-library/react';
+import { MemoryRouter } from 'react-router-dom';
 import { useNavigation } from '../hooks/useNavigation';
-import { vi, describe, it, expect, beforeEach } from 'vitest';
+import React from 'react';
 
-// Mock do useNavigate
-const mockNavigate = vi.fn();
-vi.mock('react-router-dom', () => ({
-  useNavigate: () => mockNavigate,
-}));
+const wrapper = ({ children }: { children: React.ReactNode }) => {
+  return React.createElement(MemoryRouter, null, children);
+};
 
 describe('useNavigation', () => {
   beforeEach(() => {
-    // Limpa os mocks antes de cada teste
-    mockNavigate.mockClear();
+    // Limpa o localStorage antes de cada teste
+    localStorage.clear();
   });
 
-  it('deve navegar para a página de login', () => {
-    const { result } = renderHook(() => useNavigation());
-    
-    result.current.goToLogin();
-    
-    expect(mockNavigate).toHaveBeenCalledWith('/login');
-    expect(mockNavigate).toHaveBeenCalledTimes(1);
+  it('should return initial state', () => {
+    const { result } = renderHook(() => useNavigation(), { wrapper });
+    expect(result.current.currentPage).toBe(1);
+    expect(result.current.totalPages).toBe(1);
   });
 
-  it('deve navegar para o dashboard', () => {
-    const { result } = renderHook(() => useNavigation());
+  it('should update current page', async () => {
+    const { result } = renderHook(() => useNavigation(), { wrapper });
     
-    result.current.goToDashboard();
+    await act(async () => {
+      result.current.setCurrentPage(2);
+    });
     
-    expect(mockNavigate).toHaveBeenCalledWith('/');
-    expect(mockNavigate).toHaveBeenCalledTimes(1);
+    expect(result.current.currentPage).toBe(2);
   });
 
-  it('não deve navegar se as funções não forem chamadas', () => {
-    renderHook(() => useNavigation());
+  it('should update total pages', async () => {
+    const { result } = renderHook(() => useNavigation(), { wrapper });
     
-    expect(mockNavigate).not.toHaveBeenCalled();
+    await act(async () => {
+      result.current.setTotalPages(5);
+    });
+    
+    expect(result.current.totalPages).toBe(5);
   });
 }); 

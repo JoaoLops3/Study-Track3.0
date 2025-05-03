@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { useAuth } from '../hooks/useAuth';
+import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { User, Mail, Lock, Bell, Eye, Globe, Shield, Clock, Keyboard, Users, Sun, Moon, Monitor, Github, Calendar, Figma, MessageSquare } from 'lucide-react';
 import { supabase } from '../lib/supabase';

@@ -9,6 +9,7 @@ import { Toaster } from 'react-hot-toast';
 import PrivateRoute from './components/PrivateRoute';
 import Pomodoro from './pages/Pomodoro';
 import { AuthCallback } from './components/auth/AuthCallback';
+import { GoogleCallback } from './components/auth/GoogleCallback';
 
 // Lazy load das páginas
 const Dashboard = lazy(() => import('./pages/Dashboard'));
@@ -36,7 +37,7 @@ function App() {
             <Routes>
               <Route path="/login" element={<Login />} />
               <Route path="/auth/github/callback" element={<AuthCallback />} />
-              <Route path="/auth/google/callback" element={<AuthCallback />} />
+              <Route path="/auth/callback" element={<GoogleCallback />} />
               <Route element={<PrivateRoute />}>
                 <Route element={<MainLayout />}>
                   <Route path="/" element={<Dashboard />} />

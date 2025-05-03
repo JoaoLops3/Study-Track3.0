@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo, memo } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Home, Book, Plus, Folder, File, Settings, PlusCircle, Github, Calendar, Users, ChevronLeft, Timer } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
-import { useAuth } from '../../hooks/useAuth';
+import { useAuth } from '../../contexts/AuthContext';
 import { useSettings } from '../../contexts/SettingsContext';
 import type { Database } from '../../lib/database.types';
 import toast from 'react-hot-toast';

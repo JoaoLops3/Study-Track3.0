@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useAuth } from '../hooks/useAuth';
+import { useAuth } from '../contexts/AuthContext';
 import { useNavigation } from '../hooks/useNavigation';
 import { motion } from 'framer-motion';
 import { LogIn, Mail, UserPlus, Eye, EyeOff } from 'lucide-react';
@@ -56,17 +56,17 @@ const Login = () => {
   const handleGoogleLogin = async () => {
     setLoading(true);
     try {
-      const redirectURL = process.env.NODE_ENV === 'production' 
-        ? 'https://study-track3-0.vercel.app'
-        : 'http://localhost:5173';
-
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${redirectURL}/auth/callback`,
+          redirectTo: `${window.location.origin}/auth/callback`,
           queryParams: {
-            access_type: 'offline',
-            prompt: 'consent'
+            scope: [
+              'https://www.googleapis.com/auth/calendar.readonly',
+              'https://www.googleapis.com/auth/userinfo.profile',
+              'https://www.googleapis.com/auth/userinfo.email',
+              'https://www.googleapis.com/auth/calendar.events.readonly'
+            ].join(' ')
           }
         },
       });

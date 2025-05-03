@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { MoreHorizontal, Edit2, Trash2, Lock, Globe } from 'lucide-react';
-import { useAuth } from '../hooks/useAuth';
+import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import RichTextEditor from '../components/editor/RichTextEditor';
 import type { Database } from '../lib/database.types';

@@ -1,82 +1,196 @@
 import { supabase } from '../supabase';
 import { GoogleCalendarEvent } from './types';
-import { retryWithExponentialBackoff } from './utils';
+import { retryWithExponentialBackoff, clearCache } from './utils';
 
-export async function getGoogleCalendarEvents(): Promise<GoogleCalendarEvent[]> {
+export async function getGoogleCalendarEvents(options: {
+  timeMin?: string;
+  timeMax?: string;
+  maxResults?: number;
+  singleEvents?: boolean;
+  orderBy?: 'startTime' | 'updated';
+} = {}): Promise<GoogleCalendarEvent[]> {
   try {
     const { data: { session } } = await supabase.auth.getSession();
     
     if (!session?.provider_token) {
-      throw new Error('Usuário não está autenticado com Google');
+      console.log('Token não encontrado, solicitando permissões...');
+      await requestCalendarPermissions();
+      throw new Error('Token do Google não disponível. Redirecionando para autenticação...');
     }
 
-    const response = await retryWithExponentialBackoff(
-      async () => {
-        const now = new Date();
-        const oneMonthFromNow = new Date(now.getFullYear(), now.getMonth() + 1, now.getDate());
+    const {
+      timeMin = new Date().toISOString(),
+      timeMax = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 dias
+      maxResults = 100,
+      singleEvents = true,
+      orderBy = 'startTime'
+    } = options;
 
-        const response = await fetch(
-          `https://www.googleapis.com/calendar/v3/calendars/primary/events?` +
-          `timeMin=${now.toISOString()}&` +
-          `timeMax=${oneMonthFromNow.toISOString()}&` +
-          `singleEvents=true&` +
-          `orderBy=startTime`,
-          {
-            headers: {
-              Authorization: `Bearer ${session.provider_token}`
-            }
-          }
-        );
+    console.log('Buscando eventos com parâmetros:', {
+      timeMin,
+      timeMax,
+      maxResults,
+      singleEvents,
+      orderBy
+    });
 
-        if (!response.ok) {
-          const errorData = await response.json();
-          
-          if (response.status === 403) {
-            const reason = errorData.error?.errors?.[0]?.reason;
-            
-            switch (reason) {
-              case 'dailyLimitExceeded':
-                throw new Error('Limite diário de requisições excedido. Por favor, tente novamente amanhã.');
-              
-              case 'userRateLimitExceeded':
-                // Aguardar 1 minuto antes de tentar novamente
-                await new Promise(resolve => setTimeout(resolve, 60000));
-                return getGoogleCalendarEvents(); // Tentar novamente após o delay
-              
-              case 'rateLimitExceeded':
-                // Aguardar 10 segundos antes de tentar novamente
-                await new Promise(resolve => setTimeout(resolve, 10000));
-                return getGoogleCalendarEvents(); // Tentar novamente após o delay
-              
-              case 'domainPolicy':
-                throw new Error('O administrador do seu domínio não permite o acesso ao Google Calendar.');
-              
-              default:
-                throw new Error('Permissões insuficientes. Por favor, reconecte sua conta Google e conceda todas as permissões solicitadas.');
-            }
-          }
-
-          throw new Error('Erro ao buscar eventos do Google Calendar');
+    // Primeiro, buscar a lista de calendários
+    const calendarListResponse = await fetch(
+      'https://www.googleapis.com/calendar/v3/users/me/calendarList',
+      {
+        headers: {
+          Authorization: `Bearer ${session.provider_token}`,
+          'Content-Type': 'application/json'
         }
-
-        return response;
       }
     );
 
-    const data = await response.json();
-    
-    return data.items.map((event: GoogleCalendarEvent) => ({
-      id: event.id,
-      summary: event.summary,
-      description: event.description,
-      start: event.start,
-      end: event.end,
-      status: event.status,
-      htmlLink: event.htmlLink
-    }));
+    if (!calendarListResponse.ok) {
+      const errorData = await calendarListResponse.json();
+      console.error('Erro ao buscar lista de calendários:', {
+        status: calendarListResponse.status,
+        error: errorData
+      });
+      throw new Error('Erro ao buscar lista de calendários');
+    }
 
+    const calendarList = await calendarListResponse.json();
+    console.log('Lista de calendários obtida:', calendarList.items);
+
+    // Buscar eventos de cada calendário
+    const allEvents: GoogleCalendarEvent[] = [];
+    
+    for (const calendar of calendarList.items) {
+      const params = new URLSearchParams({
+        timeMin,
+        timeMax,
+        maxResults: maxResults.toString(),
+        singleEvents: singleEvents.toString(),
+        orderBy
+      });
+
+      const cacheKey = `events_${calendar.id}_${params.toString()}`;
+
+      try {
+        const response = await retryWithExponentialBackoff(
+          async () => {
+            console.log('Fazendo requisição para o calendário:', calendar.id);
+            console.log('Parâmetros da requisição:', {
+              timeMin,
+              timeMax,
+              maxResults,
+              singleEvents,
+              orderBy
+            });
+            
+            const response = await fetch(
+              `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendar.id)}/events?${params}`,
+              {
+                headers: {
+                  Authorization: `Bearer ${session.provider_token}`,
+                  'Content-Type': 'application/json'
+                }
+              }
+            );
+
+            if (!response.ok) {
+              const errorData = await response.json();
+              console.error('Erro ao acessar eventos do calendário:', {
+                calendarId: calendar.id,
+                status: response.status,
+                statusText: response.statusText,
+                error: errorData
+              });
+
+              if (response.status === 401) {
+                console.log('Token expirado, solicitando novo...');
+                await supabase.auth.signOut();
+                await requestCalendarPermissions();
+                throw new Error('Token expirado. Redirecionando para autenticação...');
+              }
+
+              if (response.status === 403) {
+                const reason = errorData.error?.errors?.[0]?.reason;
+                
+                switch (reason) {
+                  case 'dailyLimitExceeded':
+                    throw new Error('Limite diário de requisições excedido. Por favor, tente novamente amanhã.');
+                  
+                  case 'userRateLimitExceeded':
+                  case 'rateLimitExceeded':
+                  case 'quotaExceeded':
+                    // Esses erros serão tratados pelo retryWithExponentialBackoff
+                    throw errorData;
+                  
+                  case 'domainPolicy':
+                    throw new Error('O administrador do seu domínio não permite o acesso ao Google Calendar.');
+                  
+                  case 'insufficientPermissions':
+                    console.log('Permissões insuficientes, solicitando novas permissões...');
+                    await requestCalendarPermissions();
+                    throw new Error('Permissões insuficientes. Redirecionando para solicitar permissões...');
+                  
+                  default:
+                    throw new Error('Erro ao acessar eventos do Google Calendar');
+                }
+              }
+
+              throw errorData;
+            }
+
+            return response;
+          },
+          {
+            cacheKey,
+            cacheDuration: 5 * 60 * 1000 // 5 minutos
+          }
+        );
+
+        const data = await response.json();
+        console.log('Eventos obtidos do calendário:', {
+          calendarId: calendar.id,
+          total: data.items?.length || 0,
+          items: data.items?.map((item: any) => ({
+            id: item.id,
+            summary: item.summary,
+            start: item.start,
+            end: item.end,
+            description: item.description,
+            timeZone: item.start?.timeZone || 'America/Sao_Paulo'
+          }))
+        });
+
+        if (data.items) {
+          // Garantir que todos os eventos tenham timezone
+          const eventsWithTimezone = data.items.map((event: any) => ({
+            ...event,
+            start: {
+              ...event.start,
+              timeZone: event.start?.timeZone || 'America/Sao_Paulo'
+            },
+            end: {
+              ...event.end,
+              timeZone: event.end?.timeZone || 'America/Sao_Paulo'
+            }
+          }));
+          allEvents.push(...eventsWithTimezone);
+        }
+      } catch (error) {
+        console.error(`Erro ao buscar eventos do calendário ${calendar.id}:`, error);
+        // Continuar com o próximo calendário mesmo se houver erro
+        continue;
+      }
+    }
+
+    console.log('Total de eventos obtidos de todos os calendários:', allEvents.length);
+    console.log('Eventos detalhados:', JSON.stringify(allEvents, null, 2));
+    return allEvents;
   } catch (error: any) {
     console.error('Erro ao buscar eventos do Google Calendar:', error);
+    
+    // Limpar cache em caso de erro
+    clearCache();
+    
     throw error;
   }
 }
@@ -93,7 +207,7 @@ export async function createGoogleCalendarEvent(
     const { data: { session } } = await supabase.auth.getSession();
     
     if (!session?.provider_token) {
-      throw new Error('Usuário não está autenticado com Google');
+      throw new Error('Token do Google não disponível');
     }
 
     const response = await retryWithExponentialBackoff(
@@ -112,6 +226,11 @@ export async function createGoogleCalendarEvent(
 
         if (!response.ok) {
           const errorData = await response.json();
+          console.error('Erro ao criar evento no Google Calendar:', {
+            status: response.status,
+            statusText: response.statusText,
+            error: errorData
+          });
           
           if (response.status === 403) {
             const reason = errorData.error?.errors?.[0]?.reason;
@@ -121,32 +240,46 @@ export async function createGoogleCalendarEvent(
                 throw new Error('Limite diário de requisições excedido. Por favor, tente novamente amanhã.');
               
               case 'userRateLimitExceeded':
-                // Aguardar 1 minuto antes de tentar novamente
-                await new Promise(resolve => setTimeout(resolve, 60000));
-                return createGoogleCalendarEvent(event); // Tentar novamente após o delay
-              
               case 'rateLimitExceeded':
-                // Aguardar 10 segundos antes de tentar novamente
-                await new Promise(resolve => setTimeout(resolve, 10000));
-                return createGoogleCalendarEvent(event); // Tentar novamente após o delay
+              case 'quotaExceeded':
+                // Esses erros serão tratados pelo retryWithExponentialBackoff
+                throw errorData;
               
               case 'domainPolicy':
                 throw new Error('O administrador do seu domínio não permite o acesso ao Google Calendar.');
               
-              default:
+              case 'forbiddenForNonOrganizer':
+                throw new Error('Você não tem permissão para modificar este evento.');
+              
+              case 'insufficientPermissions':
                 throw new Error('Permissões insuficientes. Por favor, reconecte sua conta Google e conceda todas as permissões solicitadas.');
+              
+              default:
+                throw new Error('Erro ao criar evento no Google Calendar');
             }
           }
 
-          throw new Error('Erro ao criar evento no Google Calendar');
+          throw errorData;
         }
 
         return response;
+      },
+      {
+        maxRetries: 3,
+        initialDelay: 2000 // 2 segundos para criação de eventos
       }
     );
 
-    return response.json();
+    const createdEvent = await response.json();
+    console.log('Evento criado com sucesso:', {
+      id: createdEvent.id,
+      summary: createdEvent.summary
+    });
 
+    // Limpar cache de eventos após criar um novo
+    clearCache();
+
+    return createdEvent;
   } catch (error: any) {
     console.error('Erro ao criar evento no Google Calendar:', error);
     throw error;

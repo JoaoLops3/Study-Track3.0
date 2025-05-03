@@ -3,7 +3,7 @@ import { Outlet } from 'react-router-dom';
 import { Sidebar } from '../navigation/Sidebar';
 import { Header } from '../navigation/Header';
 
-export const MainLayout = () => {
+const MainLayout = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   return (
@@ -20,3 +20,5 @@ export const MainLayout = () => {
     </div>
   );
 };
+
+export default MainLayout;
