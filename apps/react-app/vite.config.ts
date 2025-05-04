@@ -19,10 +19,11 @@ export default defineConfig({
       '@lib': path.resolve(__dirname, 'src/lib'),
     },
   },
-  base: './',
+  base: '/',
   build: {
     outDir: 'dist',
     assetsDir: 'assets',
-    sourcemap: true
+    sourcemap: true,
+    emptyOutDir: true
   }
 });

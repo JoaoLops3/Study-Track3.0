@@ -1,4 +1,7 @@
 {
+  "buildCommand": "cd apps/react-app && npm run build",
+  "outputDirectory": "apps/react-app/dist",
+  "framework": "vite",
   "rewrites": [
     {
       "source": "/(.*)",
