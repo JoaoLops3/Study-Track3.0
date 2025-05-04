@@ -1,0 +1,444 @@
+/* Importações do Google */
+@import './styles/google-imports.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --font-size-small: 14px;
+  --font-size-medium: 16px;
+  --font-size-large: 18px;
+  
+  /* Breakpoints */
+  --breakpoint-sm: 640px;
+  --breakpoint-md: 768px;
+  --breakpoint-lg: 1024px;
+  --breakpoint-xl: 1280px;
+  --breakpoint-2xl: 1536px;
+}
+
+[data-font-size="small"] {
+  font-size: var(--font-size-small) !important;
+}
+
+[data-font-size="medium"] {
+  font-size: var(--font-size-medium) !important;
+}
+
+[data-font-size="large"] {
+  font-size: var(--font-size-large) !important;
+}
+
+/* Base styles */
+@layer base {
+  html, body {
+    @apply transition-all duration-200;
+  }
+
+  body {
+    @apply bg-gray-50 text-gray-900 dark:bg-gray-900 dark:text-white transition-colors duration-200;
+  }
+
+  /* Container responsivo */
+  .container {
+    @apply w-full px-4 mx-auto;
+    max-width: 100%;
+  }
+
+  @media (min-width: 640px) {
+    .container {
+      max-width: 640px;
+    }
+  }
+
+  @media (min-width: 768px) {
+    .container {
+      max-width: 768px;
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .container {
+      max-width: 1024px;
+    }
+  }
+
+  @media (min-width: 1280px) {
+    .container {
+      max-width: 1280px;
+    }
+  }
+
+  @media (min-width: 1536px) {
+    .container {
+      max-width: 1536px;
+    }
+  }
+}
+
+/* Grid responsivo */
+.grid-responsive {
+  @apply grid gap-4;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+}
+
+/* Layout responsivo */
+.layout-responsive {
+  @apply flex flex-col;
+}
+
+@media (min-width: 768px) {
+  .layout-responsive {
+    @apply flex-row;
+  }
+}
+
+/* Sidebar responsiva */
+.sidebar {
+  @apply fixed top-0 left-0 h-full w-64 bg-white dark:bg-gray-800 shadow-lg transform -translate-x-full transition-transform duration-300 ease-in-out z-50;
+}
+
+@media (min-width: 768px) {
+  .sidebar {
+    @apply translate-x-0;
+  }
+}
+
+/* Header responsivo */
+.header {
+  @apply fixed top-0 left-0 right-0 h-16 bg-white dark:bg-gray-800 shadow-sm z-40;
+}
+
+@media (min-width: 768px) {
+  .header {
+    @apply left-64;
+  }
+}
+
+/* Main content responsivo */
+.main-content {
+  @apply mt-16 p-4;
+}
+
+@media (min-width: 768px) {
+  .main-content {
+    @apply ml-64;
+  }
+}
+
+/* Card responsivo */
+.card {
+  @apply bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm p-4;
+}
+
+@media (min-width: 640px) {
+  .card {
+    @apply p-6;
+  }
+}
+
+/* Form responsivo */
+.form-group {
+  @apply mb-4;
+}
+
+.form-label {
+  @apply block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1;
+}
+
+.form-input {
+  @apply w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:text-white;
+}
+
+/* Botão responsivo */
+.btn {
+  @apply px-4 py-2 rounded-md font-medium transition-colors duration-200;
+}
+
+.btn-sm {
+  @apply px-2 py-1 text-sm;
+}
+
+.btn-lg {
+  @apply px-6 py-3 text-lg;
+}
+
+/* Tabela responsiva */
+.table-responsive {
+  @apply w-full overflow-x-auto;
+}
+
+.table {
+  @apply min-w-full divide-y divide-gray-200 dark:divide-gray-700;
+}
+
+/* Modal responsivo */
+.modal {
+  @apply fixed inset-0 z-50 overflow-y-auto;
+}
+
+.modal-content {
+  @apply relative bg-white dark:bg-gray-800 rounded-lg mx-auto my-8 p-4;
+  max-width: 90%;
+}
+
+@media (min-width: 640px) {
+  .modal-content {
+    @apply p-6;
+    max-width: 500px;
+  }
+}
+
+/* Utilitários responsivos */
+.hide-on-mobile {
+  @apply hidden md:block;
+}
+
+.show-on-mobile {
+  @apply block md:hidden;
+}
+
+/* Espaçamento responsivo */
+.space-y-responsive {
+  @apply space-y-4;
+}
+
+@media (min-width: 640px) {
+  .space-y-responsive {
+    @apply space-y-6;
+  }
+}
+
+/* Texto responsivo */
+.text-responsive {
+  @apply text-base;
+}
+
+@media (min-width: 640px) {
+  .text-responsive {
+    @apply text-lg;
+  }
+}
+
+/* Imagem responsiva */
+.img-responsive {
+  @apply w-full h-auto;
+}
+
+/* Estilos globais para tamanhos de fonte */
+html.text-sm, body.text-sm {
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+}
+
+html.text-sm h1 {
+  font-size: 1.5rem;
+}
+
+html.text-sm h2 {
+  font-size: 1.25rem;
+}
+
+html.text-sm h3 {
+  font-size: 1.125rem;
+}
+
+html.text-base, body.text-base {
+  font-size: 1rem;
+  line-height: 1.5rem;
+}
+
+html.text-base h1 {
+  font-size: 2rem;
+}
+
+html.text-base h2 {
+  font-size: 1.5rem;
+}
+
+html.text-base h3 {
+  font-size: 1.25rem;
+}
+
+html.text-lg, body.text-lg {
+  font-size: 1.125rem;
+  line-height: 1.75rem;
+}
+
+html.text-lg h1 {
+  font-size: 2.25rem;
+}
+
+html.text-lg h2 {
+  font-size: 1.875rem;
+}
+
+html.text-lg h3 {
+  font-size: 1.5rem;
+}
+
+/* Mantém o tamanho da fonte */
+html.text-sm *:not(.keep-font-size),
+body.text-sm *:not(.keep-font-size) {
+  font-size: inherit;
+}
+
+html.text-base *:not(.keep-font-size),
+body.text-base *:not(.keep-font-size) {
+  font-size: inherit;
+}
+
+html.text-lg *:not(.keep-font-size),
+body.text-lg *:not(.keep-font-size) {
+  font-size: inherit;
+}
+
+.keep-font-size {
+  font-size: inherit !important;
+}
+
+/* Estilos do editor */
+.ProseMirror {
+  @apply min-h-[150px] w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-800 dark:text-white dark:placeholder:text-gray-400;
+}
+
+.ProseMirror p.is-editor-empty:first-child::before {
+  @apply text-gray-400;
+  content: attr(data-placeholder);
+  float: left;
+  height: 0;
+  pointer-events: none;
+}
+
+.ProseMirror h1 {
+  @apply text-2xl font-bold mb-4;
+}
+
+.ProseMirror h2 {
+  @apply text-xl font-bold mb-3;
+}
+
+.ProseMirror h3 {
+  @apply text-lg font-bold mb-2;
+}
+
+.ProseMirror p {
+  @apply mb-2;
+}
+
+.ProseMirror ul {
+  @apply list-disc list-inside mb-2;
+}
+
+.ProseMirror ol {
+  @apply list-decimal list-inside mb-2;
+}
+
+.ProseMirror a {
+  @apply text-blue-500 hover:text-blue-600 underline;
+}
+
+.ProseMirror blockquote {
+  @apply border-l-4 border-gray-300 pl-4 italic my-2;
+}
+
+.ProseMirror ul[data-type="taskList"] {
+  @apply list-none;
+}
+
+.ProseMirror ul[data-type="taskList"] li {
+  @apply flex items-start gap-2;
+}
+
+.ProseMirror ul[data-type="taskList"] li > label {
+  @apply flex items-center gap-2;
+}
+
+.ProseMirror ul[data-type="taskList"] li > div {
+  @apply flex-1;
+}
+
+.ProseMirror pre {
+  @apply bg-gray-100 dark:bg-gray-800 p-4 rounded-md my-2;
+}
+
+.ProseMirror code {
+  @apply bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded text-sm font-mono;
+}
+
+.ProseMirror table {
+  @apply w-full border-collapse my-2;
+}
+
+.ProseMirror th {
+  @apply border border-gray-300 dark:border-gray-600 px-4 py-2 bg-gray-100 dark:bg-gray-800;
+}
+
+.ProseMirror td {
+  @apply border border-gray-300 dark:border-gray-600 px-4 py-2;
+}
+
+.ProseMirror img {
+  @apply max-w-full h-auto my-2;
+}
+
+/* Animações */
+.fade-enter {
+  opacity: 0;
+}
+
+.fade-enter-active {
+  opacity: 1;
+  transition: opacity 200ms ease-in;
+}
+
+.fade-exit {
+  opacity: 1;
+}
+
+.fade-exit-active {
+  opacity: 0;
+  transition: opacity 200ms ease-in;
+}
+
+/* Modal backdrop */
+.modal-backdrop {
+  @apply fixed inset-0 bg-black bg-opacity-50 z-40;
+}
+
+/* Container background */
+.container-bg {
+  @apply bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4;
+}
+
+/* Input styles */
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="number"],
+input[type="search"],
+input[type="tel"],
+input[type="url"],
+textarea,
+select {
+  @apply w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:text-white;
+}
+
+/* Button styles */
+.btn-primary {
+  @apply bg-blue-500 text-white hover:bg-blue-600 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2;
+}
+
+.btn-secondary {
+  @apply bg-gray-500 text-white hover:bg-gray-600 focus:ring-2 focus:ring-gray-500 focus:ring-offset-2;
+}
+
+/* Navigation styles */
+.nav-item {
+  @apply text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white;
+}
+
+.nav-item-active {
+  @apply text-blue-500 dark:text-blue-400;
+}
