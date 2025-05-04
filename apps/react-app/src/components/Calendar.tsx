@@ -142,35 +142,50 @@ export function Calendar() {
 
       // Buscar eventos e tarefas do Google Calendar
       const [googleEvents, googleTasks] = await Promise.all([
-        getGoogleCalendarEvents(),
+        getGoogleCalendarEvents({
+          timeMin: new Date().toISOString(),
+          timeMax: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 dias
+          maxResults: 100,
+          singleEvents: true,
+          orderBy: 'startTime'
+        }),
         getGoogleCalendarTasks()
       ]);
       
-      console.log('googleEvents:', googleEvents);
-      console.log('googleTasks:', googleTasks);
+      console.log('googleEvents recebidos:', googleEvents);
+      console.log('googleTasks recebidas:', googleTasks);
+
+      if (!googleEvents || googleEvents.length === 0) {
+        console.log('Nenhum evento encontrado');
+        setEvents([]);
+        return;
+      }
 
       // Converter eventos para o formato do react-big-calendar
-      const formattedEvents = googleEvents?.map((event: GoogleEvent, idx: number) => {
+      const formattedEvents = googleEvents.map((event: GoogleEvent, idx: number) => {
         let startDate: Date;
         let endDate: Date;
         let allDay = false;
 
         try {
+          console.log(`Processando evento[${idx}]:`, event);
           if (event.start.dateTime) {
             startDate = new Date(event.start.dateTime);
             endDate = new Date(event.end.dateTime);
             allDay = false;
           } else if (event.start.date) {
+            // Ajuste para timezone do Brasil
             const startStr = `${event.start.date}T00:00:00-03:00`;
             const endStr = `${event.end.date}T23:59:59-03:00`;
             startDate = new Date(startStr);
             endDate = new Date(endStr);
             allDay = true;
           } else {
+            console.warn(`Evento[${idx}] ignorado: início inválido`, event);
             return null;
           }
 
-          return {
+          const mapped = {
             id: String(event.id),
             title: String(event.summary || 'Sem título'),
             description: event.description || '',
@@ -180,20 +195,25 @@ export function Calendar() {
             google_event_id: String(event.id),
             isTask: false
           };
+          console.log(`Evento[${idx}] mapeado:`, mapped);
+          console.log(`  start: ${startDate.toISOString()}, end: ${endDate.toISOString()}`);
+          return mapped;
         } catch (error) {
-          console.error(`Erro ao mapear evento[${idx}]:`, error);
+          console.error(`Erro ao mapear evento[${idx}]:`, error, event);
           return null;
         }
-      }).filter((event): event is Event => event !== null) || [];
+      }).filter((event): event is Event => event !== null);
 
       // Converter tarefas para o formato do react-big-calendar
       const formattedTasks = googleTasks?.map((task: GoogleTask, idx: number) => {
         try {
+          console.log(`Processando tarefa[${idx}]:`, task);
+          
           const startDate = task.due ? new Date(task.due) : new Date();
           const endDate = new Date(startDate);
           endDate.setHours(23, 59, 59);
 
-          return {
+          const mapped: Event = {
             id: String(task.id),
             title: String(task.title || 'Sem título'),
             description: task.notes || '',
@@ -203,20 +223,24 @@ export function Calendar() {
             isTask: true,
             taskListTitle: task.taskListTitle
           };
+          
+          console.log(`Tarefa[${idx}] mapeada:`, mapped);
+          return mapped;
         } catch (error) {
-          console.error(`Erro ao mapear tarefa[${idx}]:`, error);
+          console.error(`Erro ao mapear tarefa[${idx}]:`, error, task);
           return null;
         }
       }).filter((task: Event | null): task is Event => task !== null) || [];
 
+      // Combinar eventos e tarefas
       const allItems = [...formattedEvents, ...formattedTasks];
+      
+      // Log do array formatado antes do setEvents
+      console.log('formattedEvents:', formattedEvents);
+      console.log('formattedTasks:', formattedTasks);
       console.log('allItems:', allItems);
+      
       setEvents(allItems);
-
-      if (allItems.length === 0) {
-        setError('Nenhum evento encontrado no seu Google Calendar. Tente adicionar um novo evento!');
-        return;
-      }
     } catch (err) {
       console.error('Erro ao carregar eventos:', err);
       setError(err instanceof Error ? err.message : 'Erro ao carregar eventos');

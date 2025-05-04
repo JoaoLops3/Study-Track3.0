@@ -4,18 +4,50 @@ import moment from 'moment';
 import 'moment-timezone';
 import 'moment/locale/pt-br';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
-import '../styles/calendar.css';
-import { Calendar as CalendarIcon, Plus, RefreshCw, X, Clock } from 'lucide-react';
-import toast from 'react-hot-toast';
-import { useTheme } from '../contexts/ThemeContext';
+import { getGoogleCalendarEvents, getGoogleCalendarTasks, createGoogleCalendarEvent, GoogleTask } from '../lib/googleCalendar';
 import { supabase } from '../lib/supabase';
-import { getGoogleCalendarEvents, createGoogleCalendarEvent } from '../lib/googleCalendar/events';
-import { initGoogleClient, getGoogleAccessToken } from '../lib/googleCalendar/auth';
-import { GoogleConnectButton } from '../components/integrations/GoogleConnectButton';
-import { useSettings } from '../contexts/SettingsContext';
+import { X, Calendar as CalendarIcon, Clock, Plus } from 'lucide-react';
+import { toast } from 'react-hot-toast';
 
 moment.locale('pt-br');
 const localizer = momentLocalizer(moment);
+
+// Estilos para diferenciar tarefas e eventos
+const styles = `
+  .task-event {
+    background-color: #4CAF50 !important;
+    border-left: 4px solid #388E3C !important;
+  }
+  
+  .calendar-event {
+    background-color: #2196F3 !important;
+    border-left: 4px solid #1976D2 !important;
+  }
+  
+  .task-event:hover {
+    background-color: #388E3C !important;
+  }
+  
+  .calendar-event:hover {
+    background-color: #1976D2 !important;
+  }
+`;
+
+interface GoogleEvent {
+  id: string;
+  summary?: string;
+  description?: string;
+  start: {
+    dateTime?: string;
+    date?: string;
+    timeZone?: string;
+  };
+  end: {
+    dateTime?: string;
+    date?: string;
+    timeZone?: string;
+  };
+}
 
 interface Event {
   id: string;
@@ -24,16 +56,20 @@ interface Event {
   start: Date;
   end: Date;
   google_event_id?: string;
-  allDay?: boolean;
+  allDay: boolean;
+  isTask?: boolean;
+  taskListTitle?: string;
 }
 
 let renderCount = 0;
-
-const CalendarPage = () => {
-  const { theme } = useTheme();
+export function Calendar() {
+  renderCount++;
+  console.log('==== Calendar.tsx MONTADO ====', renderCount);
+  console.log('ANTES do useEffect');
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
-  const [isSyncing, setIsSyncing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [syncing, setSyncing] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [newEvent, setNewEvent] = useState({
     title: '',
@@ -41,141 +77,31 @@ const CalendarPage = () => {
     start: '',
     end: ''
   });
-  const [googleToken, setGoogleToken] = useState<string | null>(null);
-  const [tokenChecked, setTokenChecked] = useState(false);
-  const { settings, updateSettings } = useSettings();
-  const [requireReconnect, setRequireReconnect] = useState(false);
-
-  // Verificar token e conexão com Google
-  useEffect(() => {
-    let mounted = true;
-
-    async function checkConnection() {
-      try {
-        setLoading(true);
-        const token = await getGoogleAccessToken();
-        
-        if (!mounted) return;
-        setGoogleToken(token);
-        
-        if (token) {
-          // Se temos um token, atualizar as configurações
-          if (!settings.integrations.google) {
-            await updateSettings({
-              integrations: {
-                ...settings.integrations,
-                google: true
-              }
-            });
-          }
-          // Carregar eventos (sem initGoogleClient)
-          await loadEvents();
-        } else {
-          // Se não temos token, garantir que o estado seja false
-          if (settings.integrations.google) {
-            await updateSettings({
-              integrations: {
-                ...settings.integrations,
-                google: false
-              }
-            });
-          }
-          setEvents([]);
-          setRequireReconnect(true);
-        }
-      } catch (error) {
-        console.error('Erro ao verificar conexão:', error);
-        if (!mounted) return;
-        
-        setGoogleToken(null);
-        setEvents([]);
-        setRequireReconnect(true);
-        if (settings.integrations.google) {
-          await updateSettings({
-            integrations: {
-              ...settings.integrations,
-              google: false
-            }
-          });
-        }
-      } finally {
-        if (mounted) {
-          setLoading(false);
-          setTokenChecked(true);
-        }
-      }
-    }
-
-    checkConnection();
-
-    return () => {
-      mounted = false;
-    };
-  }, []);
 
   async function loadEvents() {
-    if (!googleToken) {
-      console.log('Token do Google não disponível');
-      return;
-    }
-    
     console.log('Entrou em loadEvents');
-    setLoading(true);
-    setRequireReconnect(false);
-    
     try {
-      await supabase.auth.refreshSession();
-      const token = await getGoogleAccessToken();
-      console.log('Token do Google (getGoogleAccessToken):', token);
+      console.log('Iniciando loadEvents...');
+      setLoading(true);
+      setError(null);
       
-      if (!token) {
-        toast.error('Token do Google não encontrado. Por favor, reconecte sua conta Google.');
-        setEvents([]);
-        setRequireReconnect(true);
-        return;
-      }
-
-      // Verificar conexão com Google
-      const connectionStatus = await checkGoogleConnection();
-      if (!connectionStatus.isConnected) {
-        if (connectionStatus.error?.includes('Redirecionando')) {
-          return; // Não mostrar erro se estiver redirecionando
-        }
-        toast.error(connectionStatus.error || 'Erro ao conectar com o Google Calendar');
-        setRequireReconnect(true);
-        return;
-      }
-
-      if (!connectionStatus.calendars || connectionStatus.calendars.length === 0) {
-        toast.error('Nenhum calendário encontrado. Verifique se você tem calendários no Google Calendar.');
-        setEvents([]);
-        return;
-      }
-
-      // Buscar eventos do Google Calendar
-      const googleEvents = await getGoogleCalendarEvents({
-        timeMin: new Date().toISOString(),
-        timeMax: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 dias
-        maxResults: 100,
-        singleEvents: true,
-        orderBy: 'startTime'
-      });
+      // Buscar eventos e tarefas do Google Calendar
+      const [googleEvents, googleTasks] = await Promise.all([
+        getGoogleCalendarEvents(),
+        getGoogleCalendarTasks()
+      ]);
+      
       console.log('googleEvents recebidos:', googleEvents);
-      
-      if (!googleEvents || googleEvents.length === 0) {
-        console.log('Nenhum evento encontrado');
-        setEvents([]);
-        return;
-      }
+      console.log('googleTasks recebidas:', googleTasks);
 
       // Converter eventos para o formato do react-big-calendar
-      const formattedEvents = googleEvents.map((event, idx) => {
+      const formattedEvents = googleEvents.map((event: GoogleEvent, idx: number) => {
+        let startDate: Date;
+        let endDate: Date;
+        let allDay = false;
+
         try {
           console.log(`Processando evento[${idx}]:`, event);
-          let startDate: Date;
-          let endDate: Date;
-          let allDay = false;
-
           if (event.start.dateTime) {
             startDate = new Date(event.start.dateTime);
             endDate = new Date(event.end.dateTime);
@@ -194,14 +120,14 @@ const CalendarPage = () => {
 
           const mapped = {
             id: String(event.id),
-            title: String(event.summary || 'Sem título'),
+            title: String(event.summary || ''),
             description: event.description || '',
             start: startDate,
             end: endDate,
             allDay,
-            google_event_id: String(event.id)
+            google_event_id: String(event.id),
+            isTask: false
           };
-
           console.log(`Evento[${idx}] mapeado:`, mapped);
           console.log(`  start: ${startDate.toISOString()}, end: ${endDate.toISOString()}`);
           return mapped;
@@ -211,33 +137,81 @@ const CalendarPage = () => {
         }
       }).filter((event): event is Event => event !== null);
 
+      // Converter tarefas para o formato do react-big-calendar
+      const formattedTasks = googleTasks.map((task: GoogleTask, idx: number) => {
+        try {
+          console.log(`Processando tarefa[${idx}]:`, task);
+          
+          const startDate = task.due ? new Date(task.due) : new Date();
+          const endDate = new Date(startDate);
+          endDate.setHours(23, 59, 59);
+
+          const mapped: Event = {
+            id: String(task.id),
+            title: String(task.title || ''),
+            description: task.notes || '',
+            start: startDate,
+            end: endDate,
+            allDay: true,
+            isTask: true,
+            taskListTitle: task.taskListTitle
+          };
+          
+          console.log(`Tarefa[${idx}] mapeada:`, mapped);
+          return mapped;
+        } catch (error) {
+          console.error(`Erro ao mapear tarefa[${idx}]:`, error, task);
+          return null;
+        }
+      }).filter((task: Event | null): task is Event => task !== null);
+
+      // Combinar eventos e tarefas
+      const allItems = [...formattedEvents, ...formattedTasks];
+      
+      // Log do array formatado antes do setEvents
       console.log('formattedEvents:', formattedEvents);
-      setEvents(formattedEvents);
-    } catch (error) {
-      console.error('Erro ao carregar eventos:', error);
-      toast.error('Erro ao carregar eventos. Tente novamente.');
-      setRequireReconnect(true);
+      console.log('formattedTasks:', formattedTasks);
+      console.log('allItems:', allItems);
+      
+      setEvents(allItems);
+    } catch (err) {
+      console.error('Erro ao carregar eventos:', err);
+      setError(err instanceof Error ? err.message : 'Erro ao carregar eventos');
     } finally {
       setLoading(false);
     }
   }
 
+  useEffect(() => {
+    console.log('useEffect - Carregando eventos...');
+    loadEvents();
+  }, []);
+  console.log('DEPOIS do useEffect');
+
   async function handleSync() {
     try {
-      setIsSyncing(true);
+      setSyncing(true);
+      setError(null);
       await loadEvents();
       toast.success('Eventos sincronizados com sucesso!');
     } catch (err) {
       console.error('Erro na sincronização:', err);
+      setError(err instanceof Error ? err.message : 'Erro ao sincronizar eventos');
       toast.error('Erro ao sincronizar eventos');
     } finally {
-      setIsSyncing(false);
+      setSyncing(false);
     }
   }
 
-  async function handleAddEvent(e: React.FormEvent) {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
     try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        throw new Error('Usuário não autenticado');
+      }
+
       // Cria o evento no Google Calendar
       await createGoogleCalendarEvent({
         summary: newEvent.title,
@@ -251,39 +225,39 @@ const CalendarPage = () => {
           timeZone: 'America/Sao_Paulo'
         }
       });
+
+      // Cria o evento no banco local
+      const event = {
+        title: newEvent.title,
+        description: newEvent.description,
+        start: new Date(newEvent.start),
+        end: new Date(newEvent.end),
+        user_id: session.user.id
+      };
+
+      const { data, error } = await supabase
+        .from('events')
+        .insert([event])
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      setEvents([...events, data]);
       setIsModalOpen(false);
-      setNewEvent({ title: '', description: '', start: '', end: '' });
+      setNewEvent({
+        title: '',
+        description: '',
+        start: '',
+        end: ''
+      });
+
       toast.success('Evento criado com sucesso!');
-      await loadEvents();
     } catch (error) {
       console.error('Erro ao criar evento:', error);
       toast.error('Erro ao criar evento');
     }
-  }
-
-  if (!tokenChecked) {
-    return <div className="flex items-center justify-center h-64">
-      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
-    </div>;
-  }
-
-  if (!googleToken) {
-    return (
-      <div className="flex flex-col items-center justify-center h-64 gap-4">
-        <p className="text-red-500 font-bold">Você precisa conectar sua conta Google para acessar o calendário.</p>
-        <GoogleConnectButton variant="primary" />
-      </div>
-    );
-  }
-
-  if (requireReconnect) {
-    return (
-      <div className="flex flex-col items-center justify-center h-64 gap-4">
-        <p className="text-red-500 font-bold">Sua sessão do Google expirou. Por favor, conecte novamente sua conta Google.</p>
-        <GoogleConnectButton variant="primary" />
-      </div>
-    );
-  }
+  };
 
   if (loading) {
     return <div className="flex items-center justify-center h-64">
@@ -291,9 +265,9 @@ const CalendarPage = () => {
     </div>;
   }
 
+  // Log detalhado dos eventos enviados para o BigCalendar
   if (!events || events.length === 0) {
     console.warn('Nenhum evento enviado para o BigCalendar!');
-    return <div className="flex items-center justify-center h-64 text-red-500 font-bold">Nenhum evento do Google Calendar encontrado!</div>;
   } else {
     console.log("Eventos enviados para o BigCalendar:", events);
     events.forEach((ev, idx) => {
@@ -303,64 +277,102 @@ const CalendarPage = () => {
     });
   }
 
-  console.log("Renderizando CalendarPage, eventos:", events);
+  // Log adicional antes do render
+  console.log("Renderizando Calendar, eventos:", events);
 
+  // Fallback visual se não houver eventos
+  if (!events || events.length === 0) {
+    return <div className="flex items-center justify-center h-64 text-red-500 font-bold">Nenhum evento do Google Calendar encontrado!</div>;
+  }
+
+  // Exibir apenas os eventos do Google no calendário
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Calendário</h1>
+    <div className="h-[600px] p-4">
+      <style>{styles}</style>
+      <div className="mb-4 flex justify-between items-center">
+        <h2 className="text-xl font-semibold">Calendário</h2>
         <div className="flex space-x-4">
-          <GoogleConnectButton variant="primary" />
           <button
             onClick={() => setIsModalOpen(true)}
-            className="flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700"
+            className="px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors flex items-center space-x-2"
           >
-            <Plus className="h-5 w-5 mr-2" />
-            Adicionar Evento
+            <Plus className="w-4 h-4" />
+            <span>Novo Evento</span>
           </button>
           <button
             onClick={handleSync}
-            disabled={isSyncing}
-            className="flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 disabled:opacity-50"
+            disabled={syncing}
+            className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 transition-colors"
           >
-            <RefreshCw className={`h-5 w-5 mr-2 ${isSyncing ? 'animate-spin' : ''}`} />
-            {isSyncing ? 'Sincronizando...' : 'Sincronizar'}
+            {syncing ? 'Sincronizando...' : 'Sincronizar'}
           </button>
         </div>
       </div>
-      <div className={`bg-white dark:bg-gray-800 rounded-lg shadow p-6 ${theme === 'dark' ? 'dark' : ''}`}>
-        <BigCalendar
-          localizer={localizer}
-          events={events}
-          startAccessor="start"
-          endAccessor="end"
-          style={{ height: 600 }}
-          views={['month', 'week', 'day', 'agenda']}
-          messages={{
-            next: "Próximo",
-            previous: "Anterior",
-            today: "Hoje",
-            month: "Mês",
-            week: "Semana",
-            day: "Dia",
-            agenda: "Agenda",
-            date: "Data",
-            time: "Hora",
-            event: "Evento",
-            noEventsInRange: "Não há eventos neste período"
-          }}
-          onSelectEvent={event => {
-            console.log('Evento selecionado:', event);
-          }}
-          onSelectSlot={slotInfo => {
-            console.log('Slot selecionado:', slotInfo);
-          }}
-          selectable
-          defaultDate={new Date()}
-          min={new Date(new Date().getFullYear(), 0, 1)}
-          max={new Date(new Date().getFullYear(), 11, 31)}
-        />
-      </div>
+
+      {error && (
+        <div className="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
+          {error}
+        </div>
+      )}
+
+      <BigCalendar
+        localizer={localizer}
+        events={events}
+        startAccessor="start"
+        endAccessor="end"
+        style={{ height: '100%' }}
+        defaultView="month"
+        views={['month', 'week', 'day']}
+        messages={{
+          next: "Próximo",
+          previous: "Anterior",
+          today: "Hoje",
+          month: "Mês",
+          week: "Semana",
+          day: "Dia",
+          agenda: "Agenda",
+          date: "Data",
+          time: "Hora",
+          event: "Evento",
+          noEventsInRange: "Não há eventos neste período"
+        }}
+        onNavigate={(date) => {
+          console.log('Navegando para:', date);
+        }}
+        onView={(view) => {
+          console.log('Mudando para view:', view);
+        }}
+        onRangeChange={(range) => {
+          console.log('Range mudou:', range);
+        }}
+        onSelectEvent={(event) => {
+          console.log('Evento selecionado:', event);
+        }}
+        onSelectSlot={(slotInfo) => {
+          console.log('Slot selecionado:', slotInfo);
+        }}
+        defaultDate={new Date()}
+        min={new Date('2025-05-01')}
+        max={new Date('2025-05-31')}
+        step={60}
+        timeslots={1}
+        showMultiDayTimes={true}
+        dayLayoutAlgorithm="no-overlap"
+        popup
+        selectable
+        eventPropGetter={(event) => ({
+          className: event.isTask ? 'task-event' : 'calendar-event',
+          style: {
+            backgroundColor: event.isTask ? '#4CAF50' : '#2196F3',
+            borderRadius: '4px',
+            opacity: 0.8,
+            color: 'white',
+            border: '0px',
+            display: 'block'
+          }
+        })}
+      />
+
       {isModalOpen && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg max-w-md w-full p-8 transform transition-all duration-300 ease-in-out hover:shadow-xl">
@@ -375,7 +387,8 @@ const CalendarPage = () => {
                 <X className="w-5 h-5 text-gray-500 dark:text-gray-400" />
               </button>
             </div>
-            <form onSubmit={handleAddEvent} className="space-y-6">
+
+            <form onSubmit={handleSubmit} className="space-y-6">
               <div className="group">
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 transition-colors group-hover:text-primary-500">
                   Título
@@ -394,6 +407,7 @@ const CalendarPage = () => {
                   />
                 </div>
               </div>
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="group">
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 transition-colors group-hover:text-primary-500">
@@ -415,6 +429,7 @@ const CalendarPage = () => {
                     </div>
                   </div>
                 </div>
+
                 <div className="group">
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 transition-colors group-hover:text-primary-500">
                     Data de Término
@@ -436,6 +451,7 @@ const CalendarPage = () => {
                   </div>
                 </div>
               </div>
+
               <div className="group">
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 transition-colors group-hover:text-primary-500">
                   Descrição
@@ -459,6 +475,7 @@ const CalendarPage = () => {
                   </div>
                 </div>
               </div>
+
               <div className="mt-8 flex justify-end space-x-4">
                 <button
                   type="button"
@@ -487,6 +504,4 @@ const CalendarPage = () => {
       )}
     </div>
   );
-};
-
-export default CalendarPage;
+} 

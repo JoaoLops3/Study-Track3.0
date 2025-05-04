@@ -107,71 +107,46 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     async function loadSettings() {
       try {
         const { data: { user } } = await supabase.auth.getUser();
-        
         if (!user) {
-          setSettings(defaultSettings);
-          setIsLoading(false);
+          console.log('Usuário não autenticado');
           return;
         }
 
-        // Primeiro, tenta buscar as configurações existentes
-        const { data, error } = await supabase
+        // Buscar configurações existentes
+        const { data: existingSettings, error: fetchError } = await supabase
           .from('user_settings')
           .select('settings')
           .eq('user_id', user.id)
+          .limit(1)
           .single();
 
-        if (error) {
-          if (error.code === 'PGRST116') {
-            // Se não existir configuração, cria uma nova
+        if (fetchError) {
+          if (fetchError.code === 'PGRST116') {
+            // Configurações não existem, criar novas
             const { error: insertError } = await supabase
               .from('user_settings')
-              .insert([{ 
-                user_id: user.id, 
-                settings: defaultSettings 
-              }])
+              .insert({
+                user_id: user.id,
+                settings: defaultSettings
+              })
               .select()
               .single();
 
             if (insertError) {
-              // Se der erro de duplicação, tenta buscar novamente
-              if (insertError.code === '23505') {
-                const { data: retryData, error: retryError } = await supabase
-                  .from('user_settings')
-                  .select('settings')
-                  .eq('user_id', user.id)
-                  .single();
-
-                if (retryError) {
-                  console.error('Erro ao buscar configurações após tentativa de inserção:', retryError);
-                  throw retryError;
-                }
-
-                if (retryData) {
-                  setSettings({
-                    ...defaultSettings,
-                    ...retryData.settings
-                  });
-                } else {
-                  setSettings(defaultSettings);
-                }
-              } else {
-                console.error('Erro ao criar configurações iniciais:', insertError);
-                throw insertError;
-              }
-            } else {
-              setSettings(defaultSettings);
+              console.error('Erro ao criar configurações iniciais:', insertError);
+              toast.error('Erro ao criar configurações iniciais');
+              return;
             }
+
+            setSettings(defaultSettings);
           } else {
-            console.error('Erro ao buscar configurações:', error);
-            throw error;
+            console.error('Erro ao carregar configurações:', fetchError);
+            toast.error('Erro ao carregar configurações');
           }
-        } else if (data) {
-          setSettings({
-            ...defaultSettings,
-            ...data.settings
-          });
+          return;
         }
+
+        setSettings(existingSettings.settings);
       } catch (error) {
         console.error('Erro ao carregar configurações:', error);
         toast.error('Erro ao carregar configurações');
@@ -186,50 +161,34 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
   const updateSettings = async (newSettings: Partial<Settings>) => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      
       if (!user) {
-        throw new Error('Usuário não autenticado');
+        console.log('Usuário não autenticado');
+        toast.error('Usuário não autenticado');
+        return;
       }
 
-      const updatedSettings = {
-        ...settings,
-        ...newSettings
-      };
+      const updatedSettings = { ...settings, ...newSettings };
 
-      // Primeiro, verificar se já existe uma configuração
-      const { data: existingSettings } = await supabase
+      const { error } = await supabase
         .from('user_settings')
-        .select('id')
-        .eq('user_id', user.id)
+        .upsert({
+          user_id: user.id,
+          settings: updatedSettings
+        })
+        .select()
         .single();
 
-      let error;
-      if (existingSettings) {
-        // Se existir, atualizar
-        const { error: updateError } = await supabase
-          .from('user_settings')
-          .update({ settings: updatedSettings })
-          .eq('user_id', user.id);
-        error = updateError;
-      } else {
-        // Se não existir, criar nova
-        const { error: insertError } = await supabase
-          .from('user_settings')
-          .insert({
-            user_id: user.id,
-            settings: updatedSettings
-          });
-        error = insertError;
+      if (error) {
+        console.error('Erro ao atualizar configurações:', error);
+        toast.error('Erro ao atualizar configurações');
+        return;
       }
 
-      if (error) throw error;
-
       setSettings(updatedSettings);
-      toast.success('Configurações atualizadas com sucesso!');
+      toast.success('Configurações atualizadas com sucesso');
     } catch (error) {
       console.error('Erro ao atualizar configurações:', error);
       toast.error('Erro ao atualizar configurações');
-      throw error;
     }
   };
 
