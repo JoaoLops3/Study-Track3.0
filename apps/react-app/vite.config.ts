@@ -40,6 +40,11 @@ export default defineConfig(({ mode }) => {
       outDir: 'dist',
       assetsDir: 'assets',
       sourcemap: true,
+      rollupOptions: {
+        output: {
+          manualChunks: undefined
+        }
+      }
     },
     // Define as variáveis de ambiente que serão expostas ao cliente
     define: {
