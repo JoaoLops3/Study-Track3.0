@@ -11,7 +11,15 @@ export const GOOGLE_CALENDAR_CONFIG = {
     'https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest',
     'https://www.googleapis.com/discovery/v1/apis/tasks/v1/rest'
   ],
-  redirectUri: 'http://localhost:5173/auth/callback',
-  authorizedOrigins: ['http://localhost:5173'],
-  authorizedRedirectUris: ['http://localhost:5173/auth/callback']
+  redirectUri: window.location.origin + '/auth/callback',
+  authorizedOrigins: [
+    'http://localhost:5173',
+    'https://study-track-3-0.vercel.app',
+    'https://study-track-3-0-git-main-joaolops3.vercel.app'
+  ],
+  authorizedRedirectUris: [
+    'http://localhost:5173/auth/callback',
+    'https://study-track-3-0.vercel.app/auth/callback',
+    'https://study-track-3-0-git-main-joaolops3.vercel.app/auth/callback'
+  ]
 }; 

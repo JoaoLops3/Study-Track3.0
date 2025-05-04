@@ -6,6 +6,8 @@ import { LogIn, Mail, UserPlus, Eye, EyeOff } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import toast from 'react-hot-toast';
 import LoginGoogle from '../components/LoginGoogle';
+import { useNavigate } from 'react-router-dom';
+import { GOOGLE_CALENDAR_CONFIG } from '../lib/googleCalendar/config';
 
 const Login = () => {
   const { signIn } = useAuth();
@@ -17,6 +19,7 @@ const Login = () => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const navigate = useNavigate();
 
   const handleEmailLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -60,14 +63,11 @@ const Login = () => {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
+          redirectTo: GOOGLE_CALENDAR_CONFIG.redirectUri,
           queryParams: {
-            scope: [
-              'https://www.googleapis.com/auth/calendar.readonly',
-              'https://www.googleapis.com/auth/userinfo.profile',
-              'https://www.googleapis.com/auth/userinfo.email',
-              'https://www.googleapis.com/auth/calendar.events.readonly'
-            ].join(' ')
+            scope: GOOGLE_CALENDAR_CONFIG.scopes.join(' '),
+            access_type: 'offline',
+            prompt: 'consent'
           }
         },
       });
