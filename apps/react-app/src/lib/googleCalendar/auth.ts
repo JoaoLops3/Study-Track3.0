@@ -211,30 +211,49 @@ export async function checkGoogleConnection(): Promise<GoogleConnectionStatus> {
 
 export async function getGoogleAccessToken(): Promise<string | null> {
   try {
+    console.log('Obtendo token do Google...');
     const { data: { session } } = await supabase.auth.getSession();
-    
-    if (!session?.provider_token) {
+
+    if (!session) {
+      console.log('Nenhuma sessão encontrada');
+      return null;
+    }
+
+    const token = session.provider_token;
+    if (!token) {
+      console.log('Token do Google não encontrado na sessão');
       return null;
     }
 
     // Verificar se o token ainda é válido
-    const response = await fetch(
-      'https://www.googleapis.com/oauth2/v2/userinfo',
-      {
+    console.log('Verificando validade do token...');
+    try {
+      const response = await fetch('https://www.googleapis.com/oauth2/v1/tokeninfo', {
+        method: 'GET',
         headers: {
-          Authorization: `Bearer ${session.provider_token}`,
-          'Content-Type': 'application/json'
+          'Authorization': `Bearer ${token}`
         }
+      });
+
+      if (!response.ok) {
+        console.log('Token inválido, tentando renovar...');
+        const { data: { session: newSession }, error } = await supabase.auth.refreshSession();
+        
+        if (error || !newSession?.provider_token) {
+          console.error('Erro ao renovar token:', error);
+          return null;
+        }
+
+        console.log('Token renovado com sucesso');
+        return newSession.provider_token;
       }
-    );
 
-    if (!response.ok) {
-      // Tentar renovar o token
-      const { data: { session: newSession } } = await supabase.auth.refreshSession();
-      return newSession?.provider_token || null;
+      console.log('Token válido');
+      return token;
+    } catch (error) {
+      console.error('Erro ao verificar token:', error);
+      return null;
     }
-
-    return session.provider_token;
   } catch (error) {
     console.error('Erro ao obter token do Google:', error);
     return null;

@@ -31,11 +31,11 @@ const LoadingFallback = () => (
 
 function App() {
   return (
-    <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}>
-      <BrowserRouter>
-        <AuthProvider>
-          <ThemeProvider>
-            <SettingsProvider>
+    <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+      <AuthProvider>
+        <ThemeProvider>
+          <SettingsProvider>
+            <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}>
               <Toaster 
                 position="top-right"
                 toastOptions={{
@@ -65,11 +65,11 @@ function App() {
                   </Route>
                 </Routes>
               </Suspense>
-            </SettingsProvider>
-          </ThemeProvider>
-        </AuthProvider>
-      </BrowserRouter>
-    </GoogleOAuthProvider>
+            </GoogleOAuthProvider>
+          </SettingsProvider>
+        </ThemeProvider>
+      </AuthProvider>
+    </BrowserRouter>
   );
 }
 
