@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import { useToast } from '../contexts/ToastContext';
 import { supabase } from '../lib/supabase';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, Users, Mail, X, UserPlus, UserMinus, Shield, Crown } from 'lucide-react';
@@ -52,6 +53,9 @@ const Team = () => {
   const [newTeamDescription, setNewTeamDescription] = useState('');
   const [inviteEmail, setInviteEmail] = useState('');
   const [inviteRole, setInviteRole] = useState<'member' | 'admin'>('member');
+  const [team, setTeam] = useState<Team | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const toast = useToast();
 
   useEffect(() => {
     if (user) {
@@ -279,6 +283,8 @@ const Team = () => {
   };
 
   const handleInvite = async (email: string, role: 'admin' | 'member') => {
+    if (!team) return;
+
     try {
       const newInvite: TeamInvite = {
         id: crypto.randomUUID(),
@@ -288,6 +294,69 @@ const Team = () => {
         status: 'pending',
         invited_by: user?.id || null,
         created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 dias
+      };
+
+      const { error: inviteError } = await supabase
+        .from('team_invites')
+        .insert([newInvite]);
+
+      if (inviteError) throw inviteError;
+
+      setInvites(prev => ({
+        ...prev,
+        [team.id]: [...(prev[team.id] || []), newInvite],
+      }));
+
+      toast.success('Convite enviado com sucesso!');
+    } catch (error) {
+      console.error('Error inviting member:', error);
+      toast.error('Erro ao convidar membro');
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-500"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center h-64">
+        <div className="text-red-500 mb-4">
+          <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          </svg>
+        </div>
+        <p className="text-red-600 font-medium mb-4">{error}</p>
+        <button
+          onClick={() => window.location.reload()}
+          className="px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors"
+        >
+          Tentar novamente
+        </button>
+      </div>
+    );
+  }
+
+  if (!team) {
+    return (
+      <div className="flex flex-col items-center justify-center h-64">
+        <p className="text-gray-600 font-medium mb-4">Nenhuma equipe encontrada</p>
+        <button
+          onClick={() => {/* Implementar criação de equipe */}}
+          className="px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors"
+        >
+          Criar Equipe
+        </button>
+      </div>
+    );
+  }
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -308,132 +377,121 @@ const Team = () => {
         </motion.button>
       </div>
 
-      {isLoading ? (
-        <div className="space-y-4">
-          {[1, 2, 3].map((i) => (
-            <div
-              key={i}
-              className="animate-pulse bg-gray-200 dark:bg-gray-700 rounded-lg h-32"
-            />
-          ))}
-        </div>
-      ) : (
-        <div className="space-y-6">
-          {teams.map((team) => (
-            <motion.div
-              key={team.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6"
-            >
-              <div className="flex justify-between items-start mb-4">
-                <div>
-                  <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-                    {team.name}
-                  </h2>
-                  {team.description && (
-                    <p className="text-gray-600 dark:text-gray-300 mt-1">
-                      {team.description}
-                    </p>
-                  )}
+      <div className="space-y-6">
+        {teams.map((team) => (
+          <motion.div
+            key={team.id}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6"
+          >
+            <div className="flex justify-between items-start mb-4">
+              <div>
+                <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+                  {team.name}
+                </h2>
+                {team.description && (
+                  <p className="text-gray-600 dark:text-gray-300 mt-1">
+                    {team.description}
+                  </p>
+                )}
+              </div>
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => {
+                  setSelectedTeam(team.id);
+                  setIsInvitingMember(true);
+                }}
+                className="flex items-center px-3 py-1.5 bg-primary-600 text-white rounded-md hover:bg-primary-700 transition-colors"
+              >
+                <UserPlus className="h-4 w-4 mr-1" />
+                Convidar
+              </motion.button>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">
+                  Membros
+                </h3>
+                <div className="space-y-2">
+                  {members[team.id]?.map((member) => (
+                    <div
+                      key={member.id}
+                      className="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-700 rounded-md"
+                    >
+                      <div className="flex items-center">
+                        {getRoleIcon(member.role)}
+                        <span className="ml-2 text-gray-900 dark:text-white">
+                          {member.user_profiles?.email}
+                        </span>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        {member.role !== 'owner' && (
+                          <>
+                            <select
+                              value={member.role}
+                              onChange={(e) =>
+                                updateMemberRole(
+                                  team.id,
+                                  member.id,
+                                  e.target.value as 'admin' | 'member'
+                                )
+                              }
+                              className="text-sm border-gray-300 dark:border-gray-600 rounded-md"
+                              disabled={member.user_id === user?.id}
+                            >
+                              <option value="member">Membro</option>
+                              <option value="admin">Admin</option>
+                            </select>
+                            <button
+                              onClick={() => removeMember(team.id, member.id)}
+                              className="text-red-500 hover:text-red-700"
+                              disabled={member.user_id === user?.id}
+                            >
+                              <UserMinus className="h-4 w-4" />
+                            </button>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  ))}
                 </div>
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={() => {
-                    setSelectedTeam(team.id);
-                    setIsInvitingMember(true);
-                  }}
-                  className="flex items-center px-3 py-1.5 bg-primary-600 text-white rounded-md hover:bg-primary-700 transition-colors"
-                >
-                  <UserPlus className="h-4 w-4 mr-1" />
-                  Convidar
-                </motion.button>
               </div>
 
-              <div className="space-y-4">
+              {invites[team.id]?.length > 0 && (
                 <div>
                   <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">
-                    Membros
+                    Convites Pendentes
                   </h3>
                   <div className="space-y-2">
-                    {members[team.id]?.map((member) => (
+                    {invites[team.id].map((invite) => (
                       <div
-                        key={member.id}
+                        key={invite.id}
                         className="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-700 rounded-md"
                       >
                         <div className="flex items-center">
-                          {getRoleIcon(member.role)}
+                          <Mail className="h-4 w-4 text-gray-500" />
                           <span className="ml-2 text-gray-900 dark:text-white">
-                            {member.user_profiles?.email}
+                            {invite.email}
                           </span>
                         </div>
-                        <div className="flex items-center space-x-2">
-                          {member.role !== 'owner' && (
-                            <>
-                              <select
-                                value={member.role}
-                                onChange={(e) =>
-                                  updateMemberRole(
-                                    team.id,
-                                    member.id,
-                                    e.target.value as 'admin' | 'member'
-                                  )
-                                }
-                                className="text-sm border-gray-300 dark:border-gray-600 rounded-md"
-                                disabled={member.user_id === user?.id}
-                              >
-                                <option value="member">Membro</option>
-                                <option value="admin">Admin</option>
-                              </select>
-                              <button
-                                onClick={() => removeMember(team.id, member.id)}
-                                className="text-red-500 hover:text-red-700"
-                                disabled={member.user_id === user?.id}
-                              >
-                                <UserMinus className="h-4 w-4" />
-                              </button>
-                            </>
-                          )}
-                        </div>
+                        <button
+                          onClick={() => cancelInvite(team.id, invite.id)}
+                          className="text-red-500 hover:text-red-700"
+                        >
+                          <X className="h-4 w-4" />
+                        </button>
                       </div>
                     ))}
                   </div>
                 </div>
-
-                {invites[team.id]?.length > 0 && (
-                  <div>
-                    <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">
-                      Convites Pendentes
-                    </h3>
-                    <div className="space-y-2">
-                      {invites[team.id].map((invite) => (
-                        <div
-                          key={invite.id}
-                          className="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-700 rounded-md"
-                        >
-                          <div className="flex items-center">
-                            <Mail className="h-4 w-4 text-gray-500" />
-                            <span className="ml-2 text-gray-900 dark:text-white">
-                              {invite.email}
-                            </span>
-                          </div>
-                          <button
-                            onClick={() => cancelInvite(team.id, invite.id)}
-                            className="text-red-500 hover:text-red-700"
-                          >
-                            <X className="h-4 w-4" />
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-            </motion.div>
-          ))}
-        </div>
-      )}
+              )}
+            </div>
+          </motion.div>
+        ))}
+      </div>
 
       {/* Modal de Nova Equipe */}
       {isCreatingTeam && (
