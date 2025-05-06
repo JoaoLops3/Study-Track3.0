@@ -1,24 +1,9 @@
 {
   "version": 2,
-  "builds": [
-    {
-      "src": "apps/react-app/package.json",
-      "use": "@vercel/static-build",
-      "config": {
-        "distDir": "dist"
-      }
-    }
-  ],
-  "routes": [
-    {
-      "src": "/assets/(.*)",
-      "dest": "/apps/react-app/dist/assets/$1"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/apps/react-app/dist/index.html"
-    }
-  ],
+  "buildCommand": "cd apps/react-app && npm install && npm run build:prod",
+  "outputDirectory": "apps/react-app/dist",
+  "framework": "vite",
+  "installCommand": "npm install",
   "env": {
     "VITE_SUPABASE_URL": "https://wzetgdretgibjdqkdzlw.supabase.co"
   }
