@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar as BigCalendar, momentLocalizer } from 'react-big-calendar';
+import { Calendar as BigCalendar, momentLocalizer, View } from 'react-big-calendar';
 import moment from 'moment';
 import 'moment-timezone';
 import 'moment/locale/pt-br';
@@ -10,6 +10,9 @@ import { supabase } from '../lib/supabase';
 import { X, Calendar as CalendarIcon, Clock, Plus } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { checkGoogleConnection } from '../lib/googleCalendar/auth';
+import { useAuth } from '../contexts/AuthContext';
+import { useToast } from '../contexts/ToastContext';
+import { GoogleCalendarEvent } from '../lib/googleCalendar/types';
 
 moment.locale('pt-br');
 const localizer = momentLocalizer(moment);
@@ -80,7 +83,7 @@ function useGoogleCalendarStatus() {
   return status;
 }
 
-export function Calendar() {
+export default function Calendar() {
   renderCount++;
   console.log('==== Calendar.tsx MONTADO ====', renderCount);
   console.log('ANTES do useEffect');
@@ -95,6 +98,9 @@ export function Calendar() {
     start: '',
     end: ''
   });
+  const [view, setView] = useState<View>('month');
+  const { user } = useAuth();
+  const toast = useToast();
 
   const googleStatus = useGoogleCalendarStatus();
 
@@ -109,152 +115,46 @@ export function Calendar() {
     }
   }, [googleStatus]);
 
-  async function loadEvents() {
-    console.log('Entrou em loadEvents');
-    try {
-      console.log('Iniciando loadEvents...');
-      setLoading(true);
-      setError(null);
-      
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session?.provider_token) {
-        setError('Você precisa conectar sua conta do Google para ver os eventos.');
-        toast.error('Conecte sua conta do Google para ver os eventos');
-        return;
-      }
-
-      // Verificar conexão com Google
-      const connectionStatus = await checkGoogleConnection();
-      if (!connectionStatus.isConnected) {
-        if (connectionStatus.error?.includes('Redirecionando')) {
-          return; // Não mostrar erro se estiver redirecionando
-        }
-        setError(connectionStatus.error || 'Erro ao conectar com o Google Calendar');
-        toast.error('Erro ao conectar com o Google Calendar');
-        return;
-      }
-
-      if (!connectionStatus.calendars || connectionStatus.calendars.length === 0) {
-        setError('Nenhum calendário encontrado. Verifique se você tem calendários no Google Calendar.');
-        toast.error('Nenhum calendário encontrado');
-        return;
-      }
-
-      // Buscar eventos e tarefas do Google Calendar
-      const [googleEvents, googleTasks] = await Promise.all([
-        getGoogleCalendarEvents({
-          timeMin: new Date().toISOString(),
-          timeMax: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 dias
-          maxResults: 100,
-          singleEvents: true,
-          orderBy: 'startTime'
-        }),
-        getGoogleCalendarTasks()
-      ]);
-      
-      console.log('googleEvents recebidos:', googleEvents);
-      console.log('googleTasks recebidas:', googleTasks);
-
-      if (!googleEvents || googleEvents.length === 0) {
-        console.log('Nenhum evento encontrado');
-        setEvents([]);
-        return;
-      }
-
-      // Converter eventos para o formato do react-big-calendar
-      const formattedEvents = googleEvents.map((event: GoogleEvent, idx: number) => {
-        let startDate: Date;
-        let endDate: Date;
-        let allDay = false;
-
-        try {
-          console.log(`Processando evento[${idx}]:`, event);
-          if (event.start.dateTime) {
-            startDate = new Date(event.start.dateTime);
-            endDate = new Date(event.end.dateTime);
-            allDay = false;
-          } else if (event.start.date) {
-            // Ajuste para timezone do Brasil
-            const startStr = `${event.start.date}T00:00:00-03:00`;
-            const endStr = `${event.end.date}T23:59:59-03:00`;
-            startDate = new Date(startStr);
-            endDate = new Date(endStr);
-            allDay = true;
-          } else {
-            console.warn(`Evento[${idx}] ignorado: início inválido`, event);
-            return null;
-          }
-
-          const mapped = {
-            id: String(event.id),
-            title: String(event.summary || 'Sem título'),
-            description: event.description || '',
-            start: startDate,
-            end: endDate,
-            allDay,
-            google_event_id: String(event.id),
-            isTask: false
-          };
-          console.log(`Evento[${idx}] mapeado:`, mapped);
-          console.log(`  start: ${startDate.toISOString()}, end: ${endDate.toISOString()}`);
-          return mapped;
-        } catch (error) {
-          console.error(`Erro ao mapear evento[${idx}]:`, error, event);
-          return null;
-        }
-      }).filter((event): event is Event => event !== null);
-
-      // Converter tarefas para o formato do react-big-calendar
-      const formattedTasks = googleTasks?.map((task: GoogleTask, idx: number) => {
-        try {
-          console.log(`Processando tarefa[${idx}]:`, task);
-          
-          const startDate = task.due ? new Date(task.due) : new Date();
-          const endDate = new Date(startDate);
-          endDate.setHours(23, 59, 59);
-
-          const mapped: Event = {
-            id: String(task.id),
-            title: String(task.title || 'Sem título'),
-            description: task.notes || '',
-            start: startDate,
-            end: endDate,
-            allDay: true,
-            isTask: true,
-            taskListTitle: task.taskListTitle
-          };
-          
-          console.log(`Tarefa[${idx}] mapeada:`, mapped);
-          return mapped;
-        } catch (error) {
-          console.error(`Erro ao mapear tarefa[${idx}]:`, error, task);
-          return null;
-        }
-      }).filter((task: Event | null): task is Event => task !== null) || [];
-
-      // Combinar eventos e tarefas
-      const allItems = [...formattedEvents, ...formattedTasks];
-      
-      // Log do array formatado antes do setEvents
-      console.log('formattedEvents:', formattedEvents);
-      console.log('formattedTasks:', formattedTasks);
-      console.log('allItems:', allItems);
-      
-      setEvents(allItems);
-    } catch (err) {
-      console.error('Erro ao carregar eventos:', err);
-      setError(err instanceof Error ? err.message : 'Erro ao carregar eventos');
-      toast.error('Erro ao carregar eventos. Tente novamente.');
-    } finally {
-      setLoading(false);
-    }
-  }
-
   useEffect(() => {
-    console.log('useEffect - Carregando eventos...');
-    loadEvents();
-  }, []);
-  console.log('DEPOIS do useEffect');
+    const fetchEvents = async () => {
+      if (!user?.accessToken) return;
+
+      try {
+        const googleEvents = await getGoogleCalendarEvents(user.accessToken);
+        const formattedEvents = googleEvents.map(event => ({
+          id: event.id,
+          title: event.summary,
+          start: new Date(event.start.dateTime),
+          end: new Date(event.end.dateTime),
+          allDay: event.allDay,
+          description: event.description,
+        }));
+        setEvents(formattedEvents);
+      } catch (error) {
+        console.error('Error fetching events:', error);
+        toast.error('Erro ao carregar eventos');
+      }
+    };
+
+    fetchEvents();
+  }, [user?.accessToken, toast]);
+
+  const handleViewChange = (newView: View) => {
+    setView(newView);
+  };
+
+  const eventStyleGetter = (event: Event) => {
+    return {
+      style: {
+        backgroundColor: '#3B82F6',
+        borderRadius: '4px',
+        opacity: 0.8,
+        color: 'white',
+        border: '0px',
+        display: 'block',
+      },
+    };
+  };
 
   async function handleSync() {
     try {
@@ -397,7 +297,7 @@ export function Calendar() {
 
   // Exibir apenas os eventos do Google no calendário
   return (
-    <div className="h-[600px] p-4">
+    <div className="h-[calc(100vh-4rem)] p-4">
       <style>{styles}</style>
       <div className="mb-4 flex justify-between items-center">
         <h2 className="text-xl font-semibold">Calendário</h2>
@@ -426,56 +326,22 @@ export function Calendar() {
           startAccessor="start"
           endAccessor="end"
           style={{ height: '100%' }}
-          defaultView="month"
-          views={['month', 'week', 'day']}
+          view={view}
+          onView={handleViewChange}
+          eventPropGetter={eventStyleGetter}
           messages={{
-            next: "Próximo",
-            previous: "Anterior",
-            today: "Hoje",
-            month: "Mês",
-            week: "Semana",
-            day: "Dia",
-            agenda: "Agenda",
-            date: "Data",
-            time: "Hora",
-            event: "Evento",
-            noEventsInRange: "Não há eventos neste período"
+            next: 'Próximo',
+            previous: 'Anterior',
+            today: 'Hoje',
+            month: 'Mês',
+            week: 'Semana',
+            day: 'Dia',
+            agenda: 'Agenda',
+            date: 'Data',
+            time: 'Hora',
+            event: 'Evento',
+            noEventsInRange: 'Não há eventos neste período',
           }}
-          onNavigate={(date) => {
-            console.log('Navegando para:', date);
-          }}
-          onView={(view) => {
-            console.log('Mudando para view:', view);
-          }}
-          onRangeChange={(range) => {
-            console.log('Range mudou:', range);
-          }}
-          onSelectEvent={(event) => {
-            console.log('Evento selecionado:', event);
-          }}
-          onSelectSlot={(slotInfo) => {
-            console.log('Slot selecionado:', slotInfo);
-          }}
-          defaultDate={new Date()}
-          min={new Date(new Date().getFullYear(), 0, 1)}
-          max={new Date(new Date().getFullYear(), 11, 31)}
-          step={60}
-          timeslots={1}
-          showMultiDayTimes={true}
-          dayLayoutAlgorithm="no-overlap"
-          popup
-          selectable
-          eventPropGetter={(event) => ({
-            className: event.isTask ? 'task-event' : 'calendar-event',
-            style: {
-              backgroundColor: event.isTask ? '#4CAF50' : '#2196F3',
-              borderRadius: '4px',
-              opacity: 0.8,
-              color: 'white',
-              border: '0px',
-              display: 'block'
-            }
-          })}
         />
       ) : (
         <div className="flex flex-col items-center justify-center h-full">

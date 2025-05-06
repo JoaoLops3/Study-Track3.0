@@ -10,22 +10,50 @@ export interface GoogleCalendarEvent {
     dateTime: string;
     timeZone: string;
   };
-  status: string;
-  htmlLink: string;
+  allDay: boolean;
+  status?: string;
+  htmlLink?: string;
+  created?: string;
+  updated?: string;
+  creator?: {
+    email?: string;
+    displayName?: string;
+  };
+  organizer?: {
+    email?: string;
+    displayName?: string;
+  };
   location?: string;
   attendees?: Array<{
     email: string;
     displayName?: string;
-    responseStatus?: 'needsAction' | 'declined' | 'tentative' | 'accepted';
+    responseStatus?: string;
   }>;
   reminders?: {
     useDefault: boolean;
     overrides?: Array<{
-      method: 'email' | 'popup';
+      method: string;
       minutes: number;
     }>;
   };
   recurrence?: string[];
+}
+
+export interface GoogleCalendarEventResponse {
+  kind: string;
+  etag: string;
+  summary: string;
+  description?: string;
+  updated: string;
+  timeZone: string;
+  accessRole: string;
+  defaultReminders: Array<{
+    method: string;
+    minutes: number;
+  }>;
+  nextPageToken?: string;
+  nextSyncToken?: string;
+  items: GoogleCalendarEvent[];
 }
 
 export interface GoogleCalendar {
