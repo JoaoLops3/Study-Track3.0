@@ -46,7 +46,21 @@ const Board = () => {
       // Fetch board details
       const { data: boardData, error: boardError } = await supabase
         .from('boards')
-        .select('*')
+        .select(`
+          *,
+          columns (
+            id,
+            title,
+            order
+          ),
+          cards (
+            id,
+            title,
+            description,
+            column_id,
+            order
+          )
+        `)
         .eq('id', id)
         .single();
         
@@ -60,35 +74,19 @@ const Board = () => {
       setNewBoardTitle(boardData.title);
       setNewBoardDescription(boardData.description || '');
       
-      // Fetch columns
-      const { data: columnsData, error: columnsError } = await supabase
-        .from('columns')
-        .select('*')
-        .eq('board_id', id)
-        .order('order', { ascending: true });
-        
-      if (columnsError) throw columnsError;
-      setColumns(columnsData || []);
+      if (boardData) {
+        setColumns(boardData.columns || []);
+        setCards(boardData.cards || []);
+      }
       
-      // Fetch cards for all columns in this board
-      const { data: cardsData, error: cardsError } = await supabase
-        .from('cards')
-        .select('*')
-        .in('column_id', (columnsData || []).map(col => col.id))
-        .order('created_at', { ascending: false })
-        .range((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE - 1);
-        
-      if (cardsError) throw cardsError;
-      setCards(cardsData || []);
-      
-      setHasMore(cardsData.length === ITEMS_PER_PAGE);
+      setHasMore(boardData.cards.length === ITEMS_PER_PAGE);
     } catch (error: any) {
       console.error('Error fetching board data:', error);
       setError(error.message);
     } finally {
       setLoading(false);
     }
-  }, [id, user, currentPage]);
+  }, [id, user]);
 
   useEffect(() => {
     fetchBoardData();

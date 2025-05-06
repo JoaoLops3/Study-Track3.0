@@ -40,6 +40,7 @@ export interface Settings {
   team: {
     members: string[];
     roles: Record<string, string>;
+    defaultRole: 'admin' | 'member';
   };
 }
 
@@ -79,6 +80,7 @@ const defaultSettings: Settings = {
   team: {
     members: [],
     roles: {},
+    defaultRole: 'member',
   },
 };
 

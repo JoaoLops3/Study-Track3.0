@@ -9,12 +9,14 @@ import { GOOGLE_CALENDAR_CONFIG } from '../lib/googleCalendar/config';
 import { format, isSameDay, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { MapPin, Clock, Calendar as CalendarIcon } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const CalendarPage = () => {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const { theme } = useTheme();
   const { events, isLoading, error, login } = useGoogleCalendar();
   const [isConnected, setIsConnected] = useState(false);
+  const navigate = useNavigate();
 
   // Detecta conexão pelo carregamento dos eventos
   useMemo(() => {
@@ -81,6 +83,24 @@ const CalendarPage = () => {
     }
   };
 
+  const handleDateChange = (value: Date | null) => {
+    if (value) {
+      setSelectedDate(value);
+    }
+  };
+
+  const handleEventClick = (event: any) => {
+    if (event.id) {
+      navigate(`/event/${event.id}`);
+    }
+  };
+
+  const handleSelectSlot = (slotInfo: any) => {
+    if (slotInfo.start) {
+      navigate(`/event/new?date=${slotInfo.start.toISOString()}`);
+    }
+  };
+
   return (
     <GoogleOAuthProvider clientId={GOOGLE_CALENDAR_CONFIG.clientId}>
       <div className="max-w-2xl mx-auto py-8 px-4">
@@ -95,11 +115,13 @@ const CalendarPage = () => {
         </div>
         <Calendar
           value={selectedDate}
-          onChange={setSelectedDate}
+          onChange={handleDateChange}
           className={calendarClassName}
           tileClassName={tileClassName}
           locale="pt-BR"
           formatDay={(locale, date) => format(date, 'd', { locale: ptBR })}
+          onClickDay={handleEventClick}
+          onSelectSlot={handleSelectSlot}
         />
         
         <div className="space-y-4 mt-8">

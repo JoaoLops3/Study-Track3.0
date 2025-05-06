@@ -35,18 +35,22 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [googleConnected, setGoogleConnected] = useState(false);
   const [hasTimeout, setHasTimeout] = useState(false);
 
-  const checkGoogleConnectionStatus = async (session: Session | null) => {
-    if (!session?.user) {
-      setGoogleConnected(false);
-      return;
-    }
-
+  const checkGoogleConnectionStatus = async () => {
     try {
-      const { isConnected } = await checkGoogleConnection();
-      setGoogleConnected(isConnected);
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user) return false;
+
+      const { data } = await supabase
+        .from('user_integrations')
+        .select('*')
+        .eq('user_id', session.user.id)
+        .eq('provider', 'google_calendar')
+        .single();
+
+      return !!data;
     } catch (error) {
-      console.error('AuthProvider: Erro ao verificar conexão com Google:', error);
-      setGoogleConnected(false);
+      console.error('Error checking Google connection:', error);
+      return false;
     }
   };
 
