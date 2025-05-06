@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Calendar as BigCalendar, momentLocalizer } from 'react-big-calendar';
+import { Calendar as BigCalendar, momentLocalizer, View } from 'react-big-calendar';
 import moment from 'moment';
 import 'moment-timezone';
 import 'moment/locale/pt-br';
@@ -13,6 +13,9 @@ import { getGoogleCalendarEvents, createGoogleCalendarEvent } from '../lib/googl
 import { getGoogleAccessToken } from '../lib/googleCalendar/auth';
 import { GoogleConnectButton } from '../components/integrations/GoogleConnectButton';
 import { useSettings } from '../contexts/SettingsContext';
+import { useAuth } from '../contexts/AuthContext';
+import { useToast } from '../contexts/ToastContext';
+import { GoogleCalendarEvent } from '../lib/googleCalendar/types';
 
 moment.locale('pt-br');
 const localizer = momentLocalizer(moment);
@@ -20,12 +23,18 @@ const localizer = momentLocalizer(moment);
 interface Event {
   id: string;
   title: string;
-  description?: string;
   start: Date;
   end: Date;
-  google_event_id?: string;
-  allDay?: boolean;
+  allDay: boolean;
+  description?: string;
 }
+
+const viewMessages = {
+  month: 'Mês',
+  week: 'Semana',
+  day: 'Dia',
+  agenda: 'Agenda'
+} as const;
 
 const CalendarPage = () => {
   const { theme } = useTheme();
@@ -42,6 +51,9 @@ const CalendarPage = () => {
   const [googleToken, setGoogleToken] = useState<string | null>(null);
   const { settings, updateSettings } = useSettings();
   const [error, setError] = useState<string | null>(null);
+  const [view, setView] = useState<View>('month');
+  const { user } = useAuth();
+  const toast = useToast();
 
   // Carregar eventos iniciais
   useEffect(() => {
@@ -228,6 +240,23 @@ const CalendarPage = () => {
     }
   };
 
+  const handleViewChange = (newView: View) => {
+    setView(newView);
+  };
+
+  const eventStyleGetter = (event: Event) => {
+    return {
+      style: {
+        backgroundColor: '#3B82F6',
+        borderRadius: '4px',
+        opacity: 0.8,
+        color: 'white',
+        border: '0px',
+        display: 'block',
+      },
+    };
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -281,15 +310,17 @@ const CalendarPage = () => {
           startAccessor="start"
           endAccessor="end"
           style={{ height: 700 }}
-          views={['month', 'week', 'day', 'agenda']}
+          view={view}
+          onView={handleViewChange}
+          eventPropGetter={eventStyleGetter}
           messages={{
             next: "Próximo",
             previous: "Anterior",
             today: "Hoje",
-            month: "Mês",
-            week: "Semana",
-            day: "Dia",
-            agenda: "Agenda",
+            month: viewMessages.month,
+            week: viewMessages.week,
+            day: viewMessages.day,
+            agenda: viewMessages.agenda,
             date: "Data",
             time: "Hora",
             event: "Evento",
@@ -312,23 +343,6 @@ const CalendarPage = () => {
           defaultDate={new Date()}
           min={new Date(new Date().getFullYear(), 0, 1)}
           max={new Date(new Date().getFullYear(), 11, 31)}
-          eventPropGetter={(event) => ({
-            className: 'bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white shadow-sm',
-            style: {
-              borderRadius: '6px',
-              opacity: 0.9,
-              color: 'white',
-              border: '0px',
-              display: 'block',
-              padding: '2px 4px',
-              fontSize: '0.875rem',
-              fontWeight: '500',
-              transition: 'all 0.2s ease-in-out'
-            }
-          })}
-          dayPropGetter={(date) => ({
-            className: 'hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200'
-          })}
           components={{
             toolbar: (props) => {
               const views = ['month', 'week', 'day', 'agenda'];

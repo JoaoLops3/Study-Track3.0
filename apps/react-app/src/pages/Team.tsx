@@ -27,17 +27,17 @@ type TeamMember = {
   };
 };
 
-type TeamInvite = {
+interface TeamInvite {
   id: string;
   team_id: string;
   email: string;
-  role: 'owner' | 'admin' | 'member';
+  role: 'admin' | 'member';
   status: 'pending' | 'accepted' | 'rejected';
   invited_by: string | null;
   created_at: string;
   updated_at: string;
   expires_at: string;
-};
+}
 
 const Team = () => {
   const { user } = useAuth();
@@ -278,6 +278,16 @@ const Team = () => {
     }
   };
 
+  const handleInvite = async (email: string, role: 'admin' | 'member') => {
+    try {
+      const newInvite: TeamInvite = {
+        id: crypto.randomUUID(),
+        team_id: team.id,
+        email,
+        role,
+        status: 'pending',
+        invited_by: user?.id || null,
+        created_at: new Date().toISOString(),
   return (
     <motion.div
       initial={{ opacity: 0 }}
