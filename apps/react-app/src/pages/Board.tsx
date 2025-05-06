@@ -14,6 +14,18 @@ type Board = Database['public']['Tables']['boards']['Row'];
 type Column = Database['public']['Tables']['columns']['Row'];
 type Card = Database['public']['Tables']['cards']['Row'];
 
+interface BoardData {
+  id: string;
+  title: string;
+  description: string | null;
+  owner_id: string;
+  is_public: boolean;
+  created_at: string;
+  updated_at: string | null;
+  columns: Column[];
+  cards: Card[];
+}
+
 const ITEMS_PER_PAGE = 20;
 
 const Board = () => {
@@ -52,7 +64,7 @@ const Board = () => {
           cards:board_cards(*)
         `)
         .eq('id', id)
-        .single();
+        .single() as { data: BoardData | null };
         
       if (boardData) {
         setBoard(boardData);

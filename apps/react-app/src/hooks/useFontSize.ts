@@ -1,11 +1,11 @@
 import { useContext } from 'react';
-import { SettingsContext } from '../contexts/SettingsContext';
+import { SettingsContext, Settings } from '../contexts/SettingsContext';
 
 export const useFontSize = () => {
-  const { settings, saveSettings } = useContext(SettingsContext);
+  const { settings, updateSettings } = useContext(SettingsContext);
 
   const setFontSize = (size: 'small' | 'medium' | 'large') => {
-    saveSettings({
+    updateSettings({
       ...settings,
       fontSize: size,
     });
