@@ -89,9 +89,9 @@ const Login = () => {
       >
         <div className="text-center">
           <div className="flex justify-center mb-4">
-            <img 
-              src="/logo-Study-Track.png" 
-              alt="Study Track Logo" 
+            <img
+              src="/logo-v1.png"
+              alt="Study Track Logo"
               className="h-24 w-24"
             />
           </div>

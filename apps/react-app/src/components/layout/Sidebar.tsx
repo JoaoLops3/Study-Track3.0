@@ -13,7 +13,7 @@ export default function Sidebar() {
   return (
     <div className={`flex flex-col h-full transition-all duration-200 ${isCollapsed ? 'w-16' : 'w-64'}`}>
       <div className="flex items-center justify-center p-4 border-b dark:border-gray-700 cursor-pointer">
-        <Image src="/logo-Study-Track.png" alt="Study Track Logo" width={32} height={32} className="mr-2" />
+        <Image src="/logo-v1.png" alt="Study Track Logo" width={32} height={32} className="mr-2" />
         {!isCollapsed && <h2 className="text-xl font-bold text-gray-900 dark:text-white">Study Track</h2>}
       </div>
 

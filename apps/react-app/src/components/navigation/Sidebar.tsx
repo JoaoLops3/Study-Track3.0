@@ -221,7 +221,7 @@ export const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
               onClick={() => navigate('/')}
             >
               <img 
-                src="/logo-Study-Track.png" 
+                src="/logo-v1.png" 
                 alt="Study Track Logo" 
                 className="h-8 w-8 mr-2" 
               />
