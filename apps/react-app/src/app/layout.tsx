@@ -13,6 +13,8 @@ import { ThemeProvider } from '../contexts/ThemeContext';
 import { TeamProvider } from '../contexts/TeamContext';
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { Header } from '../components/Header';
+import logo from '../assets/logo-v1.png';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -33,29 +35,26 @@ export default function RootLayout({ children }: RootLayoutProps) {
       <body className={inter.className}>
         <HelmetProvider>
           <QueryClientProvider client={queryClient}>
-            <BrowserRouter>
+            <ThemeProvider>
               <AuthProvider>
                 <SettingsProvider>
-                  <ThemeProvider>
-                    <ToastProvider>
-                      <TeamProvider>
-                        <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}>
-                          <Providers>
-                            <div className="flex h-screen bg-gray-50 dark:bg-gray-900">
-                              <Sidebar />
-                              <main className="flex-1 overflow-y-auto">
-                                {children}
-                              </main>
-                            </div>
-                          </Providers>
-                          <Toaster position="top-right" />
-                        </GoogleOAuthProvider>
-                      </TeamProvider>
-                    </ToastProvider>
-                  </ThemeProvider>
+                  <ToastProvider>
+                    <BrowserRouter>
+                      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+                        <Header logo={logo} />
+                        <div className="flex">
+                          <Sidebar logo={logo} />
+                          <main className="flex-1 p-4">
+                            {children}
+                          </main>
+                        </div>
+                        <Toaster position="top-right" />
+                      </div>
+                    </BrowserRouter>
+                  </ToastProvider>
                 </SettingsProvider>
               </AuthProvider>
-            </BrowserRouter>
+            </ThemeProvider>
           </QueryClientProvider>
         </HelmetProvider>
       </body>

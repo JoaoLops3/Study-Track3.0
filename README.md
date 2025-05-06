@@ -1,126 +1,79 @@
-# Study Track 🚀
+# Study Track 3.0
 
-![Study Track Logo](public/logo-Study-Track.png)
+<div align="center">
+  <img src="apps/react-app/src/assets/logo-v1.png" alt="Study Track Logo" width="200"/>
+  
+  <p>Uma plataforma moderna para gerenciar seus estudos e tarefas</p>
+</div>
 
-Uma plataforma moderna para gerenciamento de estudos e projetos, com foco em produtividade e colaboração.
+## 🚀 Tecnologias
 
-## ✨ Funcionalidades Principais
+- React
+- TypeScript
+- Vite
+- Tailwind CSS
+- Supabase
+- Google Calendar API
+- GitHub OAuth
 
-- **Gerenciamento de Projetos**
-  - Criação e organização de projetos
-  - Sistema de tarefas e subtarefas
-  - Favoritos e categorização
-  - Visualização em diferentes layouts
+## ✨ Funcionalidades
 
-- **Integração com GitHub**
-  - Autenticação via OAuth
-  - Visualização de repositórios
-  - Acompanhamento de contribuições
-  - Estatísticas detalhadas (estrelas, forks, visualizações)
+- 📚 Gerenciamento de tarefas e estudos
+- 📅 Integração com Google Calendar
+- 👥 Trabalho em equipe
+- 🔐 Autenticação com GitHub
+- 🌙 Modo escuro
+- 📱 Design responsivo
 
-- **Personalização**
-  - Temas claro/escuro/sistema
-  - Ajuste de tamanho de fonte
-  - Configurações de notificações
-  - Preferências de privacidade
+## 🛠️ Instalação
 
-- **Colaboração**
-  - Gerenciamento de equipe
-  - Compartilhamento de projetos
-  - Controle de acesso
-  - Sistema de comentários
+1. Clone o repositório:
+```bash
+git clone https://github.com/JoaoLops3/Study-Track3.0.git
+```
 
-## 🛠️ Tecnologias Utilizadas
+2. Instale as dependências:
+```bash
+cd Study-Track3.0
+npm install
+```
 
-- **Frontend**
-  - React 18
-  - TypeScript
-  - Tailwind CSS
-  - Vite
+3. Configure as variáveis de ambiente:
+```bash
+cp apps/react-app/.env.example apps/react-app/.env
+```
 
-- **Backend & Infraestrutura**
-  - Supabase
-  - GitHub API
-  - OAuth 2.0
-
-- **Ferramentas**
-  - ESLint
-  - Prettier
-  - React Hot Toast
-  - Lucide Icons
-
-## 📋 Pré-requisitos
-
-- Node.js 18+
-- npm ou yarn
-- Conta no Supabase
-- Conta no GitHub (para integração)
-
-## 🚀 Começando
-
-1. **Clone o repositório**
-   ```bash
-   git clone https://github.com/seu-usuario/study-track.git
-   cd study-track
-   ```
-
-2. **Instale as dependências**
-   ```bash
-   npm install
-   # ou
-   yarn install
-   ```
-
-3. **Configure as variáveis de ambiente**
-   Crie um arquivo `.env` na raiz do projeto:
-   ```env
-   VITE_SUPABASE_URL=sua_url_do_supabase
-   VITE_SUPABASE_ANON_KEY=sua_chave_anonima_do_supabase
-   VITE_GITHUB_CLIENT_ID=seu_client_id_do_github
-   VITE_GITHUB_CLIENT_SECRET=seu_client_secret_do_github
-   ```
-
-4. **Inicie o servidor de desenvolvimento**
-   ```bash
-   npm run dev
-   # ou
-   yarn dev
-   ```
+4. Inicie o projeto:
+```bash
+npm run dev
+```
 
 ## 🔧 Configuração
 
-### Supabase
-1. Crie um novo projeto no Supabase
-2. Configure a autenticação com GitHub
-3. Crie as tabelas necessárias:
-   - user_settings
-   - boards
-   - tasks
-   - team_members
+1. Crie uma conta no [Supabase](https://supabase.com)
+2. Configure o GitHub OAuth no [GitHub Developer Settings](https://github.com/settings/developers)
+3. Configure o Google Calendar API no [Google Cloud Console](https://console.cloud.google.com)
+4. Adicione as credenciais no arquivo `.env`:
 
-### GitHub OAuth
-1. Crie um novo OAuth App no GitHub:
-   - Vá para Settings > Developer settings > OAuth Apps
-   - Clique em "New OAuth App"
-   - Preencha os campos:
-     - Application name: Study Track
-     - Homepage URL: http://localhost:5173 (desenvolvimento)
-     - Authorization callback URL: http://localhost:5173/auth/github/callback
+```env
+VITE_SUPABASE_URL=sua_url_do_supabase
+VITE_SUPABASE_ANON_KEY=sua_chave_anonima_do_supabase
+VITE_GOOGLE_API_KEY=sua_chave_api_do_google
+VITE_GOOGLE_CLIENT_ID=seu_client_id_do_google
+VITE_GOOGLE_CLIENT_SECRET=seu_client_secret_do_google
+VITE_GITHUB_CLIENT_ID=seu_client_id_do_github
+VITE_GITHUB_CLIENT_SECRET=seu_client_secret_do_github
+```
 
-## 🤝 Contribuição
-
-1. Faça um fork do projeto
-2. Crie uma branch para sua feature (`git checkout -b feature/nova-feature`)
-3. Commit suas mudanças (`git commit -m 'feat: adiciona nova feature'`)
-4. Push para a branch (`git push origin feature/nova-feature`)
-5. Abra um Pull Request
-
-## 📄 Licença
+## 📝 Licença
 
 Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](LICENSE) para mais detalhes.
 
-## 📞 Suporte
+## 👨‍💻 Autor
 
-Para suporte, envie um email para seu-email@exemplo.com ou abra uma issue no GitHub.
+João Lopes
+
+- GitHub: [@JoaoLops3](https://github.com/JoaoLops3)
+- LinkedIn: [João Lopes](https://www.linkedin.com/in/joaolops3/)
 
 ---
