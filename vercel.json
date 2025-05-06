@@ -3,13 +3,20 @@
   "builds": [
     {
       "src": "apps/react-app/package.json",
-      "use": "@vercel/node"
+      "use": "@vercel/static-build",
+      "config": {
+        "distDir": "dist"
+      }
     }
   ],
   "routes": [
     {
+      "src": "/assets/(.*)",
+      "dest": "/apps/react-app/dist/assets/$1"
+    },
+    {
       "src": "/(.*)",
-      "dest": "/apps/react-app/dist/$1"
+      "dest": "/apps/react-app/dist/index.html"
     }
   ],
   "env": {

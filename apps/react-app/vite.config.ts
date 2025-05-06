@@ -27,8 +27,17 @@ export default defineConfig(({ mode }) => {
     build: {
       outDir: 'dist',
       assetsDir: 'assets',
-      sourcemap: true,
-      emptyOutDir: true
+      sourcemap: mode === 'development',
+      emptyOutDir: true,
+      rollupOptions: {
+        output: {
+          manualChunks: {
+            vendor: ['react', 'react-dom', 'react-router-dom'],
+            ui: ['@radix-ui/react-slot', '@radix-ui/react-tooltip'],
+          },
+        },
+      },
+      chunkSizeWarningLimit: 1000,
     },
     define: {
       'import.meta.env': JSON.stringify({
