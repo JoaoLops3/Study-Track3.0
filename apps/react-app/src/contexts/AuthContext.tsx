@@ -16,6 +16,8 @@ interface AuthContextType {
   signInWithGitHub: () => Promise<void>;
   updateUserAvatar: (file: File) => Promise<{ error: Error | null }>;
   removeUserAvatar: () => Promise<{ error: Error | null }>;
+  loading: boolean;
+  updateProfile: (data: Partial<User>) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -34,6 +36,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [googleConnected, setGoogleConnected] = useState(false);
   const [hasTimeout, setHasTimeout] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   const checkGoogleConnectionStatus = async () => {
     try {
@@ -375,6 +378,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const updateProfile = async (data: Partial<User>) => {
+    try {
+      const { error } = await supabase.auth.updateUser(data);
+      if (error) throw error;
+      setUser(data as User);
+      toast.success('Perfil atualizado com sucesso!');
+    } catch (error) {
+      console.error('Erro ao atualizar perfil:', error);
+      toast.error('Erro ao atualizar perfil');
+    }
+  };
+
   const value: AuthContextType = {
     user,
     session,
@@ -388,6 +403,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     signInWithGitHub,
     updateUserAvatar,
     removeUserAvatar,
+    loading,
+    updateProfile,
   };
 
   return (

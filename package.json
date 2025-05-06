@@ -14,7 +14,8 @@
     "lint": "cd apps/react-app && npm run lint"
   },
   "dependencies": {
-    "@react-oauth/google": "^0.12.1"
+    "@react-oauth/google": "^0.12.1",
+    "@tanstack/react-query": "^5.75.4"
   },
   "engines": {
     "node": ">=18.0.0",

@@ -7,6 +7,7 @@ export interface Settings {
   integrations: {
     github: boolean;
     google: boolean;
+    microsoft: boolean;
   };
   notifications: {
     email: boolean;
@@ -41,6 +42,12 @@ export interface Settings {
     members: string[];
     roles: Record<string, string>;
     defaultRole: 'admin' | 'member';
+    notifications: boolean;
+    sharing: boolean;
+  };
+  language: {
+    code: string;
+    name: string;
   };
 }
 
@@ -72,16 +79,25 @@ const defaultSettings: Settings = {
   integrations: {
     github: false,
     google: false,
+    microsoft: false,
   },
   accessibility: {
     highContrast: false,
     reducedMotion: false,
   },
+  language: {
+    code: 'pt-BR',
+    name: 'Português (Brasil)',
+  },
   team: {
     members: [],
     roles: {},
     defaultRole: 'member',
+    notifications: true,
+    sharing: true,
   },
+  theme: 'system',
+  fontSize: 'medium',
 };
 
 interface SettingsContextType {

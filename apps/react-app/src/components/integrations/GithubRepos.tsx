@@ -12,7 +12,12 @@ interface Repository {
   language: string;
 }
 
-const GithubRepos = () => {
+interface GithubReposProps {
+  accessToken: string;
+  onSelectRepo: (repo: any) => void;
+}
+
+const GithubRepos: React.FC<GithubReposProps> = ({ accessToken, onSelectRepo }) => {
   const { settings } = useSettings();
   const [repos, setRepos] = useState<Repository[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -22,7 +27,7 @@ const GithubRepos = () => {
       try {
         const response = await fetch('https://api.github.com/user/repos', {
           headers: {
-            Authorization: `token ${settings?.integrations?.github?.accessToken}`,
+            Authorization: `token ${accessToken}`,
           },
         });
 
@@ -39,10 +44,10 @@ const GithubRepos = () => {
       }
     };
 
-    if (settings?.integrations?.github?.accessToken) {
+    if (accessToken) {
       fetchRepos();
     }
-  }, [settings?.integrations?.github?.accessToken]);
+  }, [accessToken]);
 
   if (isLoading) {
     return (

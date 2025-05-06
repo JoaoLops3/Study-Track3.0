@@ -44,42 +44,25 @@ const Board = () => {
       setLoading(true);
       
       // Fetch board details
-      const { data: boardData, error: boardError } = await supabase
+      const { data: boardData } = await supabase
         .from('boards')
         .select(`
           *,
-          columns (
-            id,
-            title,
-            order
-          ),
-          cards (
-            id,
-            title,
-            description,
-            column_id,
-            order
-          )
+          columns:board_columns(*),
+          cards:board_cards(*)
         `)
         .eq('id', id)
         .single();
         
-      if (boardError) throw boardError;
-      
-      if (!boardData) {
-        throw new Error('Board not found');
-      }
-      
-      setBoard(boardData);
-      setNewBoardTitle(boardData.title);
-      setNewBoardDescription(boardData.description || '');
-      
       if (boardData) {
+        setBoard(boardData);
+        setNewBoardTitle(boardData.title);
+        setNewBoardDescription(boardData.description || '');
+        
         setColumns(boardData.columns || []);
         setCards(boardData.cards || []);
+        setHasMore((boardData.cards || []).length > 0);
       }
-      
-      setHasMore(boardData.cards.length === ITEMS_PER_PAGE);
     } catch (error: any) {
       console.error('Error fetching board data:', error);
       setError(error.message);

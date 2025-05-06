@@ -17,6 +17,11 @@ interface CardModalProps {
   onCardDelete: (cardId: string) => void;
 }
 
+interface RichTextEditorProps {
+  value: string;
+  onChange: (value: string) => void;
+}
+
 const CardModal = ({ card, column, onClose, onCardUpdate, onCardDelete }: CardModalProps) => {
   const [title, setTitle] = useState(card.title);
   const [editingTitle, setEditingTitle] = useState(false);
@@ -265,9 +270,9 @@ const CardModal = ({ card, column, onClose, onCardUpdate, onCardDelete }: CardMo
               <h3 className="text-base font-medium text-gray-900 dark:text-gray-100 mb-2">Descrição</h3>
               <div className="border dark:border-gray-700 rounded-md overflow-hidden">
                 <div className="prose max-w-none dark:prose-invert">
-              <RichTextEditor 
-                    content={content}
-                onChange={updateCardContent} 
+              <RichTextEditor
+                value={content}
+                onChange={(newContent) => handleContentChange(newContent)}
               />
                 </div>
               </div>

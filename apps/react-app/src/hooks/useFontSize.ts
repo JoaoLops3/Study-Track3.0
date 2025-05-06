@@ -1,31 +1,18 @@
-import { useState, useEffect } from 'react';
+import { useContext } from 'react';
+import { SettingsContext } from '../contexts/SettingsContext';
 
-type FontSize = 'small' | 'medium' | 'large';
+export const useFontSize = () => {
+  const { settings, saveSettings } = useContext(SettingsContext);
 
-const FONT_SIZES = {
-  small: '14px',
-  medium: '16px',
-  large: '18px',
-};
-
-export function useFontSize() {
-  const [fontSize, setFontSize] = useState<FontSize>(() => {
-    // Tenta recuperar o tamanho salvo no localStorage
-    const saved = localStorage.getItem('fontSize');
-    return (saved as FontSize) || 'medium';
-  });
-
-  useEffect(() => {
-    // Aplica o tamanho da fonte diretamente no estilo do documento
-    document.documentElement.style.fontSize = FONT_SIZES[fontSize];
-    
-    // Salva no localStorage
-    localStorage.setItem('fontSize', fontSize);
-    document.documentElement.setAttribute('data-font-size', fontSize);
-  }, [fontSize]);
+  const setFontSize = (size: 'small' | 'medium' | 'large') => {
+    saveSettings({
+      ...settings,
+      fontSize: size,
+    });
+  };
 
   return {
-    fontSize,
+    fontSize: settings.fontSize,
     setFontSize,
   };
-} 
+}; 
