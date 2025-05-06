@@ -178,7 +178,7 @@ const Team = () => {
 
       if (error) throw error;
 
-      setInvites((prev) => ({
+      setInvites((prev: Record<string, TeamInvite[]>) => ({
         ...prev,
         [selectedTeam]: [
           ...(prev[selectedTeam] || []),
@@ -192,7 +192,7 @@ const Team = () => {
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
             expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
-          },
+          } as TeamInvite,
         ],
       }));
 
