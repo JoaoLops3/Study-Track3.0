@@ -1,13 +1,15 @@
 {
   "version": 2,
-  "buildCommand": "cd apps/react-app && npm install && npm run build",
-  "outputDirectory": "apps/react-app/dist",
-  "framework": "vite",
-  "installCommand": "npm install",
-  "rewrites": [
+  "builds": [
     {
-      "source": "/(.*)",
-      "destination": "/index.html"
+      "src": "apps/react-app/package.json",
+      "use": "@vercel/node"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "/apps/react-app/dist/$1"
     }
   ],
   "env": {
