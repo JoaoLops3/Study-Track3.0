@@ -1,31 +1,33 @@
 import { useState } from 'react';
-import { useAuth } from '../../hooks/useAuth';
-import { LoadingSpinner } from '../../components/LoadingSpinner';
-import { toast } from 'react-hot-toast';
+import { useAuth } from '../../contexts/AuthContext';
+import { useToast } from '../../contexts/ToastContext';
+import { useNavigate } from 'react-router-dom';
 
 export default function Login() {
   const { signInWithGitHub, isLoading } = useAuth();
-  const [isGitHubLoading, setIsGitHubLoading] = useState(false);
+  const toast = useToast();
+  const navigate = useNavigate();
+  const [isSigningIn, setIsSigningIn] = useState(false);
 
-  const handleGitHubLogin = async () => {
+  const handleGitHubSignIn = async () => {
     try {
-      setIsGitHubLoading(true);
-      const { error } = await signInWithGitHub();
-      if (error) {
-        throw error;
-      }
+      setIsSigningIn(true);
+      await signInWithGitHub();
+      toast.success('Login realizado com sucesso!');
+      navigate('/dashboard');
     } catch (error) {
-      toast.error('Erro ao iniciar login com GitHub');
+      console.error('Erro ao fazer login:', error);
+      toast.error('Erro ao fazer login com GitHub');
     } finally {
-      setIsGitHubLoading(false);
+      setIsSigningIn(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
         <div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900 dark:text-white">
             Entre na sua conta
           </h2>
         </div>
@@ -81,24 +83,25 @@ export default function Login() {
 
           <div>
             <button
-              onClick={handleGitHubLogin}
-              disabled={isGitHubLoading || isLoading}
-              className="w-full flex items-center justify-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              onClick={handleGitHubSignIn}
+              disabled={isLoading || isSigningIn}
+              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-gray-800 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isGitHubLoading ? (
-                <LoadingSpinner size="sm" />
-              ) : (
-                <>
-                  <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 24 24">
-                    <path
-                      fillRule="evenodd"
-                      clipRule="evenodd"
-                      d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"
-                    />
+              {isLoading || isSigningIn ? (
+                <span className="absolute left-0 inset-y-0 flex items-center pl-3">
+                  <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                   </svg>
-                  Entrar com GitHub
-                </>
+                </span>
+              ) : (
+                <span className="absolute left-0 inset-y-0 flex items-center pl-3">
+                  <svg className="h-5 w-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 0C4.477 0 0 4.484 0 10.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0110 4.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.203 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.942.359.31.678.921.678 1.856 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0020 10.017C20 4.484 15.522 0 10 0z" clipRule="evenodd" />
+                  </svg>
+                </span>
               )}
+              {isLoading || isSigningIn ? 'Entrando...' : 'Entrar com GitHub'}
             </button>
           </div>
         </div>
