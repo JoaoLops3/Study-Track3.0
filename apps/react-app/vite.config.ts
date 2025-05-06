@@ -50,5 +50,8 @@ export default defineConfig(({ mode }) => {
         VITE_SUPABASE_ANON_KEY: env.VITE_SUPABASE_ANON_KEY,
       }),
     },
+    optimizeDeps: {
+      include: ['src/pages/Login.tsx'],
+    },
   };
 });

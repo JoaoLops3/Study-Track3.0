@@ -11,8 +11,6 @@ import Pomodoro from './pages/Pomodoro';
 import { AuthCallback } from './components/auth/AuthCallback';
 import { GoogleCallback } from './components/auth/GoogleCallback';
 import { GoogleOAuthProvider } from '@react-oauth/google';
-import FloatingCalculator from './components/FloatingCalculator';
-import FloatingPomodoro from './components/FloatingPomodoro';
 import { PomodoroProvider } from './contexts/PomodoroContext';
 
 // Lazy load das páginas
@@ -21,9 +19,9 @@ const Board = lazy(() => import('./pages/Board'));
 const Login = lazy(() => import('./pages/Login'));
 const Settings = lazy(() => import('./pages/Settings'));
 const Page = lazy(() => import('./pages/Page'));
-const CalendarPage = lazy(() => import('./pages/Calendar'));
 const TeamPage = lazy(() => import('./pages/Team'));
 const GithubRepos = lazy(() => import('./pages/GithubRepos'));
+const CalendarPage = lazy(() => import('./pages/Calendar'));
 
 const LoadingFallback = () => (
   <div className="flex flex-col justify-center items-center h-screen bg-gray-50 dark:bg-gray-900">
@@ -52,25 +50,23 @@ function App() {
                 />
                 <Suspense fallback={<LoadingFallback />}>
                   <Routes>
-                    <Route path="/login" element={<Login />} />
                     <Route path="/auth/github/callback" element={<AuthCallback />} />
                     <Route path="/auth/callback" element={<GoogleCallback />} />
+                    <Route path="/login" element={<Login />} />
                     <Route element={<PrivateRoute />}>
                       <Route element={<MainLayout />}>
                         <Route path="/" element={<Dashboard />} />
                         <Route path="/board/:id" element={<Board />} />
                         <Route path="/page/:id" element={<Page />} />
                         <Route path="/settings" element={<Settings />} />
-                        <Route path="/calendar" element={<CalendarPage />} />
                         <Route path="/team" element={<TeamPage />} />
                         <Route path="/github" element={<GithubRepos />} />
                         <Route path="/pomodoro" element={<Pomodoro />} />
+                        <Route path="/calendar" element={<CalendarPage />} />
                       </Route>
                     </Route>
                   </Routes>
                 </Suspense>
-                <FloatingPomodoro />
-                <FloatingCalculator />
               </PomodoroProvider>
             </GoogleOAuthProvider>
           </SettingsProvider>

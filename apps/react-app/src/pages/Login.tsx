@@ -5,9 +5,8 @@ import { motion } from 'framer-motion';
 import { LogIn, Mail, UserPlus, Eye, EyeOff } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import toast from 'react-hot-toast';
-import LoginGoogle from '../components/LoginGoogle';
+import LoginGoogle from '../components/auth/LoginGoogle';
 import { useNavigate } from 'react-router-dom';
-import { GOOGLE_CALENDAR_CONFIG } from '../lib/googleCalendar/config';
 
 const Login = () => {
   const { signIn } = useAuth();
@@ -50,28 +49,6 @@ const Login = () => {
       if (error) throw error;
       toast.success('Conta criada com sucesso! Verifique seu email para confirmar o cadastro.');
       setIsRegistering(false);
-    } catch (error: any) {
-      toast.error(error.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleGoogleLogin = async () => {
-    setLoading(true);
-    try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: GOOGLE_CALENDAR_CONFIG.redirectUri,
-          queryParams: {
-            scope: GOOGLE_CALENDAR_CONFIG.scopes.join(' '),
-            access_type: 'offline',
-            prompt: 'consent'
-          }
-        },
-      });
-      if (error) throw error;
     } catch (error: any) {
       toast.error(error.message);
     } finally {

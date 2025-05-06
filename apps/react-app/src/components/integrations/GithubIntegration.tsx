@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { Github } from 'lucide-react';
 import { useSettings } from '../../contexts/SettingsContext';
 import { supabase } from '../../lib/supabase';
-import { toast } from 'react-hot-toast';
 
 interface GithubIntegrationProps {
   onConnect: () => void;
@@ -39,11 +38,8 @@ const GithubIntegration = ({ onConnect, onDisconnect }: GithubIntegrationProps) 
 
       if (error) throw error;
       
-      toast.success('Redirecionando para GitHub...');
-      
     } catch (error) {
       console.error('Erro ao conectar com GitHub:', error);
-      toast.error('Erro ao conectar com GitHub');
     } finally {
       setIsLoading(false);
     }
@@ -61,11 +57,9 @@ const GithubIntegration = ({ onConnect, onDisconnect }: GithubIntegrationProps) 
         }
       });
       
-      toast.success('GitHub desconectado com sucesso');
       onDisconnect();
     } catch (error) {
       console.error('Erro ao desconectar GitHub:', error);
-      toast.error('Erro ao desconectar GitHub');
     } finally {
       setIsLoading(false);
     }

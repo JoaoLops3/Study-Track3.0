@@ -1,39 +1,43 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { Menu } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
-import { useSettings } from '../../contexts/SettingsContext';
-import { UserMenu } from './UserMenu';
+import { useTheme } from '../../contexts/ThemeContext';
+import BotaoTema from '../BotaoTema';
 
 interface HeaderProps {
   onMenuClick: () => void;
 }
 
 export const Header = ({ onMenuClick }: HeaderProps) => {
-  const navigate = useNavigate();
-  const { user } = useAuth();
-  const { settings } = useSettings();
+  const { signOut } = useAuth();
+  const { theme, toggleTheme } = useTheme();
 
   return (
-    <header className="sticky top-0 z-30 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container flex h-14 items-center">
-        <div className="mr-4 flex">
+    <header className="sticky top-0 z-40 w-full border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900">
+      <div className="flex h-16 items-center justify-between px-4 md:px-6">
+        <div className="flex items-center gap-4">
           <button
-            className="mr-2 flex items-center md:hidden"
             onClick={onMenuClick}
+            className="md:hidden p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-md"
           >
             <Menu className="h-6 w-6" />
-            <span className="sr-only">Toggle Menu</span>
           </button>
-          <button
-            onClick={() => navigate(-1)}
-            className="flex items-center"
-          >
-            <span className="sr-only">Voltar</span>
-          </button>
+          <img
+            src="/logo-v1.png"
+            alt="Study Track Logo"
+            className="h-8 w-8 md:h-10 md:w-10"
+          />
+          <h1 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white">
+            Study Track
+          </h1>
         </div>
-        <div className="flex flex-1 items-center justify-end">
-          <UserMenu />
+        <div className="flex items-center gap-4">
+          <BotaoTema />
+          <button
+            onClick={signOut}
+            className="px-4 py-2 text-sm md:text-base bg-red-500 hover:bg-red-600 text-white rounded-md transition-colors"
+          >
+            Sair
+          </button>
         </div>
       </div>
     </header>

@@ -48,7 +48,7 @@ const CardModal = ({ card, column, onClose, onCardUpdate, onCardDelete }: CardMo
     try {
       const { data, error } = await supabase
         .from('cards')
-        .update({ title: title.trim() })
+        .update({ title: title.trim(), updated_at: new Date().toISOString() })
         .eq('id', card.id)
         .select()
         .single();
@@ -73,7 +73,7 @@ const CardModal = ({ card, column, onClose, onCardUpdate, onCardDelete }: CardMo
     try {
       const { data, error } = await supabase
         .from('cards')
-        .update({ content: newContent })
+        .update({ content: newContent, updated_at: new Date().toISOString() })
         .eq('id', card.id)
         .select()
         .single();
@@ -238,12 +238,25 @@ const CardModal = ({ card, column, onClose, onCardUpdate, onCardDelete }: CardMo
               Na coluna: {column?.title}
               </p>
           </div>
-          <button 
-            onClick={onClose}
-            className="p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700"
-          >
-            <X className="w-6 h-6 text-gray-500 dark:text-gray-400" />
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => updateCardContent(content)}
+              className="p-2 rounded-full bg-primary-600 hover:bg-primary-700 text-white transition-colors"
+              title="Salvar anotações"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-save w-5 h-5">
+                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2Z" />
+                <polyline points="17 21 17 13 7 13 7 21" />
+                <polyline points="7 3 7 8 15 8" />
+              </svg>
+            </button>
+            <button 
+              onClick={onClose}
+              className="p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700"
+            >
+              <X className="w-6 h-6 text-gray-500 dark:text-gray-400" />
+            </button>
+          </div>
         </div>
         
         <div className="p-4 grid grid-cols-1 md:grid-cols-3 gap-6">

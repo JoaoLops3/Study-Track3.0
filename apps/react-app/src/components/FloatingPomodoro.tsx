@@ -72,40 +72,26 @@ const FloatingPomodoro: React.FC = () => {
   return (
     <>
       <button
-        onClick={handleOpenPomodoro}
-        className="fixed bottom-24 right-4 p-3 bg-gradient-to-r from-blue-500 to-cyan-600 text-white rounded-full shadow-lg hover:from-blue-600 hover:to-cyan-700 transition-all duration-300 z-[51] group"
+        onClick={() => setIsOpen(!isOpen)}
+        className="fixed bottom-4 left-4 p-3 bg-gradient-to-r from-blue-500 to-cyan-600 text-white rounded-full shadow-lg hover:from-blue-600 hover:to-cyan-700 transition-all duration-300 z-50 group md:bottom-6 md:left-6"
       >
-        <Timer size={24} className="transform group-hover:scale-110 transition-transform" />
+        <Timer className="w-6 h-6 transform group-hover:scale-110 transition-transform" />
       </button>
-      {isOpen && createPortal(
-        <div
-          ref={pomodoroRef}
-          className="fixed bg-white/90 dark:bg-gray-800/90 backdrop-blur-lg rounded-xl shadow-2xl border border-gray-200/50 dark:border-gray-700/50 z-[9999] transition-transform duration-75 will-change-transform"
-          style={{
-            left: `${position.x}px`,
-            top: `${position.y}px`,
-            width: '370px',
-            touchAction: 'none',
-            transform: isDragging ? 'scale(1.02)' : 'scale(1)',
-          }}
-        >
-          <div
-            className="bg-gradient-to-r from-blue-500 to-cyan-600 p-3 rounded-t-xl cursor-move flex justify-between items-center select-none"
-            onMouseDown={handleMouseDown}
-          >
-            <span className="text-sm font-medium text-white">Pomodoro</span>
-            <button
-              onClick={() => setIsOpen(false)}
-              className="text-white/80 hover:text-white transition-colors"
-            >
-              <X size={16} />
-            </button>
-          </div>
-          <div className="p-4">
+      {isOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-40 flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-md p-4">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white">Pomodoro</h2>
+              <button
+                onClick={() => setIsOpen(false)}
+                className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+              >
+                ✕
+              </button>
+            </div>
             <PomodoroTimer />
           </div>
-        </div>,
-        document.body
+        </div>
       )}
     </>
   );

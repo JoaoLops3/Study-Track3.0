@@ -1,6 +1,5 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { supabase } from '../lib/supabase';
-import toast from 'react-hot-toast';
 
 export interface Settings {
   theme: 'light' | 'dark' | 'system';
@@ -134,14 +133,12 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
 
             if (insertError) {
               console.error('Erro ao criar configurações iniciais:', insertError);
-              toast.error('Erro ao criar configurações iniciais');
               return;
             }
 
             setSettings(defaultSettings);
           } else {
             console.error('Erro ao carregar configurações:', fetchError);
-            toast.error('Erro ao carregar configurações');
           }
           return;
         }
@@ -149,7 +146,6 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
         setSettings(existingSettings.settings);
       } catch (error) {
         console.error('Erro ao carregar configurações:', error);
-        toast.error('Erro ao carregar configurações');
       } finally {
         setIsLoading(false);
       }
@@ -163,7 +159,6 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         console.log('Usuário não autenticado');
-        toast.error('Usuário não autenticado');
         return;
       }
 
@@ -180,15 +175,12 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
 
       if (error) {
         console.error('Erro ao atualizar configurações:', error);
-        toast.error('Erro ao atualizar configurações');
         return;
       }
 
       setSettings(updatedSettings);
-      toast.success('Configurações atualizadas com sucesso');
     } catch (error) {
       console.error('Erro ao atualizar configurações:', error);
-      toast.error('Erro ao atualizar configurações');
     }
   };
 

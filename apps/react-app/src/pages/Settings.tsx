@@ -11,7 +11,6 @@ import { useSettings } from '../contexts/SettingsContext';
 import GithubIntegration from '../components/integrations/GithubIntegration';
 import GithubRepos from '../components/integrations/GithubRepos';
 import { GithubConnectButton } from '../components/integrations/GithubConnectButton';
-import { GoogleConnectButton } from '../components/integrations/GoogleConnectButton';
 
 type Settings = {
   profile: {
@@ -143,7 +142,6 @@ const Settings = () => {
       }
     } catch (error) {
       console.error('Error loading settings:', error);
-      toast.error('Erro ao carregar configurações');
     } finally {
       setIsLoading(false);
     }
@@ -164,10 +162,8 @@ const Settings = () => {
       if (error) throw error;
 
       setSettings(updatedSettings);
-      toast.success('Configurações salvas com sucesso!');
     } catch (error) {
       console.error('Error saving settings:', error);
-      toast.error('Erro ao salvar configurações');
     } finally {
       setIsSaving(false);
     }
@@ -269,7 +265,6 @@ const Settings = () => {
     });
     } catch (error) {
       console.error('Erro ao atualizar integração:', error);
-      toast.error('Erro ao atualizar integração');
     }
   };
 
@@ -291,13 +286,11 @@ const Settings = () => {
       
       // Verifica o tipo do arquivo
       if (!file.type.startsWith('image/')) {
-        toast.error('Por favor, selecione uma imagem válida');
         return;
       }
 
       // Verifica o tamanho do arquivo (máximo 5MB)
       if (file.size > 5 * 1024 * 1024) {
-        toast.error('A imagem deve ter no máximo 5MB');
         return;
       }
 
@@ -376,11 +369,8 @@ const Settings = () => {
           photoUrl: publicUrl,
         },
       });
-
-      toast.success('Foto de perfil atualizada com sucesso!');
     } catch (error) {
       console.error('Error uploading avatar:', error);
-      toast.error(error instanceof Error ? error.message : 'Erro ao atualizar foto de perfil');
     } finally {
       setIsUploading(false);
       // Limpa o input de arquivo
@@ -424,28 +414,25 @@ const Settings = () => {
           <div className="flex flex-col md:flex-row gap-8">
             {/* Sidebar */}
             <div className="w-full md:w-64 flex-shrink-0">
-              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4">
-                <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Configurações</h2>
-                <nav className="space-y-1">
-                  {tabs.map((tab) => {
-                    const Icon = tab.icon;
-                    return (
-                      <button
-                        key={tab.id}
-                        onClick={() => setActiveTab(tab.id)}
-                        className={`w-full flex items-center px-3 py-2 text-sm font-medium rounded-md ${
-                          activeTab === tab.id
-                            ? 'bg-primary-50 text-primary-700 dark:bg-primary-900/50 dark:text-primary-400'
-                            : 'text-gray-700 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-700'
-                        }`}
-                      >
-                        <Icon className="w-5 h-5 mr-3" />
-                        {tab.name}
-                      </button>
-                    );
-                  })}
-                </nav>
-              </div>
+              <nav className="flex flex-col gap-2 py-6">
+                {tabs.map((tab) => {
+                  const Icon = tab.icon;
+                  const isActive = activeTab === tab.id;
+                  return (
+                    <button
+                      key={tab.id}
+                      onClick={() => setActiveTab(tab.id)}
+                      className={`group flex items-center gap-4 px-6 py-3 rounded-xl transition-all text-base font-semibold
+                        ${isActive ? 'bg-primary-50 dark:bg-primary-900/40 text-primary-700 dark:text-primary-300 border-l-4 border-primary-500 shadow' :
+                        'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-primary-700 dark:hover:text-primary-300 border-l-4 border-transparent'}
+                      `}
+                    >
+                      <Icon className="w-6 h-6" />
+                      <span>{tab.name}</span>
+                    </button>
+                  );
+                })}
+              </nav>
             </div>
 
             {/* Main Content */}
@@ -766,19 +753,6 @@ const Settings = () => {
                             <p className="text-sm text-gray-500 dark:text-gray-400">Acesse seu Gmail, Google Drive e outros serviços Google</p>
                           </div>
                         </div>
-                        <GoogleConnectButton variant="secondary" />
-                      </div>
-
-                      <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                        <div className="flex items-center space-x-4">
-                          <div className="p-2 bg-gray-200 dark:bg-gray-700 rounded-lg">
-                            <Figma className="h-6 w-6 text-gray-700 dark:text-gray-300" />
-                          </div>
-                          <div>
-                            <h4 className="text-sm font-medium text-gray-900 dark:text-white">Figma</h4>
-                            <p className="text-sm text-gray-500 dark:text-gray-400">Acompanhe seus designs e protótipos</p>
-                          </div>
-                        </div>
                         <button
                           onClick={() => handleIntegrationChange('figma', !settings.integrations.figma)}
                           className={`px-4 py-2 rounded-md text-sm font-medium transition-colors duration-200 ${
@@ -794,11 +768,11 @@ const Settings = () => {
                       <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
                         <div className="flex items-center space-x-4">
                           <div className="p-2 bg-gray-200 dark:bg-gray-700 rounded-lg">
-                            <MessageSquare className="h-6 w-6 text-gray-700 dark:text-gray-300" />
+                            <Figma className="h-6 w-6 text-gray-700 dark:text-gray-300" />
                           </div>
                           <div>
-                            <h4 className="text-sm font-medium text-gray-900 dark:text-white">Discord</h4>
-                            <p className="text-sm text-gray-500 dark:text-gray-400">Integre com seus servidores e canais</p>
+                            <h4 className="text-sm font-medium text-gray-900 dark:text-white">Figma</h4>
+                            <p className="text-sm text-gray-500 dark:text-gray-400">Acompanhe seus designs e protótipos</p>
                           </div>
                         </div>
                         <button

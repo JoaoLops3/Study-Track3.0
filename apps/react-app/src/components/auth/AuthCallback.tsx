@@ -2,7 +2,6 @@ import { useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
-import toast from 'react-hot-toast';
 
 export function AuthCallback() {
   const navigate = useNavigate();
@@ -18,7 +17,6 @@ export function AuthCallback() {
         
         if (session) {
           const provider = location.pathname.includes('google') ? 'Google' : 'GitHub';
-          toast.success(`Autenticação com ${provider} realizada com sucesso!`);
           
           // Aguardar o estado ser atualizado
           if (isLoading) {
@@ -36,12 +34,10 @@ export function AuthCallback() {
           
           navigate('/', { replace: true });
         } else {
-          toast.error('Erro na autenticação');
           navigate('/login', { replace: true });
         }
       } catch (error) {
         console.error('Erro ao processar callback:', error);
-        toast.error('Erro ao processar autenticação');
         navigate('/login', { replace: true });
       }
     };

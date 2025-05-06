@@ -13,11 +13,11 @@ export default function Login() {
     try {
       setIsSigningIn(true);
       await signInWithGitHub();
-      toast.success('Login realizado com sucesso!');
+      // toast.success('Login realizado com sucesso!');
       navigate('/dashboard');
     } catch (error) {
       console.error('Erro ao fazer login:', error);
-      toast.error('Erro ao fazer login com GitHub');
+      // toast.error('Erro ao fazer login com GitHub');
     } finally {
       setIsSigningIn(false);
     }
