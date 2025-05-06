@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
-import { Calendar as BigCalendar, dateFnsLocalizer } from 'react-big-calendar';
-import 'react-big-calendar/lib/css/react-big-calendar.css';
+import Calendar from 'react-calendar';
+import 'react-calendar/dist/Calendar.css';
 import '../styles/calendar.css';
 import { useTheme } from '../contexts/ThemeContext';
 import { useGoogleCalendar } from '../hooks/useGoogleCalendar';
@@ -9,27 +9,12 @@ import { GOOGLE_CALENDAR_CONFIG } from '../lib/googleCalendar/config';
 import { format, isSameDay, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { MapPin, Clock, Calendar as CalendarIcon } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-import type { Event } from '../types/calendar';
-
-const locales = {
-  'pt-BR': ptBR,
-};
-
-const localizer = dateFnsLocalizer({
-  format,
-  parse,
-  startOfWeek,
-  getDay,
-  locales,
-});
 
 const CalendarPage = () => {
-  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const { theme } = useTheme();
   const { events, isLoading, error, login } = useGoogleCalendar();
   const [isConnected, setIsConnected] = useState(false);
-  const navigate = useNavigate();
 
   // Detecta conexão pelo carregamento dos eventos
   useMemo(() => {
@@ -96,22 +81,6 @@ const CalendarPage = () => {
     }
   };
 
-  const handleDateChange = (date: Date | null) => {
-    if (date) {
-      setSelectedDate(date);
-    }
-  };
-
-  const handleEventClick = (event: Event) => {
-    if (event.id) {
-      navigate(`/events/${event.id}`);
-    }
-  };
-
-  const handleSelectSlot = ({ start }: { start: Date }) => {
-    navigate(`/events/new?date=${start.toISOString()}`);
-  };
-
   return (
     <GoogleOAuthProvider clientId={GOOGLE_CALENDAR_CONFIG.clientId}>
       <div className="max-w-2xl mx-auto py-8 px-4">
@@ -124,30 +93,13 @@ const CalendarPage = () => {
             Hoje
           </button>
         </div>
-        <BigCalendar
-          localizer={localizer}
-          events={[]}
-          startAccessor="start"
-          endAccessor="end"
-          style={{ height: '100%' }}
-          culture="pt-BR"
-          messages={{
-            next: "Próximo",
-            previous: "Anterior",
-            today: "Hoje",
-            month: "Mês",
-            week: "Semana",
-            day: "Dia",
-            agenda: "Agenda",
-            date: "Data",
-            time: "Hora",
-            event: "Evento",
-            noEventsInRange: "Não há eventos neste período."
-          }}
-          onNavigate={handleDateChange}
-          onSelectEvent={handleEventClick}
-          onSelectSlot={handleSelectSlot}
-          selectable
+        <Calendar
+          value={selectedDate}
+          onChange={setSelectedDate}
+          className={calendarClassName}
+          tileClassName={tileClassName}
+          locale="pt-BR"
+          formatDay={(locale, date) => format(date, 'd', { locale: ptBR })}
         />
         
         <div className="space-y-4 mt-8">

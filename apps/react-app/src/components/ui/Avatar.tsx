@@ -8,38 +8,6 @@ interface AvatarProps {
   alt?: string;
 }
 
-interface OptimizedImageProps {
-  src: string;
-  alt: string;
-  className?: string;
-  width: number;
-  height: number;
-  priority?: boolean;
-  onError?: (e: React.SyntheticEvent<HTMLImageElement, Event>) => void;
-}
-
-const OptimizedImage: React.FC<OptimizedImageProps> = ({
-  src,
-  alt,
-  className,
-  width,
-  height,
-  priority,
-  onError,
-}) => {
-  return (
-    <img
-      src={src}
-      alt={alt}
-      className={className}
-      width={width}
-      height={height}
-      loading={priority ? 'eager' : 'lazy'}
-      onError={onError}
-    />
-  );
-};
-
 export const Avatar: React.FC<AvatarProps> = ({ 
   className = '', 
   alt = 'Avatar'

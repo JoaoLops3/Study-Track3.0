@@ -7,7 +7,6 @@ export interface Settings {
   integrations: {
     github: boolean;
     google: boolean;
-    microsoft: boolean;
   };
   notifications: {
     email: boolean;
@@ -41,13 +40,6 @@ export interface Settings {
   team: {
     members: string[];
     roles: Record<string, string>;
-    defaultRole: 'admin' | 'member';
-    notifications: boolean;
-    sharing: boolean;
-  };
-  language: {
-    code: string;
-    name: string;
   };
 }
 
@@ -79,25 +71,15 @@ const defaultSettings: Settings = {
   integrations: {
     github: false,
     google: false,
-    microsoft: false,
   },
   accessibility: {
     highContrast: false,
     reducedMotion: false,
   },
-  language: {
-    code: 'pt-BR',
-    name: 'Português (Brasil)',
-  },
   team: {
     members: [],
     roles: {},
-    defaultRole: 'member',
-    notifications: true,
-    sharing: true,
   },
-  theme: 'system',
-  fontSize: 'medium',
 };
 
 interface SettingsContextType {
@@ -106,7 +88,7 @@ interface SettingsContextType {
   updateSettings: (newSettings: Partial<Settings>) => Promise<void>;
 }
 
-export const SettingsContext = createContext<SettingsContextType | undefined>(undefined);
+const SettingsContext = createContext<SettingsContextType | undefined>(undefined);
 
 export function useSettings() {
   const context = useContext(SettingsContext);

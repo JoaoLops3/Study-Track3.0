@@ -14,18 +14,6 @@ type Board = Database['public']['Tables']['boards']['Row'];
 type Column = Database['public']['Tables']['columns']['Row'];
 type Card = Database['public']['Tables']['cards']['Row'];
 
-interface BoardData {
-  id: string;
-  title: string;
-  description: string | null;
-  owner_id: string;
-  is_public: boolean;
-  created_at: string;
-  updated_at: string | null;
-  columns: Column[];
-  cards: Card[];
-}
-
 const ITEMS_PER_PAGE = 20;
 
 const Board = () => {
@@ -56,32 +44,51 @@ const Board = () => {
       setLoading(true);
       
       // Fetch board details
-      const { data: boardData } = await supabase
+      const { data: boardData, error: boardError } = await supabase
         .from('boards')
-        .select(`
-          *,
-          columns:board_columns(*),
-          cards:board_cards(*)
-        `)
+        .select('*')
         .eq('id', id)
-        .single() as { data: BoardData | null };
+        .single();
         
-      if (boardData) {
-        setBoard(boardData);
-        setNewBoardTitle(boardData.title);
-        setNewBoardDescription(boardData.description || '');
-        
-        setColumns(boardData.columns || []);
-        setCards(boardData.cards || []);
-        setHasMore((boardData.cards || []).length > 0);
+      if (boardError) throw boardError;
+      
+      if (!boardData) {
+        throw new Error('Board not found');
       }
+      
+      setBoard(boardData);
+      setNewBoardTitle(boardData.title);
+      setNewBoardDescription(boardData.description || '');
+      
+      // Fetch columns
+      const { data: columnsData, error: columnsError } = await supabase
+        .from('columns')
+        .select('*')
+        .eq('board_id', id)
+        .order('order', { ascending: true });
+        
+      if (columnsError) throw columnsError;
+      setColumns(columnsData || []);
+      
+      // Fetch cards for all columns in this board
+      const { data: cardsData, error: cardsError } = await supabase
+        .from('cards')
+        .select('*')
+        .in('column_id', (columnsData || []).map(col => col.id))
+        .order('created_at', { ascending: false })
+        .range((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE - 1);
+        
+      if (cardsError) throw cardsError;
+      setCards(cardsData || []);
+      
+      setHasMore(cardsData.length === ITEMS_PER_PAGE);
     } catch (error: any) {
       console.error('Error fetching board data:', error);
       setError(error.message);
     } finally {
       setLoading(false);
     }
-  }, [id, user]);
+  }, [id, user, currentPage]);
 
   useEffect(() => {
     fetchBoardData();

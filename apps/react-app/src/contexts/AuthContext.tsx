@@ -16,11 +16,9 @@ interface AuthContextType {
   signInWithGitHub: () => Promise<void>;
   updateUserAvatar: (file: File) => Promise<{ error: Error | null }>;
   removeUserAvatar: () => Promise<{ error: Error | null }>;
-  loading: boolean;
-  updateProfile: (data: Partial<User>) => Promise<void>;
 }
 
-export const AuthContext = createContext<AuthContextType | undefined>(undefined);
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
@@ -36,24 +34,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [googleConnected, setGoogleConnected] = useState(false);
   const [hasTimeout, setHasTimeout] = useState(false);
-  const [loading, setLoading] = useState(true);
 
-  const checkGoogleConnectionStatus = async () => {
+  const checkGoogleConnectionStatus = async (session: Session | null) => {
+    if (!session?.user) {
+      setGoogleConnected(false);
+      return;
+    }
+
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session?.user) return false;
-
-      const { data } = await supabase
-        .from('user_integrations')
-        .select('*')
-        .eq('user_id', session.user.id)
-        .eq('provider', 'google_calendar')
-        .single();
-
-      return !!data;
+      const { isConnected } = await checkGoogleConnection();
+      setGoogleConnected(isConnected);
     } catch (error) {
-      console.error('Error checking Google connection:', error);
-      return false;
+      console.error('AuthProvider: Erro ao verificar conexão com Google:', error);
+      setGoogleConnected(false);
     }
   };
 
@@ -378,18 +371,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const updateProfile = async (data: Partial<User>) => {
-    try {
-      const { error } = await supabase.auth.updateUser(data);
-      if (error) throw error;
-      setUser(data as User);
-      toast.success('Perfil atualizado com sucesso!');
-    } catch (error) {
-      console.error('Erro ao atualizar perfil:', error);
-      toast.error('Erro ao atualizar perfil');
-    }
-  };
-
   const value: AuthContextType = {
     user,
     session,
@@ -403,8 +384,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     signInWithGitHub,
     updateUserAvatar,
     removeUserAvatar,
-    loading,
-    updateProfile,
   };
 
   return (
