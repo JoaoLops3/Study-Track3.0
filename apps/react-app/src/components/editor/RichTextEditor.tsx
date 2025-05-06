@@ -3,10 +3,6 @@ import StarterKit from '@tiptap/starter-kit';
 import Document from '@tiptap/extension-document';
 import Paragraph from '@tiptap/extension-paragraph';
 import Text from '@tiptap/extension-text';
-import Heading from '@tiptap/extension-heading';
-import BulletList from '@tiptap/extension-bullet-list';
-import OrderedList from '@tiptap/extension-ordered-list';
-import ListItem from '@tiptap/extension-list-item';
 import TaskList from '@tiptap/extension-task-list';
 import TaskItem from '@tiptap/extension-task-item';
 import Highlight from '@tiptap/extension-highlight';
@@ -35,12 +31,6 @@ const RichTextEditor = ({ initialContent, onChange, placeholder = 'Write somethi
         paragraph: false,
         text: false,
       }),
-      Heading.configure({
-        levels: [1, 2, 3],
-      }),
-      BulletList,
-      OrderedList,
-      ListItem,
       TaskList,
       TaskItem.configure({
         nested: true,
@@ -125,22 +115,6 @@ const RichTextEditor = ({ initialContent, onChange, placeholder = 'Write somethi
         </button>
         
         <div className="w-px h-6 bg-gray-300 dark:bg-gray-600 mx-1"></div>
-        
-        <button
-          onClick={() => editor.chain().focus().toggleBulletList().run()}
-          className={`p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700 ${editor.isActive('bulletList') ? 'bg-gray-200 dark:bg-gray-700' : ''}`}
-          title="Bullet List"
-        >
-          <List className="w-5 h-5" />
-        </button>
-        
-        <button
-          onClick={() => editor.chain().focus().toggleOrderedList().run()}
-          className={`p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700 ${editor.isActive('orderedList') ? 'bg-gray-200 dark:bg-gray-700' : ''}`}
-          title="Ordered List"
-        >
-          <ListOrdered className="w-5 h-5" />
-        </button>
         
         <button
           onClick={() => editor.chain().focus().toggleTaskList().run()}

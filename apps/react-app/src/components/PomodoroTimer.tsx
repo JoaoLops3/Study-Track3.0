@@ -1,94 +1,11 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React from 'react';
 import { Play, Pause, RotateCcw, CheckCircle } from 'lucide-react';
+import { usePomodoro } from '../contexts/PomodoroContext';
 
 const PomodoroTimer: React.FC = () => {
-  const pomodoroSettings = {
-    workDuration: 25,
-    shortBreakDuration: 5,
-    longBreakDuration: 15,
-    sessionsUntilLongBreak: 4,
-  };
-
-  const [mode, setMode] = useState<'work' | 'shortBreak' | 'longBreak'>('work');
-  const [timeLeft, setTimeLeft] = useState(pomodoroSettings.workDuration * 60);
-  const [isActive, setIsActive] = useState(false);
-  const [completedSessions, setCompletedSessions] = useState(0);
-  const [showSessionComplete, setShowSessionComplete] = useState(false);
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
-
-  useEffect(() => {
-    let duration = 0;
-    switch (mode) {
-      case 'work':
-        duration = pomodoroSettings.workDuration;
-        break;
-      case 'shortBreak':
-        duration = pomodoroSettings.shortBreakDuration;
-        break;
-      case 'longBreak':
-        duration = pomodoroSettings.longBreakDuration;
-        break;
-    }
-    setTimeLeft(duration * 60);
-    setIsActive(false);
-    if (timerRef.current) {
-      clearInterval(timerRef.current);
-    }
-  }, [mode]);
-
-  useEffect(() => {
-    if (isActive && timeLeft > 0) {
-      timerRef.current = setInterval(() => {
-        setTimeLeft(prevTime => prevTime - 1);
-      }, 1000);
-    } else if (isActive && timeLeft === 0) {
-      if (mode === 'work') {
-        const newCompletedSessions = completedSessions + 1;
-        setCompletedSessions(newCompletedSessions);
-        setShowSessionComplete(true);
-        setTimeout(() => {
-          setShowSessionComplete(false);
-        }, 3000);
-        if (newCompletedSessions % pomodoroSettings.sessionsUntilLongBreak === 0) {
-          setMode('longBreak');
-        } else {
-          setMode('shortBreak');
-        }
-      } else {
-        setMode('work');
-      }
-      setIsActive(false);
-    }
-    return () => {
-      if (timerRef.current) {
-        clearInterval(timerRef.current);
-      }
-    };
-  }, [isActive, timeLeft, mode, completedSessions]);
-
-  const toggleTimer = () => {
-    setIsActive((prev) => !prev);
-  };
-
-  const resetTimer = () => {
-    if (timerRef.current) {
-      clearInterval(timerRef.current);
-    }
-    let duration = 0;
-    switch (mode) {
-      case 'work':
-        duration = pomodoroSettings.workDuration;
-        break;
-      case 'shortBreak':
-        duration = pomodoroSettings.shortBreakDuration;
-        break;
-      case 'longBreak':
-        duration = pomodoroSettings.longBreakDuration;
-        break;
-    }
-    setTimeLeft(duration * 60);
-    setIsActive(false);
-  };
+  const {
+    mode, setMode, timeLeft, isActive, completedSessions, minutesToday, resetTimer, toggleTimer, pomodoroSettings, showSessionComplete
+  } = usePomodoro();
 
   const formatTime = (seconds: number): string => {
     const mins = Math.floor(seconds / 60);
@@ -143,7 +60,7 @@ const PomodoroTimer: React.FC = () => {
           Sessão {completedSessions} de {pomodoroSettings.sessionsUntilLongBreak}
         </p>
         <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-          {completedSessions * pomodoroSettings.workDuration} minutos estudados hoje
+          {minutesToday} minutos estudados hoje
         </p>
       </div>
       {showSessionComplete && (

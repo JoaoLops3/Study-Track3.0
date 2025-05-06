@@ -11,6 +11,9 @@ import Pomodoro from './pages/Pomodoro';
 import { AuthCallback } from './components/auth/AuthCallback';
 import { GoogleCallback } from './components/auth/GoogleCallback';
 import { GoogleOAuthProvider } from '@react-oauth/google';
+import FloatingCalculator from './components/FloatingCalculator';
+import FloatingPomodoro from './components/FloatingPomodoro';
+import { PomodoroProvider } from './contexts/PomodoroContext';
 
 // Lazy load das páginas
 const Dashboard = lazy(() => import('./pages/Dashboard'));
@@ -36,35 +39,39 @@ function App() {
         <ThemeProvider>
           <SettingsProvider>
             <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}>
-              <Toaster 
-                position="top-right"
-                toastOptions={{
-                  duration: 3000,
-                  style: {
-                    background: '#333',
-                    color: '#fff',
-                  },
-                }}
-              />
-              <Suspense fallback={<LoadingFallback />}>
-                <Routes>
-                  <Route path="/login" element={<Login />} />
-                  <Route path="/auth/github/callback" element={<AuthCallback />} />
-                  <Route path="/auth/callback" element={<GoogleCallback />} />
-                  <Route element={<PrivateRoute />}>
-                    <Route element={<MainLayout />}>
-                      <Route path="/" element={<Dashboard />} />
-                      <Route path="/board/:id" element={<Board />} />
-                      <Route path="/page/:id" element={<Page />} />
-                      <Route path="/settings" element={<Settings />} />
-                      <Route path="/calendar" element={<CalendarPage />} />
-                      <Route path="/team" element={<TeamPage />} />
-                      <Route path="/github" element={<GithubRepos />} />
-                      <Route path="/pomodoro" element={<Pomodoro />} />
+              <PomodoroProvider>
+                <Toaster 
+                  position="top-right"
+                  toastOptions={{
+                    duration: 3000,
+                    style: {
+                      background: '#333',
+                      color: '#fff',
+                    },
+                  }}
+                />
+                <Suspense fallback={<LoadingFallback />}>
+                  <Routes>
+                    <Route path="/login" element={<Login />} />
+                    <Route path="/auth/github/callback" element={<AuthCallback />} />
+                    <Route path="/auth/callback" element={<GoogleCallback />} />
+                    <Route element={<PrivateRoute />}>
+                      <Route element={<MainLayout />}>
+                        <Route path="/" element={<Dashboard />} />
+                        <Route path="/board/:id" element={<Board />} />
+                        <Route path="/page/:id" element={<Page />} />
+                        <Route path="/settings" element={<Settings />} />
+                        <Route path="/calendar" element={<CalendarPage />} />
+                        <Route path="/team" element={<TeamPage />} />
+                        <Route path="/github" element={<GithubRepos />} />
+                        <Route path="/pomodoro" element={<Pomodoro />} />
+                      </Route>
                     </Route>
-                  </Route>
-                </Routes>
-              </Suspense>
+                  </Routes>
+                </Suspense>
+                <FloatingPomodoro />
+                <FloatingCalculator />
+              </PomodoroProvider>
             </GoogleOAuthProvider>
           </SettingsProvider>
         </ThemeProvider>

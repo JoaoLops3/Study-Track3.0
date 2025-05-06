@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ChevronLeft, Home, Github, Folder, File, Plus, PlusCircle, Settings } from 'lucide-react';
+import { Home, Github, Folder, File, Plus, PlusCircle, Settings } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 
@@ -100,9 +100,9 @@ export default function Sidebar() {
 
       <button
         onClick={toggleSidebar}
-        className="absolute top-4 -right-3 p-1 bg-white dark:bg-gray-800 rounded-full shadow-md hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+        className="absolute -right-3 top-6 flex h-6 w-6 items-center justify-center rounded-full bg-white dark:bg-gray-800 shadow-md"
       >
-        <ChevronLeft className={`w-6 h-6 transition-transform duration-200 ${isCollapsed ? 'rotate-180' : 'rotate-0'}`} />
+        <span className="sr-only">{isCollapsed ? 'Expandir' : 'Recolher'}</span>
       </button>
     </div>
   );

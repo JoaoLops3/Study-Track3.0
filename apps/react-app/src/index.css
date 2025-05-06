@@ -442,3 +442,11 @@ select {
 .nav-item-active {
   @apply text-blue-500 dark:text-blue-400;
 }
+
+.btn-calc {
+  @apply px-2 py-1 text-sm font-medium text-gray-700 dark:text-gray-200 bg-gray-100 dark:bg-gray-700 rounded hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors;
+}
+
+.btn-calc-modern {
+  @apply px-2 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 bg-white/50 dark:bg-gray-700/50 backdrop-blur-sm rounded-lg hover:bg-white/80 dark:hover:bg-gray-600/80 transition-all duration-200 shadow-sm hover:shadow-md active:scale-95;
+}

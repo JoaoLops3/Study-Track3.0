@@ -1,6 +1,6 @@
 export const GOOGLE_CALENDAR_CONFIG = {
-  apiKey: import.meta.env.VITE_GOOGLE_CALENDAR_API_KEY || '',
-  clientId: import.meta.env.VITE_GOOGLE_CALENDAR_CLIENT_ID || '',
+  apiKey: import.meta.env.VITE_GOOGLE_API_KEY || '',
+  clientId: import.meta.env.VITE_GOOGLE_CLIENT_ID || '',
   scopes: [
     'https://www.googleapis.com/auth/calendar',
     'https://www.googleapis.com/auth/calendar.events',

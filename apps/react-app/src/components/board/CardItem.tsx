@@ -29,13 +29,13 @@ const CardItem = ({ card, index, onClick }: CardItemProps) => {
     );
 
   return (
-    <Draggable draggableId={card.id} index={index}>
+    <Draggable draggableId={String(card.id)} index={index}>
       {(provided, snapshot) => (
         <div
           ref={provided.innerRef}
           {...provided.draggableProps}
           {...provided.dragHandleProps}
-          className={`mb-2 bg-white rounded shadow-sm border border-gray-200 cursor-pointer hover:shadow-md transition-shadow ${
+          className={`mb-2 bg-white dark:bg-gray-900 rounded shadow-sm border border-gray-200 dark:border-gray-700 cursor-pointer hover:shadow-md transition-shadow ${
             snapshot.isDragging ? 'shadow-md opacity-90' : ''
           }`}
           onClick={onClick}
@@ -43,7 +43,7 @@ const CardItem = ({ card, index, onClick }: CardItemProps) => {
           onMouseLeave={() => setIsHovered(false)}
         >
           <div className="p-3">
-            <h3 className="font-medium text-gray-900 mb-1">{card.title}</h3>
+            <h3 className="font-medium text-gray-900 dark:text-white mb-1">{card.title}</h3>
             
             {/* Indicators */}
             {(hasDueDate || hasTags || hasChecklist) && (

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Menu, ChevronLeft } from 'lucide-react';
+import { Menu } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useSettings } from '../../contexts/SettingsContext';
 import { UserMenu } from './UserMenu';
@@ -27,9 +27,8 @@ export const Header = ({ onMenuClick }: HeaderProps) => {
           </button>
           <button
             onClick={() => navigate(-1)}
-            className="mr-2 hidden items-center md:flex"
+            className="flex items-center"
           >
-            <ChevronLeft className="h-6 w-6" />
             <span className="sr-only">Voltar</span>
           </button>
         </div>

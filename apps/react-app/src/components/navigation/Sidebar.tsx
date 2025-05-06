@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, memo } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Home, Book, Plus, Folder, File, Settings, PlusCircle, Github, Calendar, Users, ChevronLeft, Timer, Menu } from 'lucide-react';
+import { Home, Book, Plus, Folder, File, Settings, PlusCircle, Github, Calendar, Users, Timer, Menu } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
 import { useSettings } from '../../contexts/SettingsContext';
@@ -233,9 +233,9 @@ export const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
             {/* Botão de collapse só no desktop */}
             <button
               onClick={toggleCollapse}
-              className="hidden md:block p-2 text-gray-500 dark:text-gray-400 rounded-md hover:text-gray-900 dark:hover:text-gray-300 focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all duration-300"
+              className="absolute -right-3 top-6 flex h-6 w-6 items-center justify-center rounded-full bg-white dark:bg-gray-800 shadow-md"
             >
-              <ChevronLeft className={`w-6 h-6 transition-transform duration-300 ${isCollapsed ? 'rotate-180' : ''}`} />
+              <span className="sr-only">{isCollapsed ? 'Expandir' : 'Recolher'}</span>
             </button>
             {/* Botão de fechar sidebar no mobile */}
             {isMobile && isOpen && (
@@ -243,7 +243,7 @@ export const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
                 onClick={onClose}
                 className="md:hidden p-2 ml-2 text-gray-500 dark:text-gray-400 rounded-md hover:text-gray-900 dark:hover:text-gray-300 focus:outline-none focus:ring-2 focus:ring-primary-500"
               >
-                <ChevronLeft className="w-6 h-6" />
+                <span className="sr-only">Fechar</span>
               </button>
             )}
           </div>
