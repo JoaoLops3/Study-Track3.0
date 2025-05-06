@@ -142,9 +142,17 @@ const FloatingCalculator: React.FC = () => {
       </button>
 
       {isOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-40 flex items-center justify-center p-4">
+        <div
+          ref={calculatorRef}
+          className="fixed z-50 cursor-move"
+          style={{ left: position.x, top: position.y }}
+        >
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-md p-4">
-            <div className="flex justify-between items-center mb-4">
+            <div
+              className="flex justify-between items-center mb-4 cursor-move select-none"
+              onMouseDown={handleMouseDown}
+              style={{ cursor: 'move' }}
+            >
               <h2 className="text-xl font-bold text-gray-900 dark:text-white">Calculadora</h2>
               <button
                 onClick={() => setIsOpen(false)}

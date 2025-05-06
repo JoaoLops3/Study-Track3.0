@@ -1,7 +1,7 @@
 # Study Track 3.0
 
 <div align="center">
-  <img src="apps/react-app/src/assets/logo-v1.png" alt="Study Track Logo" width="200"/>
+  <img src="apps/react-app/public/logo-v1.png" alt="Study Track Logo" width="200"/>
   
   <p>Uma plataforma moderna para gerenciar seus estudos e tarefas</p>
 </div>
@@ -28,22 +28,26 @@
 ## 🛠️ Instalação
 
 1. Clone o repositório:
+
 ```bash
 git clone https://github.com/JoaoLops3/Study-Track3.0.git
 ```
 
 2. Instale as dependências:
+
 ```bash
 cd Study-Track3.0
 npm install
 ```
 
 3. Configure as variáveis de ambiente:
+
 ```bash
 cp apps/react-app/.env.example apps/react-app/.env
 ```
 
 4. Inicie o projeto:
+
 ```bash
 npm run dev
 ```

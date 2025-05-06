@@ -309,326 +309,328 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen dark:bg-gray-900 bg-white">
-      <div className="container mx-auto px-4 py-8 dark:text-white text-gray-900">
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold dark:text-white text-gray-900">Dashboard</h1>
-          <div className="flex items-center space-x-4"></div>
-        </div>
+      <div className="ml-64">
+        <div className="container mx-auto px-4 py-8 dark:text-white text-gray-900">
+          <div className="flex justify-between items-center mb-8">
+            <h1 className="text-3xl font-bold dark:text-white text-gray-900">Dashboard</h1>
+            <div className="flex items-center space-x-4"></div>
+          </div>
 
-        {/* Barra de pesquisa e filtros */}
-        <div className="flex flex-wrap gap-4 mb-8">
-          <div className="flex-1 min-w-[300px]">
-            <div className="relative">
-              <input
-                type="text"
-                placeholder="Pesquisar..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-4 pr-9 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700 dark:text-white dark:placeholder-gray-400 bg-white border-gray-300 text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-              <span className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-search">
-                  <circle cx="11" cy="11" r="8"></circle>
-                  <path d="m21 21-4.3-4.3"></path>
-                </svg>
-              </span>
+          {/* Barra de pesquisa e filtros */}
+          <div className="flex flex-wrap gap-4 mb-8">
+            <div className="flex-1 min-w-[300px]">
+              <div className="relative">
+                <input
+                  type="text"
+                  placeholder="Pesquisar..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-4 pr-9 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700 dark:text-white dark:placeholder-gray-400 bg-white border-gray-300 text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                <span className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-search">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <path d="m21 21-4.3-4.3"></path>
+                  </svg>
+                </span>
+              </div>
             </div>
-          </div>
-          <div className="flex items-center space-x-4">
-            <button
-              onClick={() => setShowFavorites(!showFavorites)}
-              className="flex items-center space-x-2 px-3 py-2 rounded-lg border dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800 border-gray-300 hover:bg-gray-100"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-star w-5 h-5">
-                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
-              </svg>
-              <span>Favoritos</span>
-            </button>
-            <button
-              onClick={() => setViewMode(viewMode === 'grid' ? 'list' : 'grid')}
-              className="p-2 rounded-lg border dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800 border-gray-300 hover:bg-gray-100"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-list w-5 h-5">
-                <line x1="8" x2="21" y1="6" y2="6"></line>
-                <line x1="8" x2="21" y1="12" y2="12"></line>
-                <line x1="8" x2="21" y1="18" y2="18"></line>
-                <line x1="3" x2="3.01" y1="6" y2="6"></line>
-                <line x1="3" x2="3.01" y1="12" y2="12"></line>
-                <line x1="3" x2="3.01" y1="18" y2="18"></line>
-              </svg>
-            </button>
-          </div>
-        </div>
-
-        {/* Tags */}
-        {availableTags.length > 0 && (
-          <div className="flex flex-wrap gap-2 mb-8">
-            {availableTags.map(tag => (
+            <div className="flex items-center space-x-4">
               <button
-                key={tag}
-                onClick={() => setSelectedTags(prev => 
-                  prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag]
-                )}
-                className="flex items-center space-x-1 px-3 py-1 rounded-full text-sm dark:bg-gray-800 dark:text-gray-300 bg-gray-100 text-gray-700 border-gray-300"
+                onClick={() => setShowFavorites(!showFavorites)}
+                className="flex items-center space-x-2 px-3 py-2 rounded-lg border dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800 border-gray-300 hover:bg-gray-100"
               >
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-tag w-4 h-4">
-                  <path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z"></path>
-                  <circle cx="7.5" cy="7.5" r=".5" fill="currentColor"></circle>
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-star w-5 h-5">
+                  <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
                 </svg>
-                <span>{tag}</span>
+                <span>Favoritos</span>
               </button>
-            ))}
-          </div>
-        )}
-
-        {/* Boards */}
-        <div className="mb-12">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-2xl font-semibold dark:text-white text-gray-900">Boards</h2>
-            <Button
-              onClick={() => setIsCreatingBoard(true)}
-              className="flex items-center space-x-2 border border-gray-300 dark:border-gray-600"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-plus w-5 h-5">
-                <path d="M5 12h14"></path>
-                <path d="M12 5v14"></path>
-              </svg>
-              <span>Novo Board</span>
-            </Button>
-          </div>
-
-          {isCreatingBoard && (
-            <form onSubmit={createNewBoard} className={cn(
-              "mb-4 p-4 border rounded-lg",
-              settings?.theme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-300'
-            )}>
-              <input
-                type="text"
-                placeholder="Título do Board"
-                value={newBoardTitle}
-                onChange={(e) => setNewBoardTitle(e.target.value)}
-                className={cn(
-                  "w-full mb-2 p-2 border rounded",
-                  settings?.theme === 'dark'
-                    ? "bg-gray-700 border-gray-600 text-white placeholder-gray-400"
-                    : "bg-white border-gray-300 text-gray-900 placeholder-gray-500"
-                )}
-                required
-              />
-              <input
-                type="text"
-                placeholder="Tags (separadas por vírgula)"
-                value={newBoardTags}
-                onChange={(e) => setNewBoardTags(e.target.value)}
-                className={cn(
-                  "w-full mb-2 p-2 border rounded",
-                  settings?.theme === 'dark'
-                    ? "bg-gray-700 border-gray-600 text-white placeholder-gray-400"
-                    : "bg-white border-gray-300 text-gray-900 placeholder-gray-500"
-                )}
-              />
-              <div className="flex justify-end space-x-2">
-                <Button onClick={() => setIsCreatingBoard(false)} variant="outline">
-                  Cancelar
-                </Button>
-                <Button type="submit">Criar</Button>
-              </div>
-            </form>
-          )}
-
-          {isLoading ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {[1, 2, 3].map((n) => (
-                <Skeleton key={n} className="h-32" />
-              ))}
+              <button
+                onClick={() => setViewMode(viewMode === 'grid' ? 'list' : 'grid')}
+                className="p-2 rounded-lg border dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800 border-gray-300 hover:bg-gray-100"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-list w-5 h-5">
+                  <line x1="8" x2="21" y1="6" y2="6"></line>
+                  <line x1="8" x2="21" y1="12" y2="12"></line>
+                  <line x1="8" x2="21" y1="18" y2="18"></line>
+                  <line x1="3" x2="3.01" y1="6" y2="6"></line>
+                  <line x1="3" x2="3.01" y1="12" y2="12"></line>
+                  <line x1="3" x2="3.01" y1="18" y2="18"></line>
+                </svg>
+              </button>
             </div>
-          ) : filteredBoards.length > 0 ? (
-            <div className={cn(
-              viewMode === 'grid'
-                ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
-                : "space-y-4"
-            )}>
-              {filteredBoards.map((board) => (
-                <Card
-                  key={board.id}
-                  className="relative group hover:shadow-lg transition-shadow dark:bg-gray-800 dark:border-gray-700 bg-white border-gray-200"
+          </div>
+
+          {/* Tags */}
+          {availableTags.length > 0 && (
+            <div className="flex flex-wrap gap-2 mb-8">
+              {availableTags.map(tag => (
+                <button
+                  key={tag}
+                  onClick={() => setSelectedTags(prev => 
+                    prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag]
+                  )}
+                  className="flex items-center space-x-1 px-3 py-1 rounded-full text-sm dark:bg-gray-800 dark:text-gray-300 bg-gray-100 text-gray-700 border-gray-300"
                 >
-                  <button
-                    onClick={() => toggleFavorite('board', board.id, board.is_favorite)}
-                    className="absolute top-2 right-2 p-1 rounded-full dark:hover:bg-gray-700 hover:bg-gray-100"
-                  >
-                    <svg 
-                      xmlns="http://www.w3.org/2000/svg" 
-                      width="24" 
-                      height="24" 
-                      viewBox="0 0 24 24" 
-                      fill={board.is_favorite ? "currentColor" : "none"}
-                      stroke="currentColor" 
-                      strokeWidth="2" 
-                      strokeLinecap="round" 
-                      strokeLinejoin="round" 
-                      className={cn(
-                        "w-5 h-5",
-                        board.is_favorite ? "text-yellow-400" : "dark:text-gray-400 text-gray-500"
-                      )}
-                    >
-                      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
-                    </svg>
-                  </button>
-                  <div
-                    className="p-4 cursor-pointer"
-                    onClick={() => navigate(`/board/${board.id}`)}
-                  >
-                    <h3 className="text-lg font-semibold mb-2 dark:text-white text-gray-900">{board.title}</h3>
-                    {board.tags && board.tags.length > 0 && (
-                      <div className="flex flex-wrap gap-2">
-                        {board.tags.map(tag => (
-                          <span
-                            key={tag}
-                            className="px-2 py-1 rounded-full text-sm dark:bg-gray-700 dark:text-gray-300 bg-gray-100 text-gray-600"
-                          >
-                            {tag}
-                          </span>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </Card>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-tag w-4 h-4">
+                    <path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z"></path>
+                    <circle cx="7.5" cy="7.5" r=".5" fill="currentColor"></circle>
+                  </svg>
+                  <span>{tag}</span>
+                </button>
               ))}
             </div>
-          ) : (
-            <div className={cn(
-              "text-center py-8",
-              settings?.theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
-            )}>
-              Nenhum board encontrado
-            </div>
           )}
-        </div>
 
-        {/* Pages */}
-        <div>
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-2xl font-semibold dark:text-white text-gray-900">Páginas</h2>
-            <Button
-              onClick={() => setIsCreatingPage(true)}
-              className="flex items-center space-x-2 border border-gray-300 dark:border-gray-600"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-plus w-5 h-5">
-                <path d="M5 12h14"></path>
-                <path d="M12 5v14"></path>
-              </svg>
-              <span>Nova Página</span>
-            </Button>
+          {/* Boards */}
+          <div className="mb-12">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-2xl font-semibold dark:text-white text-gray-900">Boards</h2>
+              <Button
+                onClick={() => setIsCreatingBoard(true)}
+                className="flex items-center space-x-2 border border-gray-300 dark:border-gray-600"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-plus w-5 h-5">
+                  <path d="M5 12h14"></path>
+                  <path d="M12 5v14"></path>
+                </svg>
+                <span>Novo Board</span>
+              </Button>
+            </div>
+
+            {isCreatingBoard && (
+              <form onSubmit={createNewBoard} className={cn(
+                "mb-4 p-4 border rounded-lg",
+                settings?.theme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-300'
+              )}>
+                <input
+                  type="text"
+                  placeholder="Título do Board"
+                  value={newBoardTitle}
+                  onChange={(e) => setNewBoardTitle(e.target.value)}
+                  className={cn(
+                    "w-full mb-2 p-2 border rounded",
+                    settings?.theme === 'dark'
+                      ? "bg-gray-700 border-gray-600 text-white placeholder-gray-400"
+                      : "bg-white border-gray-300 text-gray-900 placeholder-gray-500"
+                  )}
+                  required
+                />
+                <input
+                  type="text"
+                  placeholder="Tags (separadas por vírgula)"
+                  value={newBoardTags}
+                  onChange={(e) => setNewBoardTags(e.target.value)}
+                  className={cn(
+                    "w-full mb-2 p-2 border rounded",
+                    settings?.theme === 'dark'
+                      ? "bg-gray-700 border-gray-600 text-white placeholder-gray-400"
+                      : "bg-white border-gray-300 text-gray-900 placeholder-gray-500"
+                  )}
+                />
+                <div className="flex justify-end space-x-2">
+                  <Button onClick={() => setIsCreatingBoard(false)} variant="outline">
+                    Cancelar
+                  </Button>
+                  <Button type="submit">Criar</Button>
+                </div>
+              </form>
+            )}
+
+            {isLoading ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {[1, 2, 3].map((n) => (
+                  <Skeleton key={n} className="h-32" />
+                ))}
+              </div>
+            ) : filteredBoards.length > 0 ? (
+              <div className={cn(
+                viewMode === 'grid'
+                  ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
+                  : "space-y-4"
+              )}>
+                {filteredBoards.map((board) => (
+                  <Card
+                    key={board.id}
+                    className="relative group hover:shadow-lg transition-shadow dark:bg-gray-800 dark:border-gray-700 bg-white border-gray-200"
+                  >
+                    <button
+                      onClick={() => toggleFavorite('board', board.id, board.is_favorite)}
+                      className="absolute top-2 right-2 p-1 rounded-full dark:hover:bg-gray-700 hover:bg-gray-100"
+                    >
+                      <svg 
+                        xmlns="http://www.w3.org/2000/svg" 
+                        width="24" 
+                        height="24" 
+                        viewBox="0 0 24 24" 
+                        fill={board.is_favorite ? "currentColor" : "none"}
+                        stroke="currentColor" 
+                        strokeWidth="2" 
+                        strokeLinecap="round" 
+                        strokeLinejoin="round" 
+                        className={cn(
+                          "w-5 h-5",
+                          board.is_favorite ? "text-yellow-400" : "dark:text-gray-400 text-gray-500"
+                        )}
+                      >
+                        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                      </svg>
+                    </button>
+                    <div
+                      className="p-4 cursor-pointer"
+                      onClick={() => navigate(`/board/${board.id}`)}
+                    >
+                      <h3 className="text-lg font-semibold mb-2 dark:text-white text-gray-900">{board.title}</h3>
+                      {board.tags && board.tags.length > 0 && (
+                        <div className="flex flex-wrap gap-2">
+                          {board.tags.map(tag => (
+                            <span
+                              key={tag}
+                              className="px-2 py-1 rounded-full text-sm dark:bg-gray-700 dark:text-gray-300 bg-gray-100 text-gray-600"
+                            >
+                              {tag}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </Card>
+                ))}
+              </div>
+            ) : (
+              <div className={cn(
+                "text-center py-8",
+                settings?.theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
+              )}>
+                Nenhum board encontrado
+              </div>
+            )}
           </div>
 
-          {isCreatingPage && (
-            <form onSubmit={createNewPage} className={cn(
-              "mb-4 p-4 border rounded-lg",
-              "dark:bg-gray-800 dark:border-gray-700 bg-white border-gray-300"
-            )}>
-              <input
-                type="text"
-                placeholder="Título da Página"
-                value={newPageTitle}
-                onChange={(e) => setNewPageTitle(e.target.value)}
-                className={cn(
-                  "w-full mb-2 p-2 border rounded",
-                  "dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400",
-                  "bg-white border-gray-300 text-gray-900 placeholder-gray-500"
-                )}
-                required
-              />
-              <input
-                type="text"
-                placeholder="Tags (separadas por vírgula)"
-                value={newPageTags}
-                onChange={(e) => setNewPageTags(e.target.value)}
-                className={cn(
-                  "w-full mb-2 p-2 border rounded",
-                  "dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400",
-                  "bg-white border-gray-300 text-gray-900 placeholder-gray-500"
-                )}
-              />
-              <div className="flex justify-end space-x-2">
-                <Button onClick={() => setIsCreatingPage(false)} variant="outline" className="dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600 dark:hover:bg-gray-600">
-                  Cancelar
-                </Button>
-                <Button type="submit" className="dark:bg-primary-600 dark:hover:bg-primary-700">
-                  Criar
-                </Button>
-              </div>
-            </form>
-          )}
+          {/* Pages */}
+          <div>
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-2xl font-semibold dark:text-white text-gray-900">Páginas</h2>
+              <Button
+                onClick={() => setIsCreatingPage(true)}
+                className="flex items-center space-x-2 border border-gray-300 dark:border-gray-600"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-plus w-5 h-5">
+                  <path d="M5 12h14"></path>
+                  <path d="M12 5v14"></path>
+                </svg>
+                <span>Nova Página</span>
+              </Button>
+            </div>
 
-          {isLoading ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {[1, 2, 3].map((n) => (
-                <Skeleton key={n} className="h-32" />
-              ))}
-            </div>
-          ) : filteredPages.length > 0 ? (
-            <div className={cn(
-              viewMode === 'grid'
-                ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
-                : "space-y-4"
-            )}>
-              {filteredPages.map((page) => (
-                <Card
-                  key={page.id}
-                  className="relative group hover:shadow-lg transition-shadow dark:bg-gray-800 dark:border-gray-700 bg-white border-gray-200"
-                >
-                  <button
-                    onClick={() => toggleFavorite('page', page.id, page.is_favorite)}
-                    className="absolute top-2 right-2 p-1 rounded-full dark:hover:bg-gray-700 hover:bg-gray-100"
+            {isCreatingPage && (
+              <form onSubmit={createNewPage} className={cn(
+                "mb-4 p-4 border rounded-lg",
+                "dark:bg-gray-800 dark:border-gray-700 bg-white border-gray-300"
+              )}>
+                <input
+                  type="text"
+                  placeholder="Título da Página"
+                  value={newPageTitle}
+                  onChange={(e) => setNewPageTitle(e.target.value)}
+                  className={cn(
+                    "w-full mb-2 p-2 border rounded",
+                    "dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400",
+                    "bg-white border-gray-300 text-gray-900 placeholder-gray-500"
+                  )}
+                  required
+                />
+                <input
+                  type="text"
+                  placeholder="Tags (separadas por vírgula)"
+                  value={newPageTags}
+                  onChange={(e) => setNewPageTags(e.target.value)}
+                  className={cn(
+                    "w-full mb-2 p-2 border rounded",
+                    "dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400",
+                    "bg-white border-gray-300 text-gray-900 placeholder-gray-500"
+                  )}
+                />
+                <div className="flex justify-end space-x-2">
+                  <Button onClick={() => setIsCreatingPage(false)} variant="outline" className="dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600 dark:hover:bg-gray-600">
+                    Cancelar
+                  </Button>
+                  <Button type="submit" className="dark:bg-primary-600 dark:hover:bg-primary-700">
+                    Criar
+                  </Button>
+                </div>
+              </form>
+            )}
+
+            {isLoading ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {[1, 2, 3].map((n) => (
+                  <Skeleton key={n} className="h-32" />
+                ))}
+              </div>
+            ) : filteredPages.length > 0 ? (
+              <div className={cn(
+                viewMode === 'grid'
+                  ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
+                  : "space-y-4"
+              )}>
+                {filteredPages.map((page) => (
+                  <Card
+                    key={page.id}
+                    className="relative group hover:shadow-lg transition-shadow dark:bg-gray-800 dark:border-gray-700 bg-white border-gray-200"
                   >
-                    <svg 
-                      xmlns="http://www.w3.org/2000/svg" 
-                      width="24" 
-                      height="24" 
-                      viewBox="0 0 24 24" 
-                      fill={page.is_favorite ? "currentColor" : "none"}
-                      stroke="currentColor" 
-                      strokeWidth="2" 
-                      strokeLinecap="round" 
-                      strokeLinejoin="round" 
-                      className={cn(
-                        "w-5 h-5",
-                        page.is_favorite ? "text-yellow-400" : "dark:text-gray-400 text-gray-500"
-                      )}
+                    <button
+                      onClick={() => toggleFavorite('page', page.id, page.is_favorite)}
+                      className="absolute top-2 right-2 p-1 rounded-full dark:hover:bg-gray-700 hover:bg-gray-100"
                     >
-                      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
-                    </svg>
-                  </button>
-                  <div
-                    className="p-4 cursor-pointer"
-                    onClick={() => navigate(`/page/${page.id}`)}
-                  >
-                    <h3 className="text-lg font-semibold mb-2 dark:text-white text-gray-900">{page.title}</h3>
-                    {page.tags && page.tags.length > 0 && (
-                      <div className="flex flex-wrap gap-2">
-                        {page.tags.map(tag => (
-                          <span
-                            key={tag}
-                            className="px-2 py-1 rounded-full text-sm dark:bg-gray-700 dark:text-gray-300 bg-gray-100 text-gray-600"
-                          >
-                            {tag}
-                          </span>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </Card>
-              ))}
-            </div>
-          ) : (
-            <div className={cn(
-              "text-center py-8",
-              settings?.theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
-            )}>
-              Nenhuma página encontrada
-            </div>
-          )}
+                      <svg 
+                        xmlns="http://www.w3.org/2000/svg" 
+                        width="24" 
+                        height="24" 
+                        viewBox="0 0 24 24" 
+                        fill={page.is_favorite ? "currentColor" : "none"}
+                        stroke="currentColor" 
+                        strokeWidth="2" 
+                        strokeLinecap="round" 
+                        strokeLinejoin="round" 
+                        className={cn(
+                          "w-5 h-5",
+                          page.is_favorite ? "text-yellow-400" : "dark:text-gray-400 text-gray-500"
+                        )}
+                      >
+                        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                      </svg>
+                    </button>
+                    <div
+                      className="p-4 cursor-pointer"
+                      onClick={() => navigate(`/page/${page.id}`)}
+                    >
+                      <h3 className="text-lg font-semibold mb-2 dark:text-white text-gray-900">{page.title}</h3>
+                      {page.tags && page.tags.length > 0 && (
+                        <div className="flex flex-wrap gap-2">
+                          {page.tags.map(tag => (
+                            <span
+                              key={tag}
+                              className="px-2 py-1 rounded-full text-sm dark:bg-gray-700 dark:text-gray-300 bg-gray-100 text-gray-600"
+                            >
+                              {tag}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </Card>
+                ))}
+              </div>
+            ) : (
+              <div className={cn(
+                "text-center py-8",
+                settings?.theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
+              )}>
+                Nenhuma página encontrada
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>
