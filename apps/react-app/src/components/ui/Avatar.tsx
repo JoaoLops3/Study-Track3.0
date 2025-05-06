@@ -37,6 +37,11 @@ export const Avatar: React.FC<AvatarProps> = ({
         setAvatarUrl(user.user_metadata.avatar_url);
         setImageError(false);
       }
+      // Se tiver picture nos metadados (caso do Google), usa ele
+      else if (user.user_metadata?.picture && isValidImageUrl(user.user_metadata.picture)) {
+        setAvatarUrl(user.user_metadata.picture);
+        setImageError(false);
+      }
       // Caso contrário, usa o avatar padrão
       else {
         setAvatarUrl(defaultAvatar);
