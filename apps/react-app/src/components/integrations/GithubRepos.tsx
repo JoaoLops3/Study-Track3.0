@@ -1,84 +1,38 @@
-import { useState, useEffect } from "react";
-import { useSettings } from "../../contexts/SettingsContext";
-import { Card, CardContent } from "../ui/card";
-import { toast } from "sonner";
+import React, { useEffect } from 'react';
+import { useSettings } from '../../contexts/SettingsContext';
 
-interface GithubRepo {
-  id: number;
-  name: string;
-  full_name: string;
-  description: string;
-  html_url: string;
-  stargazers_count: number;
-  language: string;
-}
+// Ajuste do tipo para github
+// Pode ser boolean ou objeto { accessToken: string }
+type GithubIntegrationType = boolean | { accessToken: string };
 
-interface GithubIntegration {
-  accessToken: string;
-}
-
-interface GithubReposProps {
-  // Add props if needed
-}
-
-const GithubRepos = ({}: GithubReposProps) => {
+const GithubRepos = () => {
   const { settings } = useSettings();
-  const [repos, setRepos] = useState<GithubRepo[]>([]);
-  const [loading, setLoading] = useState(false);
+  const github = settings.integrations.github as GithubIntegrationType;
 
   useEffect(() => {
     const fetchRepos = async () => {
-      const githubIntegration = settings?.integrations?.github;
-      if (
-        !githubIntegration ||
-        typeof githubIntegration !== "object" ||
-        !("accessToken" in githubIntegration)
-      )
-        return;
-      const { accessToken } = githubIntegration as GithubIntegration;
-      setLoading(true);
       try {
+        const token = typeof github === 'object' && github.accessToken ? github.accessToken : '';
         const response = await fetch("https://api.github.com/user/repos", {
           headers: {
-            Authorization: `token ${accessToken}`,
+            Authorization: `token ${token}`,
           },
         });
-
-        if (!response.ok) throw new Error("Failed to fetch repos");
-
-        const data = await response.json();
-        setRepos(data);
+        // ... existing code ...
       } catch (error) {
-        console.error("Error fetching repos:", error);
-        toast.error("Erro ao carregar repositórios");
+        // ... existing code ...
       } finally {
-        setLoading(false);
+        // ... existing code ...
       }
     };
-
-    fetchRepos();
-  }, [settings?.integrations?.github]);
-
-  if (loading) {
-    return <div>Carregando repositórios...</div>;
-  }
+    if (typeof github === 'object' && github.accessToken) {
+      fetchRepos();
+    }
+  }, [github]);
 
   return (
-    <div className="space-y-4">
-      {repos.map((repo) => (
-        <Card key={repo.id}>
-          <CardContent className="p-4">
-            <h3 className="font-medium">{repo.name}</h3>
-            <p className="text-sm text-gray-500">{repo.description}</p>
-            <div className="flex items-center mt-2 space-x-4 text-sm">
-              <span>⭐ {repo.stargazers_count}</span>
-              <span>{repo.language}</span>
-            </div>
-          </CardContent>
-        </Card>
-      ))}
-    </div>
+    // ... existing code ...
   );
 };
 
-export default GithubRepos;
+export default GithubRepos; 
