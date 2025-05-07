@@ -30,6 +30,7 @@ type Board = Database["public"]["Tables"]["boards"]["Row"];
 type Page = Database["public"]["Tables"]["pages"]["Row"];
 
 interface SidebarProps {
+  logo: React.ReactNode;
   isOpen: boolean;
   onClose: () => void;
 }
@@ -62,7 +63,7 @@ const SidebarItem = memo(
 
 SidebarItem.displayName = "SidebarItem";
 
-export const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
+export const Sidebar = ({ logo, isOpen, onClose }: SidebarProps) => {
   const { user } = useAuth();
   const { settings } = useSettings();
   const { theme, setTheme } = useTheme();
@@ -77,24 +78,20 @@ export const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
   const [newPageTitle, setNewPageTitle] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [isCollapsed, setIsCollapsed] = useState(false);
-  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
-    const handleResize = () => {
+    const checkMobile = () => {
       setIsMobile(window.innerWidth < 768);
-      if (window.innerWidth < 768) {
-        setIsCollapsed(false);
-      }
     };
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
   }, []);
 
   const toggleCollapse = () => {
     if (window.innerWidth >= 768) {
       setIsCollapsed(!isCollapsed);
-    } else {
-      onClose();
     }
   };
 
@@ -232,6 +229,8 @@ export const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
     { path: "/settings", label: "Configurações", icon: "⚙️" },
   ];
 
+  const sidebarClasses = isOpen ? "w-64" : "w-20";
+
   return (
     <>
       {/* Overlay para fechar o menu em dispositivos móveis */}
@@ -244,14 +243,7 @@ export const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
 
       {/* Sidebar */}
       <aside
-        className={`fixed top-0 left-0 h-screen w-64 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 z-30 flex flex-col transition-transform duration-300 ease-in-out ${
-          {
-            true: isOpen
-              ? "translate-x-0"
-              : "-translate-x-full md:translate-x-0",
-            false: "",
-          }[typeof isOpen === "boolean"]
-        }`}
+        className={`fixed top-0 left-0 h-screen ${sidebarClasses} bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 z-30 flex flex-col transition-transform duration-300 ease-in-out ${isOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"}`}
       >
         <div className="flex flex-col h-full">
           {/* Cabeçalho do Sidebar */}
@@ -259,7 +251,7 @@ export const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
             {/* Logo ou título pode ficar aqui se quiser */}
             <button
               onClick={onClose}
-              className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 flex items-center justify-center rounded-full bg-gray-100 dark:bg-gray-700 shadow hover:bg-red-500 hover:text-white dark:hover:bg-red-500 transition-all duration-200 text-gray-500 dark:text-gray-300"
+              className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 flex items-center justify-center rounded-full bg-gray-100 dark:bg-gray-700 shadow text-gray-500 dark:text-gray-300 transition-all duration-200 hover:bg-red-100/80 hover:text-red-600 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-red-400"
               aria-label="Fechar menu"
               style={{ outline: "none", border: "none" }}
             >

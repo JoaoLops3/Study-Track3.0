@@ -507,24 +507,14 @@ const Dashboard = () => {
             {isCreatingBoard && (
               <form
                 onSubmit={createNewBoard}
-                className={cn(
-                  "mb-4 p-4 border rounded-lg",
-                  settings?.theme === "dark"
-                    ? "bg-gray-800 border-gray-700"
-                    : "bg-white border-gray-300"
-                )}
+                className="mb-4 p-4 border rounded-lg bg-white border-gray-300 dark:bg-gray-800 dark:border-gray-700"
               >
                 <input
                   type="text"
                   placeholder="Título do Board"
                   value={newBoardTitle}
                   onChange={(e) => setNewBoardTitle(e.target.value)}
-                  className={cn(
-                    "w-full mb-2 p-2 border rounded",
-                    settings?.theme === "dark"
-                      ? "bg-gray-700 border-gray-600 text-white placeholder-gray-400"
-                      : "bg-white border-gray-300 text-gray-900 placeholder-gray-500"
-                  )}
+                  className="w-full mb-2 p-2 border rounded bg-white border-gray-300 text-gray-900 placeholder-gray-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
                   required
                 />
                 <input
@@ -532,12 +522,7 @@ const Dashboard = () => {
                   placeholder="Tags (separadas por vírgula)"
                   value={newBoardTags}
                   onChange={(e) => setNewBoardTags(e.target.value)}
-                  className={cn(
-                    "w-full mb-2 p-2 border rounded",
-                    settings?.theme === "dark"
-                      ? "bg-gray-700 border-gray-600 text-white placeholder-gray-400"
-                      : "bg-white border-gray-300 text-gray-900 placeholder-gray-500"
-                  )}
+                  className="w-full mb-2 p-2 border rounded bg-white border-gray-300 text-gray-900 placeholder-gray-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
                 />
                 <div className="flex justify-end space-x-2">
                   <Button
@@ -663,21 +648,14 @@ const Dashboard = () => {
             {isCreatingPage && (
               <form
                 onSubmit={createNewPage}
-                className={cn(
-                  "mb-4 p-4 border rounded-lg",
-                  "dark:bg-gray-800 dark:border-gray-700 bg-white border-gray-300"
-                )}
+                className="mb-4 p-4 border rounded-lg bg-white border-gray-300 dark:bg-gray-800 dark:border-gray-700"
               >
                 <input
                   type="text"
                   placeholder="Título da Página"
                   value={newPageTitle}
                   onChange={(e) => setNewPageTitle(e.target.value)}
-                  className={cn(
-                    "w-full mb-2 p-2 border rounded",
-                    "dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400",
-                    "bg-white border-gray-300 text-gray-900 placeholder-gray-500"
-                  )}
+                  className="w-full mb-2 p-2 border rounded bg-white border-gray-300 text-gray-900 placeholder-gray-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
                   required
                 />
                 <input
@@ -685,11 +663,7 @@ const Dashboard = () => {
                   placeholder="Tags (separadas por vírgula)"
                   value={newPageTags}
                   onChange={(e) => setNewPageTags(e.target.value)}
-                  className={cn(
-                    "w-full mb-2 p-2 border rounded",
-                    "dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400",
-                    "bg-white border-gray-300 text-gray-900 placeholder-gray-500"
-                  )}
+                  className="w-full mb-2 p-2 border rounded bg-white border-gray-300 text-gray-900 placeholder-gray-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
                 />
                 <div className="flex justify-end space-x-2">
                   <Button

@@ -38,6 +38,70 @@ export interface Database {
           updated_at?: string | null
         }
       }
+      columns: {
+        Row: {
+          id: string
+          title: string
+          board_id: string
+          order: number
+          created_at: string
+          updated_at: string | null
+        }
+        Insert: {
+          id?: string
+          title: string
+          board_id: string
+          order: number
+          created_at?: string
+          updated_at?: string | null
+        }
+        Update: {
+          id?: string
+          title?: string
+          board_id?: string
+          order?: number
+          created_at?: string
+          updated_at?: string | null
+        }
+      }
+      cards: {
+        Row: {
+          id: string
+          title: string
+          description?: string
+          column_id: string
+          position: number
+          due_date?: string
+          tags?: string[]
+          content?: any
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          title: string
+          description?: string
+          column_id: string
+          position: number
+          due_date?: string
+          tags?: string[]
+          content?: any
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          title?: string
+          description?: string
+          column_id?: string
+          position?: number
+          due_date?: string
+          tags?: string[]
+          content?: any
+          created_at?: string
+          updated_at?: string
+        }
+      }
       pages: {
         Row: {
           id: string

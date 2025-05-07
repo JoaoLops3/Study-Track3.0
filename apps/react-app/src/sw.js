@@ -52,7 +52,9 @@ self.addEventListener('fetch', (event) => {
 
             caches.open(CACHE_NAME)
               .then((cache) => {
-                cache.put(event.request, responseToCache);
+                if (event.request.method === 'GET') {
+                  cache.put(event.request, responseToCache);
+                }
               });
 
             return response;

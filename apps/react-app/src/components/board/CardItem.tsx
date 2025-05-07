@@ -3,14 +3,7 @@ import { Draggable } from "react-beautiful-dnd";
 import { Calendar, Tag, CheckSquare } from "lucide-react";
 import type { Database } from "../../lib/database.types";
 
-interface Card {
-  id: string;
-  title: string;
-  description?: string;
-  created_at?: string;
-  updated_at?: string;
-  // Adicione outros campos conforme necessário
-}
+type Card = Database["public"]["Tables"]["cards"]["Row"];
 
 interface CardItemProps {
   card: Card;
@@ -72,7 +65,7 @@ const CardItem = ({ card, index, onClick }: CardItemProps) => {
                 {hasTags && (
                   <div className="flex items-center px-2 py-0.5 text-xs rounded bg-purple-50 text-purple-700">
                     <Tag className="w-3 h-3 mr-1" />
-                    {(card.tags as string[]).length}
+                    {card.tags!.length}
                   </div>
                 )}
 

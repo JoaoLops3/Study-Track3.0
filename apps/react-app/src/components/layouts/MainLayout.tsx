@@ -23,6 +23,7 @@ const MainLayout = () => {
       <div className="flex">
         {isSidebarOpen && (
           <Sidebar
+            logo={<span>Study Track</span>}
             isOpen={isSidebarOpen}
             onClose={() => setIsSidebarOpen(false)}
           />

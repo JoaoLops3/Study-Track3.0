@@ -51,20 +51,24 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [hasTimeout, setHasTimeout] = useState(false);
 
   const checkGoogleConnectionStatus = async (session: Session | null) => {
-    if (!session?.user) {
-      setGoogleConnected(false);
-      return;
-    }
+    if (!session) return false;
 
     try {
-      const { isConnected } = await checkGoogleConnection();
-      setGoogleConnected(isConnected);
-    } catch (error) {
-      console.error(
-        "AuthProvider: Erro ao verificar conexão com Google:",
-        error
+      const { data, error } = await supabase
+        .from("user_settings")
+        .select("settings")
+        .eq("user_id", session.user.id)
+        .single();
+
+      if (error) throw error;
+
+      return (
+        data?.settings?.integrations?.google?.accessToken !== undefined &&
+        data?.settings?.integrations?.google?.refreshToken !== undefined
       );
-      setGoogleConnected(false);
+    } catch (error) {
+      console.error("Error checking Google connection:", error);
+      return false;
     }
   };
 

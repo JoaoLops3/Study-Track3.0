@@ -6,31 +6,30 @@ import { useAuth } from "../contexts/AuthContext";
 import type { Database } from "../lib/database.types";
 import { useSettings } from "../contexts/SettingsContext";
 
-type Integration = Database["public"]["Tables"]["integrations"]["Row"];
+type Integration = Database["public"]["Tables"]["user_integrations"]["Row"];
 
-export function Integrations() {
+interface IntegrationProps {
+  // Add props if needed
+}
+
+const Integrations = ({}: IntegrationProps) => {
+  const { user } = useAuth();
+  const { settings, updateSettings } = useSettings();
+  const [loading, setLoading] = useState(false);
   const [integrations, setIntegrations] = useState<Integration[]>([]);
-  const [loading, setLoading] = useState(true);
-  const { user, loading: authLoading } = useAuth();
-  const { settings } = useSettings();
 
   useEffect(() => {
-    console.log("Integrations: useEffect triggered", { authLoading, user });
-    if (!authLoading) {
-      if (user) {
-        console.log(
-          "Integrations: Iniciando integrações para usuário:",
-          user.id
-        );
-        initializeIntegrations();
-      } else {
-        console.log(
-          "Integrations: Usuário não autenticado, finalizando carregamento"
-        );
-        setLoading(false);
-      }
+    console.log("Integrations: useEffect triggered", { user });
+    if (user) {
+      console.log("Integrations: Iniciando integrações para usuário:", user.id);
+      initializeIntegrations();
+    } else {
+      console.log(
+        "Integrations: Usuário não autenticado, finalizando carregamento"
+      );
+      setLoading(false);
     }
-  }, [user, authLoading]);
+  }, [user]);
 
   const initializeIntegrations = async () => {
     console.log("Integrations: Iniciando initializeIntegrations");
@@ -99,12 +98,11 @@ export function Integrations() {
 
   console.log("Integrations: Renderizando componente:", {
     loading,
-    authLoading,
     user,
     integrations,
   });
 
-  if (loading || authLoading) {
+  if (loading) {
     return <div>Carregando...</div>;
   }
 
@@ -131,7 +129,7 @@ export function Integrations() {
                 <div>
                   <h3 className="font-medium">{integration.provider}</h3>
                   <p className="text-sm text-gray-500">
-                    {integration.enabled ? "Ativado" : "Desativado"}
+                    {integration.provider}
                   </p>
                 </div>
                 <button
@@ -147,4 +145,6 @@ export function Integrations() {
       </CardContent>
     </Card>
   );
-}
+};
+
+export default Integrations;

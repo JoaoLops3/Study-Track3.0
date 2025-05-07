@@ -23,20 +23,8 @@ import { supabase } from "../../lib/supabase";
 import RichTextEditor from "../editor/RichTextEditor";
 import type { Database } from "../../lib/database.types";
 
-interface Card {
-  id: string;
-  title: string;
-  description?: string;
-  created_at?: string;
-  updated_at?: string;
-}
-
-interface Column {
-  id: string;
-  title: string;
-  created_at?: string;
-  updated_at?: string;
-}
+type Card = Database["public"]["Tables"]["cards"]["Row"];
+type Column = Database["public"]["Tables"]["columns"]["Row"];
 
 interface CardModalProps {
   card: Card;
@@ -56,7 +44,7 @@ const CardModal = ({
   const [title, setTitle] = useState(card.title);
   const [editingTitle, setEditingTitle] = useState(false);
   const [content, setContent] = useState(card.description || "");
-  const [dueDate, setDueDate] = useState<string | null>(card.updated_at);
+  const [dueDate, setDueDate] = useState<string | null>(card.due_date || null);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [tags, setTags] = useState<string[]>(card.tags || []);
   const [newTag, setNewTag] = useState("");

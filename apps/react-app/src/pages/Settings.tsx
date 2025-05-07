@@ -23,7 +23,7 @@ import {
 import { supabase } from "../lib/supabase";
 import toast from "react-hot-toast";
 import heic2any from "heic2any";
-import { Integrations } from "../components/Integrations";
+import Integrations from "../components/Integrations";
 import { useFontSize } from "../hooks/useFontSize";
 import { useSettings } from "../contexts/SettingsContext";
 import GithubIntegration from "../components/integrations/GithubIntegration";
