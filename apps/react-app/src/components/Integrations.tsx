@@ -4,6 +4,7 @@ import { Card, CardContent } from "./ui/card";
 import { toast } from "sonner";
 import { useAuth } from "../contexts/AuthContext";
 import type { Database } from "../lib/database.types";
+import { useSettings } from "../contexts/SettingsContext";
 
 type Integration = Database["public"]["Tables"]["integrations"]["Row"];
 
@@ -11,6 +12,7 @@ export function Integrations() {
   const [integrations, setIntegrations] = useState<Integration[]>([]);
   const [loading, setLoading] = useState(true);
   const { user, loading: authLoading } = useAuth();
+  const { settings } = useSettings();
 
   useEffect(() => {
     console.log("Integrations: useEffect triggered", { authLoading, user });

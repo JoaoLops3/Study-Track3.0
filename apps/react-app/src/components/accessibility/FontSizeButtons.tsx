@@ -1,11 +1,12 @@
-import { useFontSize } from '../hooks/useFontSize';
+// import { useFontSize } from '../hooks/useFontSize';
+// TODO: Implemente o hook useFontSize ou ajuste o caminho se necessário.
 
 export function FontSizeButtons() {
-  const { fontSize, setFontSize } = useFontSize();
+  // const { fontSize, setFontSize } = useFontSize();
 
   const handleFontSizeChange = (size: 'small' | 'medium' | 'large') => {
     console.log('Mudando tamanho da fonte para:', size);
-    setFontSize(size);
+    // setFontSize(size);
   };
 
   return (
@@ -14,8 +15,8 @@ export function FontSizeButtons() {
         type="button"
         onClick={() => handleFontSizeChange('small')}
         className={`flex flex-col items-center justify-center p-4 rounded-lg border transition-all ${
-          fontSize === 'small'
-            ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20'
+          // fontSize === 'small'
+            'border-primary-500 bg-primary-50 dark:bg-primary-900/20'
             : 'border-gray-200 dark:border-gray-700 hover:border-primary-300 dark:hover:border-primary-700'
         }`}
         aria-label="Tamanho de fonte pequeno"
@@ -30,8 +31,8 @@ export function FontSizeButtons() {
         type="button"
         onClick={() => handleFontSizeChange('medium')}
         className={`flex flex-col items-center justify-center p-4 rounded-lg border transition-all ${
-          fontSize === 'medium'
-            ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20'
+          // fontSize === 'medium'
+            'border-primary-500 bg-primary-50 dark:bg-primary-900/20'
             : 'border-gray-200 dark:border-gray-700 hover:border-primary-300 dark:hover:border-primary-700'
         }`}
         aria-label="Tamanho de fonte médio"
@@ -46,8 +47,8 @@ export function FontSizeButtons() {
         type="button"
         onClick={() => handleFontSizeChange('large')}
         className={`flex flex-col items-center justify-center p-4 rounded-lg border transition-all ${
-          fontSize === 'large'
-            ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20'
+          // fontSize === 'large'
+            'border-primary-500 bg-primary-50 dark:bg-primary-900/20'
             : 'border-gray-200 dark:border-gray-700 hover:border-primary-300 dark:hover:border-primary-700'
         }`}
         aria-label="Tamanho de fonte grande"

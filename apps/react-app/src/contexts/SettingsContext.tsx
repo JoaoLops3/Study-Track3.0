@@ -50,6 +50,8 @@ export interface Settings {
 }
 
 const defaultSettings: Settings = {
+  theme: "system",
+  fontSize: "medium",
   profile: {
     name: "",
     email: "",

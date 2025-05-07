@@ -1,7 +1,7 @@
-import { Menu } from 'lucide-react';
-import { useAuth } from '../../contexts/AuthContext';
-import { useTheme } from '../../contexts/ThemeContext';
-import BotaoTema from '../BotaoTema';
+import { Menu } from "lucide-react";
+import { useAuth } from "../../contexts/AuthContext";
+import { useTheme } from "../../contexts/ThemeContext";
+import BotaoTema from "../BotaoTema";
 
 interface HeaderProps {
   onMenuClick: () => void;

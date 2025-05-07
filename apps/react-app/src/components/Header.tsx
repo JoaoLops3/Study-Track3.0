@@ -1,6 +1,6 @@
-import { useAuth } from '../contexts/AuthContext';
-import { useTheme } from '../contexts/ThemeContext';
-import { Sun, Moon, LogOut } from 'lucide-react';
+import { useAuth } from "../contexts/AuthContext";
+import { useTheme } from "../contexts/ThemeContext";
+import { Sun, Moon, LogOut } from "lucide-react";
 
 interface HeaderProps {
   logo: string;
@@ -23,7 +23,7 @@ export function Header({ logo }: HeaderProps) {
               onClick={toggleTheme}
               className="p-2 rounded-md text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white focus:outline-none"
             >
-              {theme === 'dark' ? (
+              {theme === "dark" ? (
                 <Sun className="h-5 w-5" />
               ) : (
                 <Moon className="h-5 w-5" />
@@ -44,4 +44,4 @@ export function Header({ logo }: HeaderProps) {
       </div>
     </header>
   );
-} 
+}

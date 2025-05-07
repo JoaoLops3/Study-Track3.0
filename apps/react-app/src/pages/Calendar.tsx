@@ -1,14 +1,14 @@
-import { useState, useMemo } from 'react';
-import Calendar from 'react-calendar';
-import 'react-calendar/dist/Calendar.css';
-import '../styles/calendar.css';
-import { useTheme } from '../contexts/ThemeContext';
-import { useGoogleCalendar } from '../hooks/useGoogleCalendar';
-import { GoogleOAuthProvider } from '@react-oauth/google';
-import { GOOGLE_CALENDAR_CONFIG } from '../lib/googleCalendar/config';
-import { format, isSameDay, parseISO } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
-import { MapPin, Clock, Calendar as CalendarIcon } from 'lucide-react';
+import { useState, useMemo } from "react";
+import Calendar from "react-calendar";
+import "react-calendar/dist/Calendar.css";
+import "../styles/calendar.css";
+import { useTheme } from "../contexts/ThemeContext";
+import { useGoogleCalendar } from "../hooks/useGoogleCalendar";
+import { GoogleOAuthProvider } from "@react-oauth/google";
+import { GOOGLE_CALENDAR_CONFIG } from "../lib/googleCalendar/config";
+import { format, isSameDay, parseISO } from "date-fns";
+import { ptBR } from "date-fns/locale";
+import { MapPin, Clock, Calendar as CalendarIcon } from "lucide-react";
 
 const CalendarPage = () => {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
@@ -23,8 +23,8 @@ const CalendarPage = () => {
 
   // Função para verificar se uma data tem eventos
   const hasEvents = (date: Date) => {
-    return events.some(event => {
-      const eventDate = event.start.dateTime 
+    return events.some((event) => {
+      const eventDate = event.start.dateTime
         ? parseISO(event.start.dateTime)
         : parseISO(event.start.date);
       return isSameDay(eventDate, date);
@@ -33,8 +33,8 @@ const CalendarPage = () => {
 
   // Função para obter os eventos de uma data específica
   const getEventsForDate = (date: Date) => {
-    return events.filter(event => {
-      const eventDate = event.start.dateTime 
+    return events.filter((event) => {
+      const eventDate = event.start.dateTime
         ? parseISO(event.start.dateTime)
         : parseISO(event.start.date);
       return isSameDay(eventDate, date);
@@ -44,20 +44,21 @@ const CalendarPage = () => {
   // Estilização do calendário baseada no tema
   const calendarClassName = useMemo(() => {
     // Remover classes utilitárias Tailwind conflitantes
-    return theme === 'dark'
-      ? 'calendar-dark react-calendar mb-6 w-full'
-      : 'calendar-light react-calendar mb-6 w-full';
+    return theme === "dark"
+      ? "calendar-dark react-calendar mb-6 w-full"
+      : "calendar-light react-calendar mb-6 w-full";
   }, [theme]);
 
   // Estilização dos dias do calendário
   const tileClassName = ({ date }: { date: Date }) => {
-    const baseClasses = theme === 'dark'
-      ? 'dark:!bg-gray-800 dark:!text-gray-100 dark:hover:!bg-gray-700'
-      : '!bg-white !text-gray-900 hover:!bg-gray-100';
-    
+    const baseClasses =
+      theme === "dark"
+        ? "dark:!bg-gray-800 dark:!text-gray-100 dark:hover:!bg-gray-700"
+        : "!bg-white !text-gray-900 hover:!bg-gray-100";
+
     const hasEventClass = hasEvents(date)
-      ? 'react-calendar__tile--hasEvent'
-      : '';
+      ? "react-calendar__tile--hasEvent"
+      : "";
 
     return `${baseClasses} ${hasEventClass}`;
   };
@@ -69,14 +70,14 @@ const CalendarPage = () => {
       const end = parseISO(event.end.dateTime);
       return {
         date: format(start, "dd 'de' MMMM 'de' yyyy", { locale: ptBR }),
-        time: `${format(start, 'HH:mm')} - ${format(end, 'HH:mm')}`
+        time: `${format(start, "HH:mm")} - ${format(end, "HH:mm")}`,
       };
     } else {
       const start = parseISO(event.start.date);
       const end = parseISO(event.end.date);
       return {
         date: format(start, "dd 'de' MMMM 'de' yyyy", { locale: ptBR }),
-        time: 'Dia inteiro'
+        time: "Dia inteiro",
       };
     }
   };
@@ -99,34 +100,37 @@ const CalendarPage = () => {
           className={calendarClassName}
           tileClassName={tileClassName}
           locale="pt-BR"
-          formatDay={(locale, date) => format(date, 'd', { locale: ptBR })}
+          formatDay={(locale, date) => format(date, "d", { locale: ptBR })}
         />
-        
+
         <div className="space-y-4 mt-8">
           <button
             onClick={() => login()}
             className={`px-4 py-2 rounded transition-colors ${
               isConnected
-                ? 'bg-green-600 text-white hover:bg-green-700 cursor-default' 
-                : 'bg-blue-600 text-white hover:bg-blue-700'
+                ? "bg-green-600 text-white hover:bg-green-700 cursor-default"
+                : "bg-blue-600 text-white hover:bg-blue-700"
             }`}
             disabled={isConnected}
           >
-            {isConnected ? 'Conectado com Google' : 'Conectar com Google'}
+            {isConnected ? "Conectado com Google" : "Conectar com Google"}
           </button>
 
           {isLoading && (
-            <p className="text-gray-600 dark:text-gray-300">Carregando eventos...</p>
+            <p className="text-gray-600 dark:text-gray-300">
+              Carregando eventos...
+            </p>
           )}
 
-          {error && (
-            <p className="text-red-500">{error}</p>
-          )}
+          {error && <p className="text-red-500">{error}</p>}
 
           {events.length > 0 && (
             <div className="mt-6">
               <h2 className="text-xl font-semibold mb-4">
-                Eventos para {format(selectedDate, "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
+                Eventos para{" "}
+                {format(selectedDate, "dd 'de' MMMM 'de' yyyy", {
+                  locale: ptBR,
+                })}
               </h2>
               <ul className="event-list">
                 {getEventsForDate(selectedDate).map((event) => {
@@ -172,4 +176,4 @@ const CalendarPage = () => {
   );
 };
 
-export default CalendarPage; 
+export default CalendarPage;

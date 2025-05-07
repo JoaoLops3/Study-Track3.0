@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
-import { Github, Star, GitBranch, Eye } from 'lucide-react';
-import { useSettings } from '../../contexts/SettingsContext';
+import { useState, useEffect } from "react";
+import { Github, Star, GitBranch, Eye } from "lucide-react";
+import { useSettings } from "../../contexts/SettingsContext";
 
 interface Repository {
   name: string;
@@ -20,26 +20,29 @@ const GithubRepos = () => {
   useEffect(() => {
     const fetchRepos = async () => {
       try {
-        const response = await fetch('https://api.github.com/user/repos', {
+        const response = await fetch("https://api.github.com/user/repos", {
           headers: {
-            Authorization: `token ${settings?.integrations?.github?.accessToken}`,
+            Authorization: `token ${typeof settings.integrations.github === "object" && settings.integrations.github.accessToken ? settings.integrations.github.accessToken : ""}`,
           },
         });
 
         if (!response.ok) {
-          throw new Error('Erro ao buscar repositórios');
+          throw new Error("Erro ao buscar repositórios");
         }
 
         const data = await response.json();
         setRepos(data);
       } catch (error) {
-        console.error('Erro ao buscar repositórios:', error);
+        console.error("Erro ao buscar repositórios:", error);
       } finally {
         setIsLoading(false);
       }
     };
 
-    if (settings?.integrations?.github?.accessToken) {
+    if (
+      typeof settings.integrations.github === "object" &&
+      settings.integrations.github.accessToken
+    ) {
       fetchRepos();
     }
   }, [settings?.integrations?.github?.accessToken]);
@@ -48,7 +51,9 @@ const GithubRepos = () => {
     return (
       <div className="flex items-center justify-center p-4">
         <div className="w-6 h-6 border-t-2 border-primary-600 rounded-full animate-spin"></div>
-        <span className="ml-2 text-gray-600 dark:text-gray-400">Carregando repositórios...</span>
+        <span className="ml-2 text-gray-600 dark:text-gray-400">
+          Carregando repositórios...
+        </span>
       </div>
     );
   }
@@ -56,7 +61,9 @@ const GithubRepos = () => {
   if (!repos.length) {
     return (
       <div className="text-center py-4">
-        <p className="text-gray-600 dark:text-gray-400">Nenhum repositório encontrado.</p>
+        <p className="text-gray-600 dark:text-gray-400">
+          Nenhum repositório encontrado.
+        </p>
       </div>
     );
   }
@@ -66,7 +73,7 @@ const GithubRepos = () => {
       <h3 className="text-lg font-medium text-gray-900 dark:text-white">
         Seus Repositórios
       </h3>
-      
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {repos.map((repo) => (
           <a
@@ -86,7 +93,7 @@ const GithubRepos = () => {
                 </span>
               )}
             </div>
-            
+
             {repo.description && (
               <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
                 {repo.description}
@@ -114,4 +121,4 @@ const GithubRepos = () => {
   );
 };
 
-export default GithubRepos; 
+export default GithubRepos;
