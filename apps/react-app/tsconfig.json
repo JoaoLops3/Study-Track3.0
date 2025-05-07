@@ -12,8 +12,8 @@
     "noEmit": true,
     "jsx": "react-jsx",
     "strict": true,
-    "noUnusedLocals": false,
-    "noUnusedParameters": false,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
     "allowJs": true,
     "esModuleInterop": true,
@@ -21,16 +21,7 @@
     "forceConsistentCasingInFileNames": true,
     "baseUrl": ".",
     "paths": {
-      "@/*": ["src/*"],
-      "@components/*": ["src/components/*"],
-      "@pages/*": ["src/pages/*"],
-      "@hooks/*": ["src/hooks/*"],
-      "@contexts/*": ["src/contexts/*"],
-      "@utils/*": ["src/utils/*"],
-      "@styles/*": ["src/styles/*"],
-      "@types/*": ["src/types/*"],
-      "@assets/*": ["src/assets/*"],
-      "@lib/*": ["src/lib/*"]
+      "@/*": ["src/*"]
     },
     "types": ["vite/client", "node", "jest"]
   },
