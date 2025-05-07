@@ -21,19 +21,30 @@ export default function Sidebar() {
     <div
       className={`flex flex-col h-full transition-all duration-200 ${isCollapsed ? "w-16" : "w-64"}`}
     >
-      <div className="flex items-center justify-center p-4 border-b dark:border-gray-700 cursor-pointer">
-        <img
-          src="/logo-v1.png"
-          alt="Study Track Logo"
-          width={32}
-          height={32}
-          className="mr-2"
-        />
-        {!isCollapsed && (
-          <h2 className="text-xl font-bold text-gray-900 dark:text-white">
-            Study Track
-          </h2>
-        )}
+      <div className="flex items-center justify-between p-4 border-b dark:border-gray-700">
+        <div className="flex items-center">
+          <img
+            src="/logo-v1.png"
+            alt="Study Track Logo"
+            width={32}
+            height={32}
+            className="mr-2"
+          />
+          {!isCollapsed && (
+            <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+              Study Track
+            </h2>
+          )}
+        </div>
+        <button
+          onClick={toggleSidebar}
+          className="flex h-6 w-6 items-center justify-center rounded-full bg-white dark:bg-gray-800 shadow-md"
+        >
+          <span className="sr-only">
+            {isCollapsed ? "Expandir" : "Recolher"}
+          </span>
+          {/* Ícone pode ser adicionado aqui se desejar */}
+        </button>
       </div>
 
       <nav className="flex-1 px-4 mt-4 overflow-y-auto">
@@ -158,13 +169,6 @@ export default function Sidebar() {
           {!isCollapsed && <span>Settings</span>}
         </button>
       </div>
-
-      <button
-        onClick={toggleSidebar}
-        className="absolute -right-3 top-6 flex h-6 w-6 items-center justify-center rounded-full bg-white dark:bg-gray-800 shadow-md"
-      >
-        <span className="sr-only">{isCollapsed ? "Expandir" : "Recolher"}</span>
-      </button>
     </div>
   );
 }
