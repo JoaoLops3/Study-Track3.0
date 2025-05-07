@@ -7,22 +7,29 @@ interface UseLazyImageProps {
   maxRetries?: number;
 }
 
-// Cache para armazenar imagens já carregadas
+interface UseLazyImageReturn {
+  src: string;
+  isLoaded: boolean;
+  error: Error | null;
+  retry: () => void;
+}
+
+// Cache global para imagens
 const imageCache = new Map<string, string>();
 
-export function useLazyImage({ 
-  src, 
-  placeholder, 
+export function useLazyImage({
+  src,
+  placeholder,
   threshold = 0.1,
-  maxRetries = 3 
-}: UseLazyImageProps) {
-  const [isLoaded, setIsLoaded] = useState(false);
+  maxRetries = 3
+}: UseLazyImageProps): UseLazyImageReturn {
+  const [currentSrc, setCurrentSrc] = useState<string>(placeholder || src);
+  const [isLoaded, setIsLoaded] = useState<boolean>(false);
   const [error, setError] = useState<Error | null>(null);
-  const [currentSrc, setCurrentSrc] = useState(placeholder || src);
   const [retryCount, setRetryCount] = useState(0);
 
-  useEffect(() => {
-    // Se a imagem já estiver em cache, use-a imediatamente
+  const loadImage = () => {
+    // Se a imagem já está no cache, use-a
     if (imageCache.has(src)) {
       setCurrentSrc(imageCache.get(src)!);
       setIsLoaded(true);
@@ -30,69 +37,77 @@ export function useLazyImage({
     }
 
     const img = new Image();
-    let isMounted = true;
 
-    const loadImage = (url: string) => {
-      return new Promise((resolve, reject) => {
-        img.onload = () => resolve(true);
-        img.onerror = (e) => reject(e);
-        img.src = url;
-      });
+    img.onload = () => {
+      imageCache.set(src, src);
+      setCurrentSrc(src);
+      setIsLoaded(true);
+      setError(null);
     };
 
-    const observer = new IntersectionObserver(
-      async (entries) => {
-        entries.forEach(async (entry) => {
-          if (entry.isIntersecting) {
-            try {
-              // Adiciona um timestamp para evitar cache do navegador
-              const timestamp = Date.now();
-              const urlWithTimestamp = `${src}${src.includes('?') ? '&' : '?'}_t=${timestamp}`;
-              
-              await loadImage(urlWithTimestamp);
-              
-              if (isMounted) {
-                imageCache.set(src, src);
-                setCurrentSrc(src);
-                setIsLoaded(true);
-                setError(null);
-                setRetryCount(0);
-              }
-            } catch (e) {
-              if (isMounted) {
-                console.error('Erro ao carregar imagem:', e);
-                
-                if (retryCount < maxRetries) {
-                  // Tenta novamente com um delay exponencial
-                  const delay = Math.pow(2, retryCount) * 1000;
-                  setTimeout(() => {
-                    setRetryCount(prev => prev + 1);
-                  }, delay);
-                } else {
-                  setError(new Error('Falha ao carregar imagem após várias tentativas'));
-                  if (placeholder) {
-                    setCurrentSrc(placeholder);
-                  }
-                }
-              }
-            }
-            observer.unobserve(entry.target);
-          }
-        });
-      },
-      { threshold }
-    );
+    img.onerror = () => {
+      if (retryCount < maxRetries) {
+        setTimeout(() => {
+          setRetryCount(prev => prev + 1);
+          loadImage();
+        }, 1000 * (retryCount + 1));
+      } else {
+        setError(new Error(`Failed to load image after ${maxRetries} retries`));
+      }
+    };
 
-    const element = document.querySelector(`img[data-src="${src}"]`);
-    if (element) {
-      observer.observe(element);
+    img.src = src;
+  };
+
+  useEffect(() => {
+    setIsLoaded(false);
+    setError(null);
+    setRetryCount(0);
+
+    if (!src) {
+      setError(new Error('No source provided'));
+      return;
     }
 
-    return () => {
-      isMounted = false;
-      observer.disconnect();
-    };
-  }, [src, placeholder, threshold, retryCount, maxRetries]);
+    // Verifica se o navegador suporta Intersection Observer
+    if ('IntersectionObserver' in window) {
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              loadImage();
+              observer.disconnect();
+            }
+          });
+        },
+        { threshold }
+      );
 
-  return { src: currentSrc, isLoaded, error };
+      // Cria um elemento temporário para observar
+      const element = document.createElement('div');
+      observer.observe(element);
+
+      return () => {
+        observer.disconnect();
+      };
+    } else {
+      // Fallback para navegadores que não suportam Intersection Observer
+      loadImage();
+    }
+  }, [src]);
+
+  const retry = () => {
+    if (error) {
+      setRetryCount(0);
+      setError(null);
+      loadImage();
+    }
+  };
+
+  return {
+    src: currentSrc,
+    isLoaded,
+    error,
+    retry
+  };
 } 

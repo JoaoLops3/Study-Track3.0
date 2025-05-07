@@ -1,9 +1,15 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { supabase } from '../lib/supabase';
+import {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  ReactNode,
+} from "react";
+import { supabase } from "../lib/supabase";
 
 export interface Settings {
-  theme: 'light' | 'dark' | 'system';
-  fontSize: 'small' | 'medium' | 'large';
+  theme: "light" | "dark" | "system";
+  fontSize: "small" | "medium" | "large";
   integrations: {
     github: boolean;
     google: boolean;
@@ -18,11 +24,11 @@ export interface Settings {
     avatar?: string;
   };
   appearance: {
-    theme: 'light' | 'dark' | 'system';
-    fontSize: 'small' | 'medium' | 'large';
+    theme: "light" | "dark" | "system";
+    fontSize: "small" | "medium" | "large";
   };
   privacy: {
-    profileVisibility: 'public' | 'private';
+    profileVisibility: "public" | "private";
     dataSharing: boolean;
   };
   security: {
@@ -45,19 +51,19 @@ export interface Settings {
 
 const defaultSettings: Settings = {
   profile: {
-    name: '',
-    email: '',
+    name: "",
+    email: "",
   },
   appearance: {
-    theme: 'system',
-    fontSize: 'medium',
+    theme: "system",
+    fontSize: "medium",
   },
   notifications: {
     email: true,
     push: true,
   },
   privacy: {
-    profileVisibility: 'private',
+    profileVisibility: "private",
     dataSharing: false,
   },
   security: {
@@ -65,8 +71,8 @@ const defaultSettings: Settings = {
     loginAlerts: true,
   },
   preferences: {
-    language: 'pt-BR',
-    timezone: 'America/Sao_Paulo',
+    language: "pt-BR",
+    timezone: "America/Sao_Paulo",
   },
   integrations: {
     github: false,
@@ -88,12 +94,14 @@ interface SettingsContextType {
   updateSettings: (newSettings: Partial<Settings>) => Promise<void>;
 }
 
-const SettingsContext = createContext<SettingsContextType | undefined>(undefined);
+const SettingsContext = createContext<SettingsContextType | undefined>(
+  undefined
+);
 
 export function useSettings() {
   const context = useContext(SettingsContext);
   if (context === undefined) {
-    throw new Error('useSettings deve ser usado dentro de um SettingsProvider');
+    throw new Error("useSettings deve ser usado dentro de um SettingsProvider");
   }
   return context;
 }
@@ -105,47 +113,52 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     async function loadSettings() {
       try {
-        const { data: { user } } = await supabase.auth.getUser();
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
         if (!user) {
-          console.log('Usuário não autenticado');
+          console.log("Usuário não autenticado");
           return;
         }
 
         // Buscar configurações existentes
         const { data: existingSettings, error: fetchError } = await supabase
-          .from('user_settings')
-          .select('settings')
-          .eq('user_id', user.id)
+          .from("user_settings")
+          .select("settings")
+          .eq("user_id", user.id)
           .limit(1)
           .single();
 
         if (fetchError) {
-          if (fetchError.code === 'PGRST116') {
+          if (fetchError.code === "PGRST116") {
             // Configurações não existem, criar novas
             const { error: insertError } = await supabase
-              .from('user_settings')
+              .from("user_settings")
               .insert({
                 user_id: user.id,
-                settings: defaultSettings
+                settings: defaultSettings,
               })
               .select()
               .single();
 
             if (insertError) {
-              console.error('Erro ao criar configurações iniciais:', insertError);
+              console.error(
+                "Erro ao criar configurações iniciais:",
+                insertError
+              );
               return;
             }
 
             setSettings(defaultSettings);
           } else {
-            console.error('Erro ao carregar configurações:', fetchError);
+            console.error("Erro ao carregar configurações:", fetchError);
           }
           return;
         }
 
         setSettings(existingSettings.settings);
       } catch (error) {
-        console.error('Erro ao carregar configurações:', error);
+        console.error("Erro ao carregar configurações:", error);
       } finally {
         setIsLoading(false);
       }
@@ -156,31 +169,33 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
 
   const updateSettings = async (newSettings: Partial<Settings>) => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) {
-        console.log('Usuário não autenticado');
+        console.log("Usuário não autenticado");
         return;
       }
 
       const updatedSettings = { ...settings, ...newSettings };
 
       const { error } = await supabase
-        .from('user_settings')
+        .from("user_settings")
         .upsert({
           user_id: user.id,
-          settings: updatedSettings
+          settings: updatedSettings,
         })
         .select()
         .single();
 
       if (error) {
-        console.error('Erro ao atualizar configurações:', error);
+        console.error("Erro ao atualizar configurações:", error);
         return;
       }
 
       setSettings(updatedSettings);
     } catch (error) {
-      console.error('Erro ao atualizar configurações:', error);
+      console.error("Erro ao atualizar configurações:", error);
     }
   };
 
@@ -189,10 +204,10 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
       value={{
         settings,
         isLoading,
-        updateSettings
+        updateSettings,
       }}
     >
       {children}
     </SettingsContext.Provider>
   );
-} 
+}

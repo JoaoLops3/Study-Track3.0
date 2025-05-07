@@ -1,16 +1,34 @@
-import { useState, useEffect, useRef } from 'react';
-import { useAuth } from '../contexts/AuthContext';
-import { useTheme } from '../contexts/ThemeContext';
-import { User, Mail, Lock, Bell, Eye, Globe, Shield, Clock, Keyboard, Users, Sun, Moon, Monitor, Github, Calendar, Figma, MessageSquare } from 'lucide-react';
-import { supabase } from '../lib/supabase';
-import toast from 'react-hot-toast';
-import heic2any from 'heic2any';
-import { Integrations } from '../components/Integrations';
-import { useFontSize } from '../hooks/useFontSize';
-import { useSettings } from '../contexts/SettingsContext';
-import GithubIntegration from '../components/integrations/GithubIntegration';
-import GithubRepos from '../components/integrations/GithubRepos';
-import { GithubConnectButton } from '../components/integrations/GithubConnectButton';
+import { useState, useEffect, useRef } from "react";
+import { useAuth } from "../contexts/AuthContext";
+import { useTheme } from "../contexts/ThemeContext";
+import {
+  User,
+  Mail,
+  Lock,
+  Bell,
+  Eye,
+  Globe,
+  Shield,
+  Clock,
+  Keyboard,
+  Users,
+  Sun,
+  Moon,
+  Monitor,
+  Github,
+  Calendar,
+  Figma,
+  MessageSquare,
+} from "lucide-react";
+import { supabase } from "../lib/supabase";
+import toast from "react-hot-toast";
+import heic2any from "heic2any";
+import { Integrations } from "../components/Integrations";
+import { useFontSize } from "../hooks/useFontSize";
+import { useSettings } from "../contexts/SettingsContext";
+import GithubIntegration from "../components/integrations/GithubIntegration";
+import GithubRepos from "../components/integrations/GithubRepos";
+import { GithubConnectButton } from "../components/integrations/GithubConnectButton";
 
 type Settings = {
   profile: {
@@ -19,15 +37,15 @@ type Settings = {
     photoUrl?: string;
   };
   appearance: {
-    theme: 'light' | 'dark' | 'system';
-    fontSize: 'small' | 'medium' | 'large';
+    theme: "light" | "dark" | "system";
+    fontSize: "small" | "medium" | "large";
   };
   notifications: {
     email: boolean;
     push: boolean;
   };
   privacy: {
-    profileVisibility: 'public' | 'private';
+    profileVisibility: "public" | "private";
     dataSharing: boolean;
   };
   security: {
@@ -56,19 +74,19 @@ type Settings = {
 
 const defaultSettings: Settings = {
   profile: {
-    name: '',
-    email: '',
+    name: "",
+    email: "",
   },
   appearance: {
-    theme: 'system',
-    fontSize: 'medium',
+    theme: "system",
+    fontSize: "medium",
   },
   notifications: {
     email: true,
     push: true,
   },
   privacy: {
-    profileVisibility: 'private',
+    profileVisibility: "private",
     dataSharing: false,
   },
   security: {
@@ -76,8 +94,8 @@ const defaultSettings: Settings = {
     loginAlerts: true,
   },
   preferences: {
-    language: 'pt-BR',
-    timezone: 'America/Sao_Paulo',
+    language: "pt-BR",
+    timezone: "America/Sao_Paulo",
   },
   integrations: {
     github: false,
@@ -96,16 +114,22 @@ const defaultSettings: Settings = {
 };
 
 const Settings = () => {
-  const { user } = useAuth();
+  const { user, setUser } = useAuth();
   const { theme, setTheme } = useTheme();
   const { setFontSize } = useFontSize();
-  const [activeTab, setActiveTab] = useState('profile');
+  const [activeTab, setActiveTab] = useState("profile");
   const [settings, setSettings] = useState<Settings>(defaultSettings);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { settings: globalSettings } = useSettings();
+  const [editedName, setEditedName] = useState("");
+  const [editedPhotoUrl, setEditedPhotoUrl] = useState<string | undefined>(
+    undefined
+  );
+  const [editedPhotoFile, setEditedPhotoFile] = useState<File | null>(null);
+  const [isPhotoRemoved, setIsPhotoRemoved] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -113,23 +137,34 @@ const Settings = () => {
     }
   }, [user]);
 
+  useEffect(() => {
+    if (user && settings) {
+      setEditedName(
+        settings.profile.name || user.user_metadata?.full_name || ""
+      );
+      setEditedPhotoUrl(settings.profile.photoUrl);
+      setEditedPhotoFile(null);
+      setIsPhotoRemoved(false);
+    }
+  }, [user, settings]);
+
   const loadSettings = async () => {
     if (!user) return;
-    
+
     try {
       setIsLoading(true);
-      
+
       const { data, error } = await supabase
-        .from('user_settings')
-        .select('settings')
-        .eq('id', user.id)
+        .from("user_settings")
+        .select("settings")
+        .eq("user_id", user.id)
         .single();
 
       if (error) {
-        if (error.code === 'PGRST116') {
+        if (error.code === "PGRST116") {
           const { error: insertError } = await supabase
-            .from('user_settings')
-            .insert([{ id: user.id, settings: defaultSettings }]);
+            .from("user_settings")
+            .insert([{ user_id: user.id, settings: defaultSettings }]);
 
           if (insertError) throw insertError;
           setSettings(defaultSettings);
@@ -138,10 +173,10 @@ const Settings = () => {
         }
       } else if (data) {
         setSettings({ ...defaultSettings, ...data.settings });
-        setTheme(data.settings.appearance?.theme || 'system');
+        setTheme(data.settings.appearance?.theme || "system");
       }
     } catch (error) {
-      console.error('Error loading settings:', error);
+      console.error("Error loading settings:", error);
     } finally {
       setIsLoading(false);
     }
@@ -149,53 +184,76 @@ const Settings = () => {
 
   const saveSettings = async (newSettings: Partial<Settings>) => {
     if (!user) return;
-    
+
     try {
       setIsSaving(true);
       const updatedSettings = { ...settings, ...newSettings };
-      
+
       const { error } = await supabase
-        .from('user_settings')
+        .from("user_settings")
         .update({ settings: updatedSettings })
-        .eq('id', user.id);
+        .eq("user_id", user.id);
 
       if (error) throw error;
 
       setSettings(updatedSettings);
     } catch (error) {
-      console.error('Error saving settings:', error);
+      console.error("Error saving settings:", error);
     } finally {
       setIsSaving(false);
     }
   };
 
-  const handleAppearanceChange = async (field: keyof Settings['appearance'], value: string) => {
+  const handleAppearanceChange = async (
+    field: keyof Settings["appearance"],
+    value: string
+  ) => {
     const newSettings = {
       appearance: {
         ...settings.appearance,
         [field]: value,
       },
     };
-    
+
     await saveSettings(newSettings);
-    
-    if (field === 'theme') {
-      setTheme(value as 'light' | 'dark' | 'system');
-    } else if (field === 'fontSize') {
-      setFontSize(value as 'small' | 'medium' | 'large');
+
+    if (field === "theme") {
+      setTheme(value as "light" | "dark" | "system");
+    } else if (field === "fontSize") {
+      setFontSize(value as "small" | "medium" | "large");
     }
   };
 
-  const handleProfileChange = async (field: keyof Settings['profile'], value: string) => {
-    await saveSettings({
-      profile: {
-        ...settings.profile,
-        [field]: value,
-      },
-    });
+  const handleNameChange = async (newName: string) => {
+    if (!user) return;
+    try {
+      setIsSaving(true);
+      const { data: userData, error } = await supabase.auth.updateUser({
+        data: {
+          ...user.user_metadata,
+          full_name: newName,
+        },
+      });
+      if (error) throw error;
+      if (userData.user) setUser(userData.user);
+      setSettings((prev) => ({
+        ...prev,
+        profile: {
+          ...prev.profile,
+          name: newName,
+        },
+      }));
+    } catch (error) {
+      console.error("Erro ao atualizar nome:", error);
+    } finally {
+      setIsSaving(false);
+    }
   };
 
-  const handleNotificationChange = async (field: keyof Settings['notifications'], value: boolean) => {
+  const handleNotificationChange = async (
+    field: keyof Settings["notifications"],
+    value: boolean
+  ) => {
     await saveSettings({
       notifications: {
         ...settings.notifications,
@@ -204,7 +262,10 @@ const Settings = () => {
     });
   };
 
-  const handlePrivacyChange = async (field: keyof Settings['privacy'], value: string | boolean) => {
+  const handlePrivacyChange = async (
+    field: keyof Settings["privacy"],
+    value: string | boolean
+  ) => {
     await saveSettings({
       privacy: {
         ...settings.privacy,
@@ -213,7 +274,10 @@ const Settings = () => {
     });
   };
 
-  const handleSecurityChange = async (field: keyof Settings['security'], value: boolean) => {
+  const handleSecurityChange = async (
+    field: keyof Settings["security"],
+    value: boolean
+  ) => {
     await saveSettings({
       security: {
         ...settings.security,
@@ -222,7 +286,10 @@ const Settings = () => {
     });
   };
 
-  const handlePreferenceChange = async (field: keyof Settings['preferences'], value: string) => {
+  const handlePreferenceChange = async (
+    field: keyof Settings["preferences"],
+    value: string
+  ) => {
     await saveSettings({
       preferences: {
         ...settings.preferences,
@@ -231,28 +298,31 @@ const Settings = () => {
     });
   };
 
-  const handleIntegrationChange = async (integration: string, value: boolean) => {
+  const handleIntegrationChange = async (
+    integration: string,
+    value: boolean
+  ) => {
     try {
-      if (integration === 'github' && value) {
+      if (integration === "github" && value) {
         // Iniciar fluxo de autenticação OAuth
         const { data, error } = await supabase.auth.signInWithOAuth({
-          provider: 'github',
+          provider: "github",
           options: {
             redirectTo: `${window.location.origin}/auth/callback`,
-            scopes: 'repo'
-          }
+            scopes: "repo",
+          },
         });
 
         if (error) throw error;
-        
+
         // Atualizar o estado das configurações
-    await saveSettings({
-      integrations: {
-        ...settings.integrations,
-            github: true
-          }
+        await saveSettings({
+          integrations: {
+            ...settings.integrations,
+            github: true,
+          },
         });
-        
+
         return;
       }
 
@@ -260,15 +330,18 @@ const Settings = () => {
       await saveSettings({
         integrations: {
           ...settings.integrations,
-          [integration]: value
-        }
-    });
+          [integration]: value,
+        },
+      });
     } catch (error) {
-      console.error('Erro ao atualizar integração:', error);
+      console.error("Erro ao atualizar integração:", error);
     }
   };
 
-  const handleAccessibilityChange = async (field: keyof Settings['accessibility'], value: boolean) => {
+  const handleAccessibilityChange = async (
+    field: keyof Settings["accessibility"],
+    value: boolean
+  ) => {
     await saveSettings({
       accessibility: {
         ...settings.accessibility,
@@ -277,15 +350,17 @@ const Settings = () => {
     });
   };
 
-  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
     const file = event.target.files?.[0];
     if (!file || !user) return;
 
     try {
       setIsUploading(true);
-      
+
       // Verifica o tipo do arquivo
-      if (!file.type.startsWith('image/')) {
+      if (!file.type.startsWith("image/")) {
         return;
       }
 
@@ -297,30 +372,30 @@ const Settings = () => {
       let blobToUpload: Blob;
 
       // Se for uma imagem HEIC, converte para JPEG
-      if (file.type === 'image/heic' || file.type === 'image/heif') {
+      if (file.type === "image/heic" || file.type === "image/heif") {
         const result = await heic2any({
           blob: file,
-          toType: 'image/jpeg',
-          quality: 0.7
+          toType: "image/jpeg",
+          quality: 0.7,
         });
         blobToUpload = result as Blob;
       } else {
         // Para outros formatos de imagem, converte para JPEG usando canvas
         const image = new Image();
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
-        
+        const canvas = document.createElement("canvas");
+        const ctx = canvas.getContext("2d");
+
         await new Promise((resolve, reject) => {
           image.onload = resolve;
           image.onerror = reject;
           image.src = URL.createObjectURL(file);
         });
-        
+
         // Redimensiona a imagem se for muito grande
         const MAX_SIZE = 800;
         let width = image.width;
         let height = image.height;
-        
+
         if (width > height && width > MAX_SIZE) {
           height = Math.round((height * MAX_SIZE) / width);
           width = MAX_SIZE;
@@ -328,16 +403,20 @@ const Settings = () => {
           width = Math.round((width * MAX_SIZE) / height);
           height = MAX_SIZE;
         }
-        
+
         canvas.width = width;
         canvas.height = height;
-        
+
         ctx?.drawImage(image, 0, 0, width, height);
-        
+
         blobToUpload = await new Promise<Blob>((resolve) => {
-          canvas.toBlob((blob) => {
-            if (blob) resolve(blob);
-          }, 'image/jpeg', 0.7);
+          canvas.toBlob(
+            (blob) => {
+              if (blob) resolve(blob);
+            },
+            "image/jpeg",
+            0.7
+          );
         });
       }
 
@@ -347,10 +426,10 @@ const Settings = () => {
 
       // Faz o upload para o Supabase Storage
       const { error: uploadError } = await supabase.storage
-        .from('avatars')
+        .from("avatars")
         .upload(filePath, blobToUpload, {
           upsert: true,
-          cacheControl: '3600'
+          cacheControl: "3600",
         });
 
       if (uploadError) {
@@ -358,9 +437,9 @@ const Settings = () => {
       }
 
       // Obtém a URL pública da imagem
-      const { data: { publicUrl } } = supabase.storage
-        .from('avatars')
-        .getPublicUrl(filePath);
+      const {
+        data: { publicUrl },
+      } = supabase.storage.from("avatars").getPublicUrl(filePath);
 
       // Atualiza as configurações do usuário
       await saveSettings({
@@ -369,13 +448,31 @@ const Settings = () => {
           photoUrl: publicUrl,
         },
       });
+
+      // Atualizar nome do usuário e sincronizar com AuthContext
+      const { data: userData, error: updateError } =
+        await supabase.auth.updateUser({
+          data: {
+            ...user.user_metadata,
+            custom_avatar_url: publicUrl,
+          },
+        });
+      if (updateError) throw updateError;
+      if (userData.user) setUser(userData.user);
+      setSettings((prev) => ({
+        ...prev,
+        profile: {
+          ...prev.profile,
+          photoUrl: publicUrl,
+        },
+      }));
     } catch (error) {
-      console.error('Error uploading avatar:', error);
+      console.error("Error uploading avatar:", error);
     } finally {
       setIsUploading(false);
       // Limpa o input de arquivo
       if (fileInputRef.current) {
-        fileInputRef.current.value = '';
+        fileInputRef.current.value = "";
       }
     }
   };
@@ -384,16 +481,157 @@ const Settings = () => {
     fileInputRef.current?.click();
   };
 
+  const handleEditedNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setEditedName(e.target.value);
+  };
+
+  const handleEditedFileChange = (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    setEditedPhotoFile(file);
+    setEditedPhotoUrl(URL.createObjectURL(file));
+  };
+
+  const handleRemovePhoto = () => {
+    setEditedPhotoUrl(undefined);
+    setEditedPhotoFile(null);
+    setIsPhotoRemoved(true);
+  };
+
+  const handleSaveProfile = async () => {
+    if (!user) return;
+    setIsSaving(true);
+    let publicUrl = editedPhotoUrl;
+    try {
+      // Se a foto foi removida, usa a foto do Google
+      if (isPhotoRemoved) {
+        publicUrl = user.user_metadata?.avatar_url;
+        // Atualiza no Supabase
+        await saveSettings({
+          profile: {
+            ...settings.profile,
+            name: editedName,
+            photoUrl: publicUrl,
+          },
+        });
+        // Atualiza nome/avatar no Auth
+        const { data: userData, error: updateError } =
+          await supabase.auth.updateUser({
+            data: {
+              ...user.user_metadata,
+              full_name: editedName,
+              custom_avatar_url: publicUrl, // Sincroniza custom_avatar_url com avatar_url do Google
+            },
+          });
+        if (updateError) throw updateError;
+        if (userData.user) setUser(userData.user); // Atualiza contexto imediatamente
+        toast.success("Perfil atualizado com sucesso!");
+        setEditedPhotoFile(null);
+        setIsPhotoRemoved(false);
+        return;
+      }
+      // Se mudou a foto, faz upload
+      else if (editedPhotoFile) {
+        let blobToUpload: Blob = editedPhotoFile;
+        if (
+          editedPhotoFile.type === "image/heic" ||
+          editedPhotoFile.type === "image/heif"
+        ) {
+          const result = await heic2any({
+            blob: editedPhotoFile,
+            toType: "image/jpeg",
+            quality: 0.7,
+          });
+          blobToUpload = result as Blob;
+        } else if (!editedPhotoFile.type.includes("jpeg")) {
+          // Converte para jpeg
+          const image = new Image();
+          const canvas = document.createElement("canvas");
+          const ctx = canvas.getContext("2d");
+          await new Promise((resolve, reject) => {
+            image.onload = resolve;
+            image.onerror = reject;
+            image.src = URL.createObjectURL(editedPhotoFile);
+          });
+          const MAX_SIZE = 800;
+          let width = image.width;
+          let height = image.height;
+          if (width > height && width > MAX_SIZE) {
+            height = Math.round((height * MAX_SIZE) / width);
+            width = MAX_SIZE;
+          } else if (height > MAX_SIZE) {
+            width = Math.round((width * MAX_SIZE) / height);
+            height = MAX_SIZE;
+          }
+          canvas.width = width;
+          canvas.height = height;
+          ctx?.drawImage(image, 0, 0, width, height);
+          blobToUpload = await new Promise<Blob>((resolve) => {
+            canvas.toBlob(
+              (blob) => {
+                if (blob) resolve(blob);
+              },
+              "image/jpeg",
+              0.7
+            );
+          });
+        }
+        const fileName = `${user.id}-${Date.now()}.jpg`;
+        const filePath = `${user.id}/${fileName}`;
+        const { error: uploadError } = await supabase.storage
+          .from("avatars")
+          .upload(filePath, blobToUpload, {
+            upsert: true,
+            cacheControl: "3600",
+          });
+        if (uploadError) throw new Error(uploadError.message);
+        const {
+          data: { publicUrl: uploadedUrl },
+        } = supabase.storage.from("avatars").getPublicUrl(filePath);
+        publicUrl = uploadedUrl;
+      }
+      // Atualiza no Supabase
+      await saveSettings({
+        profile: {
+          ...settings.profile,
+          name: editedName,
+          photoUrl: publicUrl,
+        },
+      });
+      // Atualiza nome/avatar no Auth
+      const { data: userData, error: updateError } =
+        await supabase.auth.updateUser({
+          data: {
+            ...user.user_metadata,
+            full_name: editedName,
+            custom_avatar_url: publicUrl,
+          },
+        });
+      if (updateError) throw updateError;
+      if (userData.user) setUser(userData.user);
+      toast.success("Perfil atualizado com sucesso!");
+      setEditedPhotoFile(null);
+      setIsPhotoRemoved(false);
+    } catch (error) {
+      toast.error("Erro ao salvar perfil");
+      console.error(error);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   const tabs = [
-    { id: 'profile', name: 'Perfil', icon: User },
-    { id: 'appearance', name: 'Aparência', icon: Eye },
-    { id: 'notifications', name: 'Notificações', icon: Bell },
-    { id: 'privacy', name: 'Privacidade', icon: Shield },
-    { id: 'security', name: 'Segurança', icon: Lock },
-    { id: 'preferences', name: 'Preferências', icon: Clock },
-    { id: 'integrations', name: 'Integrações', icon: Globe },
-    { id: 'accessibility', name: 'Acessibilidade', icon: Keyboard },
-    { id: 'team', name: 'Equipe', icon: Users },
+    { id: "profile", name: "Perfil", icon: User },
+    { id: "appearance", name: "Aparência", icon: Eye },
+    { id: "notifications", name: "Notificações", icon: Bell },
+    { id: "privacy", name: "Privacidade", icon: Shield },
+    { id: "security", name: "Segurança", icon: Lock },
+    { id: "preferences", name: "Preferências", icon: Clock },
+    { id: "integrations", name: "Integrações", icon: Globe },
+    { id: "accessibility", name: "Acessibilidade", icon: Keyboard },
+    { id: "team", name: "Equipe", icon: Users },
   ];
 
   if (isLoading) {
@@ -407,7 +645,7 @@ const Settings = () => {
   return (
     <div className="container mx-auto py-8">
       <h1 className="text-2xl font-bold mb-8">Configurações</h1>
-      
+
       <div className="grid gap-8">
         <Integrations />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -423,8 +661,11 @@ const Settings = () => {
                       key={tab.id}
                       onClick={() => setActiveTab(tab.id)}
                       className={`group flex items-center gap-4 px-6 py-3 rounded-xl transition-all text-base font-semibold
-                        ${isActive ? 'bg-primary-50 dark:bg-primary-900/40 text-primary-700 dark:text-primary-300 border-l-4 border-primary-500 shadow' :
-                        'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-primary-700 dark:hover:text-primary-300 border-l-4 border-transparent'}
+                        ${
+                          isActive
+                            ? "bg-primary-50 dark:bg-primary-900/40 text-primary-700 dark:text-primary-300 border-l-4 border-primary-500 shadow"
+                            : "text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-primary-700 dark:hover:text-primary-300 border-l-4 border-transparent"
+                        }
                       `}
                     >
                       <Icon className="w-6 h-6" />
@@ -438,148 +679,218 @@ const Settings = () => {
             {/* Main Content */}
             <div className="flex-1">
               <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-                {activeTab === 'profile' && (
+                {activeTab === "profile" && (
                   <div>
-                    <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">Perfil</h3>
+                    <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">
+                      Perfil
+                    </h3>
                     <div className="space-y-4">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Foto de Perfil</label>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                          Foto de Perfil
+                        </label>
                         <div className="mt-1 flex items-center">
                           <div className="h-12 w-12 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center overflow-hidden">
-                            {settings.profile.photoUrl ? (
+                            {editedPhotoUrl ? (
                               <img
-                                src={settings.profile.photoUrl}
+                                src={editedPhotoUrl}
                                 alt="Foto de perfil"
                                 className="h-full w-full object-cover"
                               />
                             ) : (
                               <span className="text-lg font-medium text-gray-600 dark:text-gray-300">
-                                {settings.profile.name?.[0]?.toUpperCase() || user?.email?.[0]?.toUpperCase()}
+                                {editedName?.[0]?.toUpperCase() ||
+                                  user?.user_metadata?.full_name?.[0]?.toUpperCase()}
                               </span>
                             )}
                           </div>
                           <input
                             type="file"
                             ref={fileInputRef}
-                            onChange={handleFileChange}
+                            onChange={handleEditedFileChange}
                             accept="image/*"
                             className="hidden"
                           />
-                          <button
-                            onClick={handleUploadClick}
-                            disabled={isUploading}
-                            className="ml-4 px-3 py-1.5 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
-                          >
-                            {isUploading ? 'Enviando...' : 'Alterar'}
-                          </button>
+                          <div className="ml-4 flex gap-2">
+                            <button
+                              onClick={handleUploadClick}
+                              disabled={isUploading}
+                              className="px-3 py-1.5 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                              {isUploading ? "Enviando..." : "Alterar"}
+                            </button>
+                            {editedPhotoUrl && (
+                              <button
+                                onClick={handleRemovePhoto}
+                                className="px-3 py-1.5 text-sm font-medium text-red-600 dark:text-red-400 bg-white dark:bg-gray-700 border border-red-300 dark:border-red-600 rounded-md hover:bg-red-50 dark:hover:bg-red-900/20 disabled:opacity-50 disabled:cursor-not-allowed"
+                              >
+                                Remover
+                              </button>
+                            )}
+                          </div>
                         </div>
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Nome</label>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                          Nome
+                        </label>
                         <input
                           type="text"
-                          value={settings.profile.name || user?.email?.split('@')[0] || ''}
-                          onChange={(e) => handleProfileChange('name', e.target.value)}
+                          value={editedName}
+                          onChange={handleEditedNameChange}
                           className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:bg-gray-700 dark:text-white"
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Email</label>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                          Email
+                        </label>
                         <input
                           type="email"
-                          value={settings.profile.email || user?.email || ''}
-                          onChange={(e) => handleProfileChange('email', e.target.value)}
-                          className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:bg-gray-700 dark:text-white"
+                          value={user?.email || ""}
+                          readOnly
+                          className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:bg-gray-700 dark:text-white bg-gray-100 dark:bg-gray-800 cursor-not-allowed"
                         />
                       </div>
+                      <button
+                        onClick={handleSaveProfile}
+                        disabled={
+                          isSaving ||
+                          (editedName ===
+                            (settings.profile.name ||
+                              user?.user_metadata?.full_name ||
+                              "") &&
+                            !editedPhotoFile &&
+                            !isPhotoRemoved)
+                        }
+                        className="mt-4 px-6 py-2 rounded-md bg-primary-600 text-white font-semibold shadow hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        {isSaving ? "Salvando..." : "Salvar"}
+                      </button>
                     </div>
                   </div>
                 )}
 
-                {activeTab === 'appearance' && (
+                {activeTab === "appearance" && (
                   <div>
-                    <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-6">Aparência</h3>
+                    <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-6">
+                      Aparência
+                    </h3>
                     <div className="space-y-6">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Tema</label>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+                          Tema
+                        </label>
                         <div className="grid grid-cols-3 gap-3">
                           <button
-                            onClick={() => handleAppearanceChange('theme', 'light')}
+                            onClick={() =>
+                              handleAppearanceChange("theme", "light")
+                            }
                             className={`flex flex-col items-center justify-center p-4 rounded-lg border transition-all ${
-                              settings.appearance.theme === 'light'
-                                ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20'
-                                : 'border-gray-200 dark:border-gray-700 hover:border-primary-300 dark:hover:border-primary-700'
+                              settings.appearance.theme === "light"
+                                ? "border-primary-500 bg-primary-50 dark:bg-primary-900/20"
+                                : "border-gray-200 dark:border-gray-700 hover:border-primary-300 dark:hover:border-primary-700"
                             }`}
                           >
                             <Sun className="w-6 h-6 mb-2 text-gray-700 dark:text-gray-300" />
-                            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Claro</span>
+                            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                              Claro
+                            </span>
                           </button>
                           <button
-                            onClick={() => handleAppearanceChange('theme', 'dark')}
+                            onClick={() =>
+                              handleAppearanceChange("theme", "dark")
+                            }
                             className={`flex flex-col items-center justify-center p-4 rounded-lg border transition-all ${
-                              settings.appearance.theme === 'dark'
-                                ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20'
-                                : 'border-gray-200 dark:border-gray-700 hover:border-primary-300 dark:hover:border-primary-700'
+                              settings.appearance.theme === "dark"
+                                ? "border-primary-500 bg-primary-50 dark:bg-primary-900/20"
+                                : "border-gray-200 dark:border-gray-700 hover:border-primary-300 dark:hover:border-primary-700"
                             }`}
                           >
                             <Moon className="w-6 h-6 mb-2 text-gray-700 dark:text-gray-300" />
-                            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Escuro</span>
+                            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                              Escuro
+                            </span>
                           </button>
                           <button
-                            onClick={() => handleAppearanceChange('theme', 'system')}
+                            onClick={() =>
+                              handleAppearanceChange("theme", "system")
+                            }
                             className={`flex flex-col items-center justify-center p-4 rounded-lg border transition-all ${
-                              settings.appearance.theme === 'system'
-                                ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20'
-                                : 'border-gray-200 dark:border-gray-700 hover:border-primary-300 dark:hover:border-primary-700'
+                              settings.appearance.theme === "system"
+                                ? "border-primary-500 bg-primary-50 dark:bg-primary-900/20"
+                                : "border-gray-200 dark:border-gray-700 hover:border-primary-300 dark:hover:border-primary-700"
                             }`}
                           >
                             <Monitor className="w-6 h-6 mb-2 text-gray-700 dark:text-gray-300" />
-                            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Sistema</span>
+                            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                              Sistema
+                            </span>
                           </button>
                         </div>
                       </div>
 
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Tamanho da Fonte</label>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+                          Tamanho da Fonte
+                        </label>
                         <div className="grid grid-cols-3 gap-3">
                           <button
-                            onClick={() => handleAppearanceChange('fontSize', 'small')}
+                            onClick={() =>
+                              handleAppearanceChange("fontSize", "small")
+                            }
                             className={`flex flex-col items-center justify-center p-4 rounded-lg border transition-all ${
-                              settings.appearance.fontSize === 'small'
-                                ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20'
-                                : 'border-gray-200 dark:border-gray-700 hover:border-primary-300 dark:hover:border-primary-700'
+                              settings.appearance.fontSize === "small"
+                                ? "border-primary-500 bg-primary-50 dark:bg-primary-900/20"
+                                : "border-gray-200 dark:border-gray-700 hover:border-primary-300 dark:hover:border-primary-700"
                             }`}
                           >
                             <div className="flex items-center justify-center w-6 h-6 mb-2">
-                              <span className="text-xs text-gray-700 dark:text-gray-300">Aa</span>
+                              <span className="text-xs text-gray-700 dark:text-gray-300">
+                                Aa
+                              </span>
                             </div>
-                            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Pequeno</span>
+                            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                              Pequeno
+                            </span>
                           </button>
                           <button
-                            onClick={() => handleAppearanceChange('fontSize', 'medium')}
+                            onClick={() =>
+                              handleAppearanceChange("fontSize", "medium")
+                            }
                             className={`flex flex-col items-center justify-center p-4 rounded-lg border transition-all ${
-                              settings.appearance.fontSize === 'medium'
-                                ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20'
-                                : 'border-gray-200 dark:border-gray-700 hover:border-primary-300 dark:hover:border-primary-700'
+                              settings.appearance.fontSize === "medium"
+                                ? "border-primary-500 bg-primary-50 dark:bg-primary-900/20"
+                                : "border-gray-200 dark:border-gray-700 hover:border-primary-300 dark:hover:border-primary-700"
                             }`}
                           >
                             <div className="flex items-center justify-center w-6 h-6 mb-2">
-                              <span className="text-base text-gray-700 dark:text-gray-300">Aa</span>
+                              <span className="text-base text-gray-700 dark:text-gray-300">
+                                Aa
+                              </span>
                             </div>
-                            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Médio</span>
+                            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                              Médio
+                            </span>
                           </button>
                           <button
-                            onClick={() => handleAppearanceChange('fontSize', 'large')}
+                            onClick={() =>
+                              handleAppearanceChange("fontSize", "large")
+                            }
                             className={`flex flex-col items-center justify-center p-4 rounded-lg border transition-all ${
-                              settings.appearance.fontSize === 'large'
-                                ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20'
-                                : 'border-gray-200 dark:border-gray-700 hover:border-primary-300 dark:hover:border-primary-700'
+                              settings.appearance.fontSize === "large"
+                                ? "border-primary-500 bg-primary-50 dark:bg-primary-900/20"
+                                : "border-gray-200 dark:border-gray-700 hover:border-primary-300 dark:hover:border-primary-700"
                             }`}
                           >
                             <div className="flex items-center justify-center w-6 h-6 mb-2">
-                              <span className="text-lg text-gray-700 dark:text-gray-300">Aa</span>
+                              <span className="text-lg text-gray-700 dark:text-gray-300">
+                                Aa
+                              </span>
                             </div>
-                            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Grande</span>
+                            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                              Grande
+                            </span>
                           </button>
                         </div>
                       </div>
@@ -587,42 +898,70 @@ const Settings = () => {
                   </div>
                 )}
 
-                {activeTab === 'notifications' && (
+                {activeTab === "notifications" && (
                   <div>
-                    <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">Notificações</h3>
+                    <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">
+                      Notificações
+                    </h3>
                     <div className="space-y-4">
                       <div className="flex items-center justify-between">
                         <div>
-                          <h4 className="text-sm font-medium text-gray-900 dark:text-white">Notificações por Email</h4>
-                          <p className="text-sm text-gray-500 dark:text-gray-400">Receba atualizações por email</p>
+                          <h4 className="text-sm font-medium text-gray-900 dark:text-white">
+                            Notificações por Email
+                          </h4>
+                          <p className="text-sm text-gray-500 dark:text-gray-400">
+                            Receba atualizações por email
+                          </p>
                         </div>
                         <button
-                          onClick={() => handleNotificationChange('email', !settings.notifications.email)}
+                          onClick={() =>
+                            handleNotificationChange(
+                              "email",
+                              !settings.notifications.email
+                            )
+                          }
                           className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 ${
-                            settings.notifications.email ? 'bg-primary-600' : 'bg-gray-200 dark:bg-gray-700'
+                            settings.notifications.email
+                              ? "bg-primary-600"
+                              : "bg-gray-200 dark:bg-gray-700"
                           }`}
                         >
                           <span
                             className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
-                              settings.notifications.email ? 'translate-x-5' : 'translate-x-0'
+                              settings.notifications.email
+                                ? "translate-x-5"
+                                : "translate-x-0"
                             }`}
                           />
                         </button>
                       </div>
                       <div className="flex items-center justify-between">
                         <div>
-                          <h4 className="text-sm font-medium text-gray-900 dark:text-white">Notificações Push</h4>
-                          <p className="text-sm text-gray-500 dark:text-gray-400">Receba notificações no navegador</p>
+                          <h4 className="text-sm font-medium text-gray-900 dark:text-white">
+                            Notificações Push
+                          </h4>
+                          <p className="text-sm text-gray-500 dark:text-gray-400">
+                            Receba notificações no navegador
+                          </p>
                         </div>
                         <button
-                          onClick={() => handleNotificationChange('push', !settings.notifications.push)}
+                          onClick={() =>
+                            handleNotificationChange(
+                              "push",
+                              !settings.notifications.push
+                            )
+                          }
                           className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 ${
-                            settings.notifications.push ? 'bg-primary-600' : 'bg-gray-200 dark:bg-gray-700'
+                            settings.notifications.push
+                              ? "bg-primary-600"
+                              : "bg-gray-200 dark:bg-gray-700"
                           }`}
                         >
                           <span
                             className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
-                              settings.notifications.push ? 'translate-x-5' : 'translate-x-0'
+                              settings.notifications.push
+                                ? "translate-x-5"
+                                : "translate-x-0"
                             }`}
                           />
                         </button>
@@ -631,15 +970,24 @@ const Settings = () => {
                   </div>
                 )}
 
-                {activeTab === 'privacy' && (
+                {activeTab === "privacy" && (
                   <div>
-                    <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">Privacidade</h3>
+                    <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">
+                      Privacidade
+                    </h3>
                     <div className="space-y-4">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Visibilidade do Perfil</label>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                          Visibilidade do Perfil
+                        </label>
                         <select
                           value={settings.privacy.profileVisibility}
-                          onChange={(e) => handlePrivacyChange('profileVisibility', e.target.value)}
+                          onChange={(e) =>
+                            handlePrivacyChange(
+                              "profileVisibility",
+                              e.target.value
+                            )
+                          }
                           className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:bg-gray-700 dark:text-white"
                         >
                           <option value="public">Público</option>
@@ -648,18 +996,31 @@ const Settings = () => {
                       </div>
                       <div className="flex items-center justify-between">
                         <div>
-                          <h4 className="text-sm font-medium text-gray-900 dark:text-white">Compartilhamento de Dados</h4>
-                          <p className="text-sm text-gray-500 dark:text-gray-400">Permitir compartilhamento de dados anônimos</p>
+                          <h4 className="text-sm font-medium text-gray-900 dark:text-white">
+                            Compartilhamento de Dados
+                          </h4>
+                          <p className="text-sm text-gray-500 dark:text-gray-400">
+                            Permitir compartilhamento de dados anônimos
+                          </p>
                         </div>
                         <button
-                          onClick={() => handlePrivacyChange('dataSharing', !settings.privacy.dataSharing)}
+                          onClick={() =>
+                            handlePrivacyChange(
+                              "dataSharing",
+                              !settings.privacy.dataSharing
+                            )
+                          }
                           className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 ${
-                            settings.privacy.dataSharing ? 'bg-primary-600' : 'bg-gray-200 dark:bg-gray-700'
+                            settings.privacy.dataSharing
+                              ? "bg-primary-600"
+                              : "bg-gray-200 dark:bg-gray-700"
                           }`}
                         >
                           <span
                             className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
-                              settings.privacy.dataSharing ? 'translate-x-5' : 'translate-x-0'
+                              settings.privacy.dataSharing
+                                ? "translate-x-5"
+                                : "translate-x-0"
                             }`}
                           />
                         </button>
@@ -668,24 +1029,39 @@ const Settings = () => {
                   </div>
                 )}
 
-                {activeTab === 'security' && (
+                {activeTab === "security" && (
                   <div>
-                    <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">Segurança</h3>
+                    <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">
+                      Segurança
+                    </h3>
                     <div className="space-y-4">
                       <div className="flex items-center justify-between">
                         <div>
-                          <h4 className="text-sm font-medium text-gray-900 dark:text-white">Autenticação em Dois Fatores</h4>
-                          <p className="text-sm text-gray-500 dark:text-gray-400">Adicione uma camada extra de segurança à sua conta</p>
+                          <h4 className="text-sm font-medium text-gray-900 dark:text-white">
+                            Autenticação em Dois Fatores
+                          </h4>
+                          <p className="text-sm text-gray-500 dark:text-gray-400">
+                            Adicione uma camada extra de segurança à sua conta
+                          </p>
                         </div>
                         <button
-                          onClick={() => handleSecurityChange('twoFactorAuth', !settings.security.twoFactorAuth)}
+                          onClick={() =>
+                            handleSecurityChange(
+                              "twoFactorAuth",
+                              !settings.security.twoFactorAuth
+                            )
+                          }
                           className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 ${
-                            settings.security.twoFactorAuth ? 'bg-primary-600' : 'bg-gray-200 dark:bg-gray-700'
+                            settings.security.twoFactorAuth
+                              ? "bg-primary-600"
+                              : "bg-gray-200 dark:bg-gray-700"
                           }`}
                         >
                           <span
                             className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
-                              settings.security.twoFactorAuth ? 'translate-x-5' : 'translate-x-0'
+                              settings.security.twoFactorAuth
+                                ? "translate-x-5"
+                                : "translate-x-0"
                             }`}
                           />
                         </button>
@@ -694,15 +1070,21 @@ const Settings = () => {
                   </div>
                 )}
 
-                {activeTab === 'preferences' && (
+                {activeTab === "preferences" && (
                   <div>
-                    <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">Preferências</h3>
+                    <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">
+                      Preferências
+                    </h3>
                     <div className="space-y-4">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Idioma</label>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                          Idioma
+                        </label>
                         <select
                           value={settings.preferences.language}
-                          onChange={(e) => handlePreferenceChange('language', e.target.value)}
+                          onChange={(e) =>
+                            handlePreferenceChange("language", e.target.value)
+                          }
                           className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:bg-gray-700 dark:text-white"
                         >
                           <option value="pt-BR">Português (Brasil)</option>
@@ -711,14 +1093,22 @@ const Settings = () => {
                         </select>
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Fuso Horário</label>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                          Fuso Horário
+                        </label>
                         <select
                           value={settings.preferences.timezone}
-                          onChange={(e) => handlePreferenceChange('timezone', e.target.value)}
+                          onChange={(e) =>
+                            handlePreferenceChange("timezone", e.target.value)
+                          }
                           className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:bg-gray-700 dark:text-white"
                         >
-                          <option value="America/Sao_Paulo">Brasília (GMT-3)</option>
-                          <option value="America/New_York">Nova York (GMT-4)</option>
+                          <option value="America/Sao_Paulo">
+                            Brasília (GMT-3)
+                          </option>
+                          <option value="America/New_York">
+                            Nova York (GMT-4)
+                          </option>
                           <option value="Europe/London">Londres (GMT+1)</option>
                         </select>
                       </div>
@@ -726,9 +1116,11 @@ const Settings = () => {
                   </div>
                 )}
 
-                {activeTab === 'integrations' && (
+                {activeTab === "integrations" && (
                   <div>
-                    <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">Integrações</h3>
+                    <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">
+                      Integrações
+                    </h3>
                     <div className="space-y-4">
                       <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
                         <div className="flex items-center space-x-4">
@@ -736,8 +1128,13 @@ const Settings = () => {
                             <Github className="h-6 w-6 text-gray-700 dark:text-gray-300" />
                           </div>
                           <div>
-                            <h4 className="text-sm font-medium text-gray-900 dark:text-white">GitHub</h4>
-                            <p className="text-sm text-gray-500 dark:text-gray-400">Conecte seus repositórios e acompanhe suas contribuições</p>
+                            <h4 className="text-sm font-medium text-gray-900 dark:text-white">
+                              GitHub
+                            </h4>
+                            <p className="text-sm text-gray-500 dark:text-gray-400">
+                              Conecte seus repositórios e acompanhe suas
+                              contribuições
+                            </p>
                           </div>
                         </div>
                         <GithubConnectButton variant="secondary" />
@@ -749,19 +1146,31 @@ const Settings = () => {
                             <Mail className="h-6 w-6 text-gray-700 dark:text-gray-300" />
                           </div>
                           <div>
-                            <h4 className="text-sm font-medium text-gray-900 dark:text-white">Google</h4>
-                            <p className="text-sm text-gray-500 dark:text-gray-400">Acesse seu Gmail, Google Drive e outros serviços Google</p>
+                            <h4 className="text-sm font-medium text-gray-900 dark:text-white">
+                              Google
+                            </h4>
+                            <p className="text-sm text-gray-500 dark:text-gray-400">
+                              Acesse seu Gmail, Google Drive e outros serviços
+                              Google
+                            </p>
                           </div>
                         </div>
                         <button
-                          onClick={() => handleIntegrationChange('figma', !settings.integrations.figma)}
+                          onClick={() =>
+                            handleIntegrationChange(
+                              "figma",
+                              !settings.integrations.figma
+                            )
+                          }
                           className={`px-4 py-2 rounded-md text-sm font-medium transition-colors duration-200 ${
                             settings.integrations.figma
-                              ? 'bg-green-100 text-green-700 hover:bg-green-200 dark:bg-green-900/30 dark:text-green-400 dark:hover:bg-green-900/50'
-                              : 'bg-primary-100 text-primary-700 hover:bg-primary-200 dark:bg-primary-900/30 dark:text-primary-400 dark:hover:bg-primary-900/50'
+                              ? "bg-green-100 text-green-700 hover:bg-green-200 dark:bg-green-900/30 dark:text-green-400 dark:hover:bg-green-900/50"
+                              : "bg-primary-100 text-primary-700 hover:bg-primary-200 dark:bg-primary-900/30 dark:text-primary-400 dark:hover:bg-primary-900/50"
                           }`}
                         >
-                          {settings.integrations.figma ? 'Conectado' : 'Conectar'}
+                          {settings.integrations.figma
+                            ? "Conectado"
+                            : "Conectar"}
                         </button>
                       </div>
 
@@ -771,61 +1180,100 @@ const Settings = () => {
                             <Figma className="h-6 w-6 text-gray-700 dark:text-gray-300" />
                           </div>
                           <div>
-                            <h4 className="text-sm font-medium text-gray-900 dark:text-white">Figma</h4>
-                            <p className="text-sm text-gray-500 dark:text-gray-400">Acompanhe seus designs e protótipos</p>
+                            <h4 className="text-sm font-medium text-gray-900 dark:text-white">
+                              Figma
+                            </h4>
+                            <p className="text-sm text-gray-500 dark:text-gray-400">
+                              Acompanhe seus designs e protótipos
+                            </p>
                           </div>
                         </div>
                         <button
-                          onClick={() => handleIntegrationChange('discord', !settings.integrations.discord)}
+                          onClick={() =>
+                            handleIntegrationChange(
+                              "discord",
+                              !settings.integrations.discord
+                            )
+                          }
                           className={`px-4 py-2 rounded-md text-sm font-medium transition-colors duration-200 ${
                             settings.integrations.discord
-                              ? 'bg-green-100 text-green-700 hover:bg-green-200 dark:bg-green-900/30 dark:text-green-400 dark:hover:bg-green-900/50'
-                              : 'bg-primary-100 text-primary-700 hover:bg-primary-200 dark:bg-primary-900/30 dark:text-primary-400 dark:hover:bg-primary-900/50'
+                              ? "bg-green-100 text-green-700 hover:bg-green-200 dark:bg-green-900/30 dark:text-green-400 dark:hover:bg-green-900/50"
+                              : "bg-primary-100 text-primary-700 hover:bg-primary-200 dark:bg-primary-900/30 dark:text-primary-400 dark:hover:bg-primary-900/50"
                           }`}
                         >
-                          {settings.integrations.discord ? 'Conectado' : 'Conectar'}
+                          {settings.integrations.discord
+                            ? "Conectado"
+                            : "Conectar"}
                         </button>
                       </div>
                     </div>
                   </div>
                 )}
 
-                {activeTab === 'accessibility' && (
+                {activeTab === "accessibility" && (
                   <div>
-                    <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">Acessibilidade</h3>
+                    <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">
+                      Acessibilidade
+                    </h3>
                     <div className="space-y-4">
                       <div className="flex items-center justify-between">
                         <div>
-                          <h4 className="text-sm font-medium text-gray-900 dark:text-white">Alto Contraste</h4>
-                          <p className="text-sm text-gray-500 dark:text-gray-400">Melhore a visibilidade dos elementos</p>
+                          <h4 className="text-sm font-medium text-gray-900 dark:text-white">
+                            Alto Contraste
+                          </h4>
+                          <p className="text-sm text-gray-500 dark:text-gray-400">
+                            Melhore a visibilidade dos elementos
+                          </p>
                         </div>
                         <button
-                          onClick={() => handleAccessibilityChange('highContrast', !settings.accessibility.highContrast)}
+                          onClick={() =>
+                            handleAccessibilityChange(
+                              "highContrast",
+                              !settings.accessibility.highContrast
+                            )
+                          }
                           className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 ${
-                            settings.accessibility.highContrast ? 'bg-primary-600' : 'bg-gray-200 dark:bg-gray-700'
+                            settings.accessibility.highContrast
+                              ? "bg-primary-600"
+                              : "bg-gray-200 dark:bg-gray-700"
                           }`}
                         >
                           <span
                             className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
-                              settings.accessibility.highContrast ? 'translate-x-5' : 'translate-x-0'
+                              settings.accessibility.highContrast
+                                ? "translate-x-5"
+                                : "translate-x-0"
                             }`}
                           />
                         </button>
                       </div>
                       <div className="flex items-center justify-between">
                         <div>
-                          <h4 className="text-sm font-medium text-gray-900 dark:text-white">Reduzir Movimento</h4>
-                          <p className="text-sm text-gray-500 dark:text-gray-400">Reduza animações e transições</p>
+                          <h4 className="text-sm font-medium text-gray-900 dark:text-white">
+                            Reduzir Movimento
+                          </h4>
+                          <p className="text-sm text-gray-500 dark:text-gray-400">
+                            Reduza animações e transições
+                          </p>
                         </div>
                         <button
-                          onClick={() => handleAccessibilityChange('reducedMotion', !settings.accessibility.reducedMotion)}
+                          onClick={() =>
+                            handleAccessibilityChange(
+                              "reducedMotion",
+                              !settings.accessibility.reducedMotion
+                            )
+                          }
                           className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 ${
-                            settings.accessibility.reducedMotion ? 'bg-primary-600' : 'bg-gray-200 dark:bg-gray-700'
+                            settings.accessibility.reducedMotion
+                              ? "bg-primary-600"
+                              : "bg-gray-200 dark:bg-gray-700"
                           }`}
                         >
                           <span
                             className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
-                              settings.accessibility.reducedMotion ? 'translate-x-5' : 'translate-x-0'
+                              settings.accessibility.reducedMotion
+                                ? "translate-x-5"
+                                : "translate-x-0"
                             }`}
                           />
                         </button>
@@ -834,23 +1282,31 @@ const Settings = () => {
                   </div>
                 )}
 
-                {activeTab === 'team' && (
+                {activeTab === "team" && (
                   <div>
-                    <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">Equipe</h3>
+                    <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">
+                      Equipe
+                    </h3>
                     <div className="space-y-4">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Membros da Equipe</label>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                          Membros da Equipe
+                        </label>
                         <div className="mt-1">
                           {settings.team.members.length === 0 ? (
-                            <p className="text-sm text-gray-500 dark:text-gray-400">Nenhum membro adicionado</p>
+                            <p className="text-sm text-gray-500 dark:text-gray-400">
+                              Nenhum membro adicionado
+                            </p>
                           ) : (
                             <ul className="divide-y divide-gray-200 dark:divide-gray-700">
                               {settings.team.members.map((member) => (
                                 <li key={member} className="py-2">
                                   <div className="flex items-center justify-between">
-                                    <span className="text-sm text-gray-900 dark:text-white">{member}</span>
+                                    <span className="text-sm text-gray-900 dark:text-white">
+                                      {member}
+                                    </span>
                                     <span className="text-sm text-gray-500 dark:text-gray-400">
-                                      {settings.team.roles[member] || 'Membro'}
+                                      {settings.team.roles[member] || "Membro"}
                                     </span>
                                   </div>
                                 </li>

@@ -1,8 +1,8 @@
-import { useEffect, useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
-import { supabase } from '../../../lib/supabase';
-import { toast } from 'react-hot-toast';
-import { LoadingSpinner } from '../../../components/LoadingSpinner';
+import { useEffect, useState } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { supabase } from "../../../lib/supabase";
+import { toast } from "react-hot-toast";
+import { LoadingSpinner } from "../../../components/LoadingSpinner";
 
 export default function GitHubCallback() {
   const [searchParams] = useSearchParams();
@@ -12,40 +12,72 @@ export default function GitHubCallback() {
   useEffect(() => {
     const handleGitHubCallback = async () => {
       try {
-        const code = searchParams.get('code');
-        const state = searchParams.get('state');
-        const error = searchParams.get('error');
-        const errorDescription = searchParams.get('error_description');
+        const code = searchParams.get("code");
+        const state = searchParams.get("state");
+        const error = searchParams.get("error");
+        const errorDescription = searchParams.get("error_description");
 
         if (error) {
-          throw new Error(errorDescription || 'Erro na autenticação do GitHub');
+          throw new Error(errorDescription || "Erro na autenticação do GitHub");
         }
 
         if (!code) {
-          throw new Error('Código de autenticação não encontrado');
+          throw new Error("Código de autenticação não encontrado");
         }
 
         if (!state) {
-          throw new Error('Estado de segurança não encontrado');
+          throw new Error("Estado de segurança não encontrado");
         }
 
-        const { data, error: authError } = await supabase.auth.exchangeCodeForSession(code);
+        // Verificar se o estado está pendente
+        const pendingState = localStorage.getItem("github_auth_state");
+        if (!pendingState) {
+          throw new Error("Estado de autenticação inválido");
+        }
+
+        const { data, error: authError } =
+          await supabase.auth.exchangeCodeForSession(code);
 
         if (authError) {
           throw authError;
         }
 
         if (!data?.session) {
-          throw new Error('Sessão não criada corretamente');
+          throw new Error("Sessão não criada corretamente");
         }
 
-        toast.success('Login com GitHub realizado com sucesso!');
-        navigate('/');
+        // Limpar o estado pendente
+        localStorage.removeItem("github_auth_state");
+
+        // Verificar se o token do GitHub está presente
+        const githubToken =
+          data.session.provider_token ||
+          data.session.user?.identities?.[0]?.identity_data?.access_token;
+
+        if (!githubToken) {
+          throw new Error("Token do GitHub não encontrado");
+        }
+
+        // Atualizar as configurações do usuário
+        await supabase.auth.updateUser({
+          data: {
+            github_token: githubToken,
+            github_connected: true,
+          },
+        });
+
+        toast.success("Login com GitHub realizado com sucesso!");
+        navigate("/");
       } catch (error) {
-        console.error('Erro ao processar callback do GitHub:', error);
-        setError(error instanceof Error ? error.message : 'Erro ao processar autenticação do GitHub');
-        toast.error('Erro ao processar autenticação do GitHub');
-        setTimeout(() => navigate('/login'), 3000);
+        console.error("Erro ao processar callback do GitHub:", error);
+        setError(
+          error instanceof Error
+            ? error.message
+            : "Erro ao processar autenticação do GitHub"
+        );
+        toast.error("Erro ao processar autenticação do GitHub");
+        localStorage.removeItem("github_auth_state");
+        setTimeout(() => navigate("/login"), 3000);
       }
     };
 
@@ -81,4 +113,4 @@ export default function GitHubCallback() {
       </div>
     </div>
   );
-} 
+}

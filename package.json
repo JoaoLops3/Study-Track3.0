@@ -14,7 +14,7 @@
     "lint": "cd apps/react-app && npm run lint"
   },
   "dependencies": {
-    "@react-oauth/google": "^0.12.1",
+    "@react-oauth/google": "^0.12.2",
     "@tanstack/react-query": "^5.75.4",
     "@types/react-big-calendar": "^1.16.1",
     "date-fns": "^4.1.0",

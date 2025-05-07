@@ -52,6 +52,7 @@
     "react-helmet-async": "^2.0.5",
     "react-hot-toast": "^2.4.1",
     "react-router-dom": "^6.22.1",
+    "resend": "^4.5.1",
     "sonner": "^2.0.3",
     "tailwind-merge": "^3.2.0",
     "uuid": "^9.0.1"
